@@ -13,25 +13,14 @@ import {
   ArrowRight,
   ChevronRight
 } from 'lucide-react';
-import { STRATEGIC_PROGRAMMES_2021_2025, HEALTH_PRIORITIES } from '@epn/domain';
+import { STRATEGIC_PROGRAMMES_2021_2025, HEALTH_PRIORITIES, PROJECT_PROGRAM_MAP, PROJECT_PRIORITY_MAP } from '@epn/domain';
 import { SEED_PROJECTS } from '@epn/db';
-
-// Seed-level classification: project → program area + health priority.
-// Becomes configurable metadata (M1) once programme assignment is editable in /maintenance.
-const PROJECT_PROGRAM_MAP: Record<string, { program: string; priority?: string }> = {
-  ACCESS_II: { program: 'PROG_2' },
-  ACCESS_III: { program: 'PROG_2' },
-  IMPACT: { program: 'PROG_1' },
-  MNCH_FBO: { program: 'PROG_2', priority: 'MNCH_RH' },
-  MINILAB_NET: { program: 'PROG_3', priority: 'IPC_AMR' },
-  SAFER: { program: 'PROG_2', priority: 'IPC_AMR' }
-};
 
 export default function ProgramsPage() {
   const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
 
   const projectsOf = (programCode: string) =>
-    SEED_PROJECTS.filter(p => PROJECT_PROGRAM_MAP[p.code]?.program === programCode);
+    SEED_PROJECTS.filter(p => PROJECT_PROGRAM_MAP[p.code] === programCode);
 
   const priorityName = (code?: string) =>
     code ? HEALTH_PRIORITIES.find(h => h.code === code)?.name ?? 'Cross-cutting' : 'Cross-cutting';
@@ -132,8 +121,7 @@ export default function ProgramsPage() {
         </h2>
         <div className="space-y-2.5">
           {visibleProjects.map(project => {
-            const mapping = PROJECT_PROGRAM_MAP[project.code];
-            const program = STRATEGIC_PROGRAMMES_2021_2025.find(p => p.code === mapping?.program);
+            const program = STRATEGIC_PROGRAMMES_2021_2025.find(p => p.code === PROJECT_PROGRAM_MAP[project.code]);
             return (
               <div
                 key={project.code}
@@ -172,7 +160,7 @@ export default function ProgramsPage() {
                         {project.countries.length} countries
                       </span>
                       <span>
-                        Priority: <span className="font-medium text-slate-700">{priorityName(mapping?.priority)}</span>
+                        Priority: <span className="font-medium text-slate-700">{priorityName(PROJECT_PRIORITY_MAP[project.code])}</span>
                       </span>
                       <span>
                         {project.facilitiesCount} facilities · {project.healthWorkersTrained} trained ·{' '}

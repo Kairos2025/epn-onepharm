@@ -9,8 +9,11 @@ import {
   STRATEGIC_PROGRAMMES_2021_2025,
   IMPLEMENTING_MEMBERS_SEED,
   FUNDERS_SEED,
-  ACCESS_TIERS
+  ACCESS_TIERS,
+  PROJECT_PROGRAM_MAP,
+  PROJECT_PRIORITY_MAP
 } from '@epn/domain';
+import { SEED_PROJECTS } from '@epn/db';
 import {
   Globe,
   TrendingUp,
@@ -25,7 +28,14 @@ import {
   AlertCircle,
   FileText,
   Lock,
-  Sparkles
+  Sparkles,
+  Briefcase,
+  Coins,
+  GraduationCap,
+  Building,
+  Globe2,
+  BarChart3,
+  X
 } from 'lucide-react';
 
 export default function PublicPortalPage() {
@@ -34,6 +44,7 @@ export default function PublicPortalPage() {
   const [selectedCountry, setSelectedCountry] = useState<string>('KE');
   const [memberFilter, setMemberFilter] = useState<string>('ALL');
   const [searchMember, setSearchMember] = useState<string>('');
+  const [openProgram, setOpenProgram] = useState<string | null>(null);
 
   const priorityData = HEALTH_PRIORITIES.find(p => p.code === selectedPriority);
 
@@ -131,6 +142,231 @@ export default function PublicPortalPage() {
               <div className="text-[11px] text-emerald-600 font-medium">Up from 65.0% Baseline</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Our 5 Program Areas with expandable program graph panel */}
+      <section className="py-14 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">
+              {locale === 'en' ? 'How We Work' : 'Notre Approche'}
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mt-1">
+              {locale === 'en' ? 'Our 5 Program Areas' : 'Nos 5 Domaines de Programmes'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              {locale === 'en'
+                ? 'Click a program to open its live overview — projects, budgets, people trained and country reach, all in one view.'
+                : 'Cliquez sur un programme pour ouvrir sa vue d’ensemble — projets, budgets, personnes formées et pays couverts.'}
+            </p>
+          </div>
+
+          {/* Program cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {STRATEGIC_PROGRAMMES_2021_2025.map(program => {
+              const projects = SEED_PROJECTS.filter(p => PROJECT_PROGRAM_MAP[p.code] === program.code);
+              const open = openProgram === program.code;
+              return (
+                <button
+                  key={program.code}
+                  onClick={() => setOpenProgram(open ? null : program.code)}
+                  className={`text-left rounded-xl border p-4 transition-all ${
+                    open
+                      ? 'border-sky-500 bg-sky-50 ring-2 ring-sky-100 shadow-sm'
+                      : 'border-slate-200 bg-white hover:border-sky-300 hover:shadow-md'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      {locale === 'en' ? 'Program' : 'Programme'} {program.sortOrder}
+                    </span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 font-semibold">
+                      {projects.length}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm font-bold text-slate-900 leading-snug">{program.name}</p>
+                  <p className="mt-1.5 text-[11px] text-slate-500 leading-snug line-clamp-3">{program.description}</p>
+                  <span className={`mt-3 inline-flex items-center gap-1 text-[11px] font-semibold ${open ? 'text-sky-700' : 'text-slate-400'}`}>
+                    <BarChart3 className="w-3.5 h-3.5" />
+                    {open ? (locale === 'en' ? 'Close overview' : 'Fermer') : locale === 'en' ? 'Open overview' : 'Ouvrir'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Expanded program overview panel with graphs */}
+          {(() => {
+            const program = STRATEGIC_PROGRAMMES_2021_2025.find(p => p.code === openProgram);
+            if (!program) return null;
+            const projects = SEED_PROJECTS.filter(p => PROJECT_PROGRAM_MAP[p.code] === program.code);
+            const totals = {
+              budget: projects.reduce((s, p) => s + p.budget, 0),
+              facilities: projects.reduce((s, p) => s + p.facilitiesCount, 0),
+              trained: projects.reduce((s, p) => s + p.healthWorkersTrained, 0),
+              countries: new Set(projects.flatMap(p => p.countries))
+            };
+            const maxTrained = Math.max(...projects.map(p => p.healthWorkersTrained), 1);
+            const maxBudget = Math.max(...projects.map(p => p.budget), 1);
+            const priorityName = (code?: string) =>
+              code ? HEALTH_PRIORITIES.find(h => h.code === code)?.name : null;
+            const funders = Array.from(new Set(projects.map(p => p.funder)));
+
+            const kpiTiles = [
+              { label: locale === 'en' ? 'Projects' : 'Projets', value: String(projects.length), icon: Briefcase, color: 'text-sky-600' },
+              { label: 'Budget (USD)', value: `$${totals.budget.toLocaleString()}`, icon: Coins, color: 'text-emerald-600' },
+              { label: locale === 'en' ? 'Facilities reached' : 'Établissements', value: totals.facilities.toLocaleString(), icon: Building, color: 'text-amber-600' },
+              { label: locale === 'en' ? 'People trained' : 'Personnes formées', value: totals.trained.toLocaleString(), icon: GraduationCap, color: 'text-violet-600' },
+              { label: locale === 'en' ? 'Countries' : 'Pays', value: String(totals.countries.size), icon: Globe2, color: 'text-rose-600' }
+            ];
+
+            return (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6 space-y-6">
+                {/* Panel header */}
+                <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-200">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">{program.name}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5 max-w-2xl leading-relaxed">{program.description}</p>
+                  </div>
+                  <button
+                    onClick={() => setOpenProgram(null)}
+                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-white shrink-0"
+                    aria-label="Close program overview"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* KPI tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                  {kpiTiles.map(tile => {
+                    const Icon = tile.icon;
+                    return (
+                      <div key={tile.label} className="bg-white rounded-xl border border-slate-200 p-3.5">
+                        <Icon className={`w-4 h-4 ${tile.color}`} />
+                        <p className="mt-1.5 text-lg font-extrabold text-slate-900 tabular-nums leading-tight">{tile.value}</p>
+                        <p className="text-[10px] text-slate-500 font-medium">{tile.label}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Graphs: people trained + budget per project */}
+                <div className="grid gap-5 lg:grid-cols-2">
+                  <div className="bg-white rounded-xl border border-slate-200 p-4">
+                    <p className="text-xs font-bold text-slate-700 mb-3">
+                      {locale === 'en' ? 'People trained per project' : 'Personnes formées par projet'}
+                    </p>
+                    <div className="space-y-2.5">
+                      {projects.map(p => (
+                        <div key={p.code} className="flex items-center gap-2.5">
+                          <span className="w-28 shrink-0 text-[11px] font-medium text-slate-600 truncate" title={p.name}>
+                            {p.name.split('(')[0]}
+                          </span>
+                          <div className="flex-1 h-3.5 rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-violet-500"
+                              style={{ width: `${(p.healthWorkersTrained / maxTrained) * 100}%` }}
+                            />
+                          </div>
+                          <span className="w-10 text-right text-[11px] font-bold text-slate-900 tabular-nums">
+                            {p.healthWorkersTrained}
+                          </span>
+                        </div>
+                      ))}
+                      {projects.length === 0 && (
+                        <p className="text-xs text-slate-400 italic">
+                          {locale === 'en' ? 'No projects registered yet.' : 'Aucun projet enregistré.'}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-slate-200 p-4">
+                    <p className="text-xs font-bold text-slate-700 mb-3">
+                      {locale === 'en' ? 'Budget per project (USD)' : 'Budget par projet (USD)'}
+                    </p>
+                    <div className="space-y-2.5">
+                      {projects.map(p => (
+                        <div key={p.code} className="flex items-center gap-2.5">
+                          <span className="w-28 shrink-0 text-[11px] font-medium text-slate-600 truncate" title={p.name}>
+                            {p.name.split('(')[0]}
+                          </span>
+                          <div className="flex-1 h-3.5 rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-sky-500"
+                              style={{ width: `${(p.budget / maxBudget) * 100}%` }}
+                            />
+                          </div>
+                          <span className="w-16 text-right text-[11px] font-bold text-slate-900 tabular-nums">
+                            ${Math.round(p.budget / 1000)}k
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Countries, funders, priority areas and register link */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="bg-white rounded-xl border border-slate-200 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                      {locale === 'en' ? 'Countries covered' : 'Pays couverts'}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {totals.countries.size > 0 ? Array.from(totals.countries).map(c => (
+                        <span key={c} className="px-2 py-0.5 rounded-full bg-slate-100 text-[11px] font-medium text-slate-700">
+                          {c}
+                        </span>
+                      )) : (
+                        <span className="text-xs text-slate-400 italic">—</span>
+                      )}
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-3 mb-2">
+                      {locale === 'en' ? 'Health priorities' : 'Priorités de santé'}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(() => {
+                        const priorities = Array.from(new Set(projects.map(p => PROJECT_PRIORITY_MAP[p.code]).filter(Boolean))) as string[];
+                        return priorities.length > 0 ? priorities.map(code => {
+                          const pr = HEALTH_PRIORITIES.find(h => h.code === code);
+                          return (
+                            <span key={code} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ backgroundColor: `${pr?.color}18`, color: pr?.color }}>
+                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: pr?.color }} />
+                              {pr?.name ?? priorityName(code)}
+                            </span>
+                          );
+                        }) : (
+                          <span className="text-[11px] text-slate-500 italic">
+                            {locale === 'en' ? 'Cross-cutting across priorities' : 'Transversal'}
+                          </span>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-slate-200 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                      {locale === 'en' ? 'Funders in this program' : 'Bailleurs de ce programme'}
+                    </p>
+                    <div className="space-y-1.5">
+                      {funders.map(f => (
+                        <div key={f} className="text-[11px] font-medium text-slate-700 leading-snug">{f}</div>
+                      ))}
+                    </div>
+                    <Link
+                      href="/programs"
+                      className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-800"
+                    >
+                      {locale === 'en' ? 'Open full program register' : 'Registre complet des programmes'}
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </section>
 

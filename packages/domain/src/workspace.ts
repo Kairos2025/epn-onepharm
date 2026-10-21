@@ -28,8 +28,7 @@ export interface WorkspaceCategory {
   subs: readonly WorkspaceSubCategory[];
 }
 
-export const START_FROM_ENTRY_POINTS = [
-  { code: 'MEMBER', name: 'Member', href: '/explorer', description: 'Start from a member organization and reach its facilities, projects and funders.' },
+export const START_FROM_ENTRY_POINTS = [  { code: 'MEMBER', name: 'Member', href: '/explorer', description: 'Start from a member organization and reach its facilities, projects and funders.' },
   { code: 'FACILITY', name: 'Health Facility', href: '/explorer', description: 'Start from a facility and reach its member, data and supply indicators.' },
   { code: 'FUNDER', name: 'Funder (Buyer)', href: '/explorer', description: 'Start from a funder and see all funded projects, amounts and periods.' },
   { code: 'PROJECT', name: 'Project', href: '/programs', description: 'Start from a project and see its funder, program and priority area.' }
@@ -148,3 +147,26 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     ]
   }
 ] as const;
+
+/**
+ * Seed-level classification of seeded projects into the 5 official program
+ * areas and the 4 health priority areas. Becomes configurable metadata (M1)
+ * once programme assignment is editable in /maintenance.
+ */
+export const PROJECT_PROGRAM_MAP: Record<string, string> = {
+  ACCESS_II: 'PROG_2',
+  ACCESS_III: 'PROG_2',
+  IMPACT: 'PROG_1',
+  MNCH_FBO: 'PROG_2',
+  MINILAB_NET: 'PROG_3',
+  SAFER: 'PROG_2'
+};
+
+export const PROJECT_PRIORITY_MAP: Record<string, string | undefined> = {
+  ACCESS_II: undefined,
+  ACCESS_III: undefined,
+  IMPACT: undefined,
+  MNCH_FBO: 'MNCH_RH',
+  MINILAB_NET: 'IPC_AMR',
+  SAFER: 'IPC_AMR'
+};

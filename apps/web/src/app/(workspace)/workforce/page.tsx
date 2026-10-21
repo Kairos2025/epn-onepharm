@@ -11,17 +11,8 @@ import {
   Building,
   ArrowRight
 } from 'lucide-react';
-import { STRATEGIC_PROGRAMMES_2021_2025 } from '@epn/domain';
+import { STRATEGIC_PROGRAMMES_2021_2025, PROJECT_PROGRAM_MAP } from '@epn/domain';
 import { SEED_PROJECTS, SEED_COUNTRIES } from '@epn/db';
-
-const PROJECT_PROGRAM_MAP: Record<string, string> = {
-  ACCESS_II: 'PROG_2',
-  ACCESS_III: 'PROG_2',
-  IMPACT: 'PROG_1',
-  MNCH_FBO: 'PROG_2',
-  MINILAB_NET: 'PROG_3',
-  SAFER: 'PROG_2'
-};
 
 const COUNTRY_NAMES: Record<string, string> = Object.fromEntries(
   SEED_COUNTRIES.map(c => [c.code, c.name])
