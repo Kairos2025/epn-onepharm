@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 import {
@@ -20,14 +21,19 @@ import {
   Package
 } from 'lucide-react';
 import { IMPLEMENTING_MEMBERS_SEED, FUNDERS_SEED } from '@epn/domain';
-import { SEED_PROJECTS } from '@epn/db';
+import { SEED_PROJECTS, SEED_COUNTRIES } from '@epn/db';
 
 type TabKind = 'MEMBERS' | 'FACILITIES' | 'PROJECTS' | 'FUNDERS' | 'COVERAGE';
+const TAB_KINDS: readonly TabKind[] = ['MEMBERS', 'FACILITIES', 'PROJECTS', 'FUNDERS', 'COVERAGE'];
 
-export default function ExplorerPage() {
-  const [activeTab, setActiveTab] = useState<TabKind>('MEMBERS');
-  const [selectedMember, setSelectedMember] = useState<string>('CHAK');
-  const [selectedFacility, setSelectedFacility] = useState<string>('Kilome Mission Hospital');
+function ExplorerInner() {
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab') as TabKind | null;
+  const [activeTab, setActiveTab] = useState<TabKind>(
+    requestedTab && TAB_KINDS.includes(requestedTab) ? requestedTab : 'MEMBERS'
+  );
+  const [selectedMember, setSelectedMember] = useState<string>(searchParams.get('member') || 'CHAK');
+  const [selectedFacility, setSelectedFacility] = useState<string>(searchParams.get('fosa') || 'Kilome Mission Hospital');
 
   // Sample facilities
   const facilities = [
@@ -101,7 +107,25 @@ export default function ExplorerPage() {
     }
   ];
 
-  const activeFac = facilities.find(f => f.name === selectedFacility) || facilities[0];
+  const activeFac =
+    facilities.find(f => f.name === selectedFacility) ||
+    facilities.filter(f => f.member === selectedMember)[0] ||
+    facilities[0];
+
+  const memberObj = IMPLEMENTING_MEMBERS_SEED.find(m => m.abbreviation === selectedMember);
+  const memberFacilities = facilities.filter(f => f.member === selectedMember);
+  const countryName = (code: string) => SEED_COUNTRIES.find(c => c.code === code)?.name ?? code;
+
+  const selectMember = (abbr: string) => {
+    setSelectedMember(abbr);
+    const first = facilities.find(f => f.member === abbr);
+    if (first) setSelectedFacility(first.name);
+  };
+
+  const openFosa = (name: string) => {
+    setSelectedFacility(name);
+    setActiveTab('FACILITIES');
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
@@ -110,11 +134,23 @@ export default function ExplorerPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
         {/* Navigation Breadcrumb / Pivot rail */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs flex-wrap">
             <span className="font-semibold text-slate-500 uppercase tracking-wider">Circular Navigation:</span>
-            <span className="font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded">Member: {selectedMember}</span>
+            <button
+              onClick={() => setActiveTab('MEMBERS')}
+              title="Open member view"
+              className="font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded hover:bg-sky-100 transition-colors"
+            >
+              Member: {selectedMember}
+            </button>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">Facility: {activeFac.name}</span>
+            <button
+              onClick={() => setActiveTab('FACILITIES')}
+              title="Open facility brief"
+              className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded hover:bg-slate-200 transition-colors"
+            >
+              Facility: {activeFac.name}
+            </button>
           </div>
 
           {/* Top Tabs */}
@@ -176,7 +212,7 @@ export default function ExplorerPage() {
                 {IMPLEMENTING_MEMBERS_SEED.map(m => (
                   <button
                     key={m.abbreviation + m.country}
-                    onClick={() => setSelectedMember(m.abbreviation)}
+                    onClick={() => selectMember(m.abbreviation)}
                     className={`w-full p-2.5 rounded-lg border text-left text-xs transition-colors flex items-center justify-between ${
                       selectedMember === m.abbreviation
                         ? 'border-sky-600 bg-sky-50 text-sky-900 font-bold'
@@ -197,8 +233,12 @@ export default function ExplorerPage() {
               <div className="flex items-start justify-between pb-4 border-b border-slate-100">
                 <div>
                   <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Member Details</div>
-                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">Christian Health Association of Kenya (CHAK)</h2>
-                  <span className="text-xs text-slate-500">Nairobi, Kenya • Founded 1930 • 580+ Health Facilities</span>
+                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+                    {memberObj?.name ?? selectedMember} ({selectedMember})
+                  </h2>
+                  <span className="text-xs text-slate-500">
+                    {countryName(memberObj?.country ?? '')} • Category: {memberObj?.type ?? 'Member'}
+                  </span>
                 </div>
                 <span className="px-2.5 py-1 text-xs font-bold rounded bg-emerald-100 text-emerald-800">Active Member</span>
               </div>
@@ -207,37 +247,45 @@ export default function ExplorerPage() {
               <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-4 space-y-1.5 text-xs">
                 <span className="font-bold text-amber-900">Strategic Plan Alignment & Priorities:</span>
                 <p className="text-amber-800 leading-relaxed">
-                  CHAK Strategic Plan 2024–2028 is aligned with EPN Core Pharmaceutical Systems strengthening. Dedicated Drug Revolving Fund (DRF) initiative scaled across 120 mission hospitals. Flagged gap: sub-county cold chain distribution in arid Northern Kenya.
+                  {selectedMember === 'CHAK'
+                    ? 'CHAK Strategic Plan 2024–2028 is aligned with EPN Core Pharmaceutical Systems strengthening. Dedicated Drug Revolving Fund (DRF) initiative scaled across 120 mission hospitals. Flagged gap: sub-county cold chain distribution in arid Northern Kenya.'
+                    : `${memberObj?.name ?? selectedMember} participates in the EPN pharmaceutical systems strengthening agenda across its affiliated facilities. Member-level strategic plan details, DRF initiatives and flagged gaps for this chapter are being ingested with the M1 metadata milestone.`}
                 </p>
               </div>
 
               {/* Member facilities */}
               <div>
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Key Member Facilities in EPN Network:</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {facilities.filter(f => f.member === 'CHAK').map(f => (
-                    <div key={f.name} className="p-3 rounded-lg border border-slate-200 hover:border-sky-300 transition-colors">
-                      <div className="flex justify-between items-start">
-                        <span className="font-bold text-xs text-slate-900">{f.name}</span>
-                        <span className="text-[10px] bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-semibold">{f.level}</span>
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                  Key Member Facilities in EPN Network:
+                </h4>
+                {memberFacilities.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {memberFacilities.map(f => (
+                      <div key={f.name} className="p-3 rounded-lg border border-slate-200 hover:border-sky-300 transition-colors">
+                        <div className="flex justify-between items-start">
+                          <span className="font-bold text-xs text-slate-900">{f.name}</span>
+                          <span className="text-[10px] bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-semibold">{f.level}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-2 flex justify-between">
+                          <span>Tracer: <b className="text-emerald-600">{f.tracerAvail}</b></span>
+                          <span>Capacity: {f.beds} Beds</span>
+                        </div>
+                        <button
+                          onClick={() => openFosa(f.name)}
+                          className="text-xs font-semibold text-sky-600 hover:underline mt-2 flex items-center gap-1"
+                        >
+                          <span>Open FOSA Brief</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
                       </div>
-                      <div className="text-[11px] text-slate-500 mt-2 flex justify-between">
-                        <span>Tracer: <b className="text-emerald-600">{f.tracerAvail}</b></span>
-                        <span>Capacity: {f.beds} Beds</span>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setSelectedFacility(f.name);
-                          setActiveTab('FACILITIES');
-                        }}
-                        className="text-xs font-semibold text-sky-600 hover:underline mt-2 flex items-center gap-1"
-                      >
-                        <span>Open FOSA Brief</span>
-                        <ChevronRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3 italic">
+                    Facility master list for {memberObj?.name ?? selectedMember} is being onboarded via the
+                    facility importer (CSV + KMFL mapping). Members currently showing briefs: CHAK, CHAN, CBCHS.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -421,5 +469,19 @@ export default function ExplorerPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ExplorerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center min-h-[50vh] text-sm text-slate-400">
+          Loading explorer
+        </div>
+      }
+    >
+      <ExplorerInner />
+    </Suspense>
   );
 }
