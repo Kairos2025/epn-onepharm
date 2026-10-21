@@ -1,0 +1,13 @@
+node_modules
+.pnpm-store
+dist
+build
+.next
+.turbo
+*.log
+.env
+.env.local
+.DS_Store
+*.tsbuildinfo
+coverage
+data/*.sqlite

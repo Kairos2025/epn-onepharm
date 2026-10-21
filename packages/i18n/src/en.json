@@ -1,0 +1,64 @@
+{
+  "common": {
+    "title": "EPN OnePharm",
+    "subtitle": "Centralized Pharmaceutical Systems Information Platform",
+    "tagline": "Strengthening Church Health Systems Across Africa",
+    "exploreData": "Explore the Data",
+    "requestAccess": "Request Access",
+    "signIn": "Sign In",
+    "language": "Language",
+    "searchPlaceholder": "Search members, facilities, indicators...",
+    "status": "Status",
+    "demoDataNotice": "Demo Data Active - Synthetic records are shown for illustrative purposes"
+  },
+  "metrics": {
+    "members": "Members in Network",
+    "countries": "Countries Reached",
+    "africanCountries": "African Member Nations",
+    "population": "Population Covered",
+    "facilities": "Affiliated Facilities",
+    "tracerAvailability": "Tracer Medicine Availability",
+    "stockoutReduction": "Stock-out Rate Reduction",
+    "healthWorkersTrained": "Health Workers Trained",
+    "drfAccounts": "Active DRF Accounts",
+    "functionalCommittees": "Functional Pharmacy & DTC Committees"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "networkExplorer": "Network Explorer",
+    "dataEntry": "Data Entry",
+    "visualizer": "Data Visualizer",
+    "pivot": "Pivot Tables",
+    "maps": "Thematic Maps",
+    "medstock": "Medstock Inventory",
+    "stories": "Stories & Impact",
+    "reports": "Reports & Scorecards",
+    "maintenance": "Maintenance",
+    "billing": "Subscriptions & Access",
+    "settings": "System Settings"
+  },
+  "priorities": {
+    "title": "Strategic Health Priorities",
+    "mnch": "Maternal, Newborn & Child Health (MNCH/RH)",
+    "ipc": "IPC & Antimicrobial Resistance (AMR)",
+    "ncd": "Non-Communicable Diseases (NCDs)",
+    "ntd": "Neglected Tropical Diseases (NTDs)"
+  },
+  "programmes": {
+    "title": "Strategic Plan Programmes",
+    "training": "Training and Capacity Development",
+    "pharmaSystems": "Pharmaceutical Systems Strengthening",
+    "supplyChain": "Supply Chain & Quality Assurance",
+    "memberEngagement": "Member Engagement & Governance",
+    "partnerships": "Donor Partnerships & Sustainability"
+  },
+  "tiers": {
+    "public": "Public",
+    "registered": "Registered",
+    "basic": "Basic Subscriber",
+    "pro": "Pro Professional",
+    "full": "Full Partner",
+    "upgrade": "Upgrade Access"
+  }
+}

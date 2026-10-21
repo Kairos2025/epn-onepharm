@@ -1,0 +1,64 @@
+{
+  "common": {
+    "title": "EPN OnePharm",
+    "subtitle": "Plateforme Centralisée d'Information des Systèmes Pharmaceutiques",
+    "tagline": "Renforcement des systèmes de santé confessionnels en Afrique",
+    "exploreData": "Explorer les données",
+    "requestAccess": "Demander l'accès",
+    "signIn": "Se connecter",
+    "language": "Langue",
+    "searchPlaceholder": "Rechercher membres, formations sanitaires, indicateurs...",
+    "status": "Statut",
+    "demoDataNotice": "Données de démonstration - Les enregistrements synthétiques sont affichés à des fins d'illustration"
+  },
+  "metrics": {
+    "members": "Membres du réseau",
+    "countries": "Pays touchés",
+    "africanCountries": "Pays membres en Afrique",
+    "population": "Population couverte",
+    "facilities": "Formations sanitaires (FOSA)",
+    "tracerAvailability": "Disponibilité des médicaments traceurs",
+    "stockoutReduction": "Réduction des ruptures de stock",
+    "healthWorkersTrained": "Professionnels de santé formés",
+    "drfAccounts": "Comptes de Fonds de Roulement (FDR)",
+    "functionalCommittees": "Comités DTC et Pharmaceutiques fonctionnels"
+  },
+  "navigation": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "networkExplorer": "Explorateur du réseau",
+    "dataEntry": "Saisie des données",
+    "visualizer": "Visualiseur de données",
+    "pivot": "Tableaux croisés dynamiques",
+    "maps": "Cartes thématiques",
+    "medstock": "Gestion de stock Medstock",
+    "stories": "Récits d'impact",
+    "reports": "Rapports et fiches de score",
+    "maintenance": "Maintenance des métadonnées",
+    "billing": "Abonnements et accès",
+    "settings": "Paramètres système"
+  },
+  "priorities": {
+    "title": "Priorités Sanitaires Stratégiques",
+    "mnch": "Santé Maternelle, Néonatale et Infantile (SMNI/SR)",
+    "ipc": "Prévention des infections et résistance aux antimicrobiens (RAM)",
+    "ncd": "Maladies non transmissibles (MNT)",
+    "ntd": "Maladies tropicales négligées (MTN)"
+  },
+  "programmes": {
+    "title": "Programmes du Plan Stratégique",
+    "training": "Formation et développement des capacités",
+    "pharmaSystems": "Renforcement des systèmes pharmaceutiques",
+    "supplyChain": "Chaîne d'approvisionnement et assurance qualité",
+    "memberEngagement": "Engagement des membres et gouvernance",
+    "partnerships": "Partenariats bailleurs et pérennité"
+  },
+  "tiers": {
+    "public": "Public",
+    "registered": "Inscrit",
+    "basic": "Abonné Standard",
+    "pro": "Professionnel Pro",
+    "full": "Partenaire Intégral",
+    "upgrade": "Mettre à niveau l'accès"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "@epn/sdk",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@epn/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "rimraf": "^6.0.1"
+  }
+}

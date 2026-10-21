@@ -1,0 +1,21 @@
+{
+  "name": "@epn/db",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "seed": "node dist/seed.js",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@epn/domain": "workspace:*",
+    "@epn/periods": "workspace:*",
+    "@epn/expression": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "rimraf": "^6.0.1"
+  }
+}
