@@ -196,7 +196,7 @@ export default function PublicPortalPage() {
             })}
           </div>
 
-          {/* Expanded program overview panel with graphs */}
+          {/* Program modal window: opens on card click, shows combined graph with all data */}
           {(() => {
             const program = STRATEGIC_PROGRAMMES_2021_2025.find(p => p.code === openProgram);
             if (!program) return null;
@@ -208,10 +208,10 @@ export default function PublicPortalPage() {
               countries: new Set(projects.flatMap(p => p.countries))
             };
             const maxTrained = Math.max(...projects.map(p => p.healthWorkersTrained), 1);
+            const maxFacilities = Math.max(...projects.map(p => p.facilitiesCount), 1);
             const maxBudget = Math.max(...projects.map(p => p.budget), 1);
-            const priorityName = (code?: string) =>
-              code ? HEALTH_PRIORITIES.find(h => h.code === code)?.name : null;
             const funders = Array.from(new Set(projects.map(p => p.funder)));
+            const priorities = Array.from(new Set(projects.map(p => PROJECT_PRIORITY_MAP[p.code]).filter(Boolean))) as string[];
 
             const kpiTiles = [
               { label: locale === 'en' ? 'Projects' : 'Projets', value: String(projects.length), icon: Briefcase, color: 'text-sky-600' },
@@ -222,146 +222,156 @@ export default function PublicPortalPage() {
             ];
 
             return (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6 space-y-6">
-                {/* Panel header */}
-                <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-200">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">{program.name}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5 max-w-2xl leading-relaxed">{program.description}</p>
-                  </div>
-                  <button
-                    onClick={() => setOpenProgram(null)}
-                    className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-white shrink-0"
-                    aria-label="Close program overview"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* KPI tiles */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                  {kpiTiles.map(tile => {
-                    const Icon = tile.icon;
-                    return (
-                      <div key={tile.label} className="bg-white rounded-xl border border-slate-200 p-3.5">
-                        <Icon className={`w-4 h-4 ${tile.color}`} />
-                        <p className="mt-1.5 text-lg font-extrabold text-slate-900 tabular-nums leading-tight">{tile.value}</p>
-                        <p className="text-[10px] text-slate-500 font-medium">{tile.label}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Graphs: people trained + budget per project */}
-                <div className="grid gap-5 lg:grid-cols-2">
-                  <div className="bg-white rounded-xl border border-slate-200 p-4">
-                    <p className="text-xs font-bold text-slate-700 mb-3">
-                      {locale === 'en' ? 'People trained per project' : 'Personnes formées par projet'}
-                    </p>
-                    <div className="space-y-2.5">
-                      {projects.map(p => (
-                        <div key={p.code} className="flex items-center gap-2.5">
-                          <span className="w-28 shrink-0 text-[11px] font-medium text-slate-600 truncate" title={p.name}>
-                            {p.name.split('(')[0]}
-                          </span>
-                          <div className="flex-1 h-3.5 rounded-full bg-slate-100 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-violet-500"
-                              style={{ width: `${(p.healthWorkersTrained / maxTrained) * 100}%` }}
-                            />
-                          </div>
-                          <span className="w-10 text-right text-[11px] font-bold text-slate-900 tabular-nums">
-                            {p.healthWorkersTrained}
-                          </span>
-                        </div>
-                      ))}
-                      {projects.length === 0 && (
-                        <p className="text-xs text-slate-400 italic">
-                          {locale === 'en' ? 'No projects registered yet.' : 'Aucun projet enregistré.'}
-                        </p>
-                      )}
+              <div
+                className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
+                onClick={() => setOpenProgram(null)}
+              >
+                <div
+                  className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-[88vh] overflow-y-auto"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {/* Modal header */}
+                  <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-slate-200 px-6 py-4 flex items-start justify-between gap-4 z-10">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600">
+                        {locale === 'en' ? `Program ${program.sortOrder}` : `Programme ${program.sortOrder}`}
+                      </span>
+                      <h3 className="text-lg font-bold text-slate-900 leading-tight">{program.name}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5 max-w-2xl leading-relaxed">{program.description}</p>
                     </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl border border-slate-200 p-4">
-                    <p className="text-xs font-bold text-slate-700 mb-3">
-                      {locale === 'en' ? 'Budget per project (USD)' : 'Budget par projet (USD)'}
-                    </p>
-                    <div className="space-y-2.5">
-                      {projects.map(p => (
-                        <div key={p.code} className="flex items-center gap-2.5">
-                          <span className="w-28 shrink-0 text-[11px] font-medium text-slate-600 truncate" title={p.name}>
-                            {p.name.split('(')[0]}
-                          </span>
-                          <div className="flex-1 h-3.5 rounded-full bg-slate-100 overflow-hidden">
-                            <div
-                              className="h-full rounded-full bg-sky-500"
-                              style={{ width: `${(p.budget / maxBudget) * 100}%` }}
-                            />
-                          </div>
-                          <span className="w-16 text-right text-[11px] font-bold text-slate-900 tabular-nums">
-                            ${Math.round(p.budget / 1000)}k
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Countries, funders, priority areas and register link */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="bg-white rounded-xl border border-slate-200 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                      {locale === 'en' ? 'Countries covered' : 'Pays couverts'}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {totals.countries.size > 0 ? Array.from(totals.countries).map(c => (
-                        <span key={c} className="px-2 py-0.5 rounded-full bg-slate-100 text-[11px] font-medium text-slate-700">
-                          {c}
-                        </span>
-                      )) : (
-                        <span className="text-xs text-slate-400 italic">—</span>
-                      )}
-                    </div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-3 mb-2">
-                      {locale === 'en' ? 'Health priorities' : 'Priorités de santé'}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(() => {
-                        const priorities = Array.from(new Set(projects.map(p => PROJECT_PRIORITY_MAP[p.code]).filter(Boolean))) as string[];
-                        return priorities.length > 0 ? priorities.map(code => {
-                          const pr = HEALTH_PRIORITIES.find(h => h.code === code);
-                          return (
-                            <span key={code} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium" style={{ backgroundColor: `${pr?.color}18`, color: pr?.color }}>
-                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: pr?.color }} />
-                              {pr?.name ?? priorityName(code)}
-                            </span>
-                          );
-                        }) : (
-                          <span className="text-[11px] text-slate-500 italic">
-                            {locale === 'en' ? 'Cross-cutting across priorities' : 'Transversal'}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-xl border border-slate-200 p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                      {locale === 'en' ? 'Funders in this program' : 'Bailleurs de ce programme'}
-                    </p>
-                    <div className="space-y-1.5">
-                      {funders.map(f => (
-                        <div key={f} className="text-[11px] font-medium text-slate-700 leading-snug">{f}</div>
-                      ))}
-                    </div>
-                    <Link
-                      href="/programs"
-                      className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-800"
+                    <button
+                      onClick={() => setOpenProgram(null)}
+                      className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0"
+                      aria-label="Close program overview"
                     >
-                      {locale === 'en' ? 'Open full program register' : 'Registre complet des programmes'}
-                      <ArrowRight className="w-3 h-3" />
-                    </Link>
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    {/* KPI tiles */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {kpiTiles.map(tile => {
+                        const Icon = tile.icon;
+                        return (
+                          <div key={tile.label} className="bg-slate-50 rounded-xl border border-slate-200 p-3.5">
+                            <Icon className={`w-4 h-4 ${tile.color}`} />
+                            <p className="mt-1.5 text-lg font-extrabold text-slate-900 tabular-nums leading-tight">{tile.value}</p>
+                            <p className="text-[10px] text-slate-500 font-medium">{tile.label}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Combined graph: all project metrics in one view */}
+                    <div className="rounded-xl border border-slate-200 p-4">
+                      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <p className="text-xs font-bold text-slate-700">
+                          {locale === 'en' ? 'All project data in one graph' : 'Toutes les données des projets en un graphique'}
+                        </p>
+                        {/* Legend */}
+                        <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-500">
+                          <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-violet-500" />{locale === 'en' ? 'People trained' : 'Formées'}</span>
+                          <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" />{locale === 'en' ? 'Facilities' : 'Établissements'}</span>
+                          <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-sky-500" />Budget ($k)</span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {projects.map(p => (
+                          <div key={p.code} className="pb-3 border-b border-slate-100 last:border-0 last:pb-0">
+                            <div className="flex items-center justify-between gap-2 mb-1.5">
+                              <span className="text-xs font-semibold text-slate-900 truncate" title={p.name}>
+                                {p.name.split('(')[0].trim()}
+                              </span>
+                              <span className="text-[10px] font-medium text-slate-400 shrink-0">{p.countries.join(' · ')}</span>
+                            </div>
+                            <div className="space-y-1.5">
+                              {/* People trained */}
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                  <div className="h-full rounded-full bg-violet-500" style={{ width: `${(p.healthWorkersTrained / maxTrained) * 100}%` }} />
+                                </div>
+                                <span className="w-12 text-right text-[10px] font-bold text-violet-700 tabular-nums">{p.healthWorkersTrained}</span>
+                              </div>
+                              {/* Facilities */}
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                  <div className="h-full rounded-full bg-amber-500" style={{ width: `${(p.facilitiesCount / maxFacilities) * 100}%` }} />
+                                </div>
+                                <span className="w-12 text-right text-[10px] font-bold text-amber-700 tabular-nums">{p.facilitiesCount}</span>
+                              </div>
+                              {/* Budget */}
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                                  <div className="h-full rounded-full bg-sky-500" style={{ width: `${(p.budget / maxBudget) * 100}%` }} />
+                                </div>
+                                <span className="w-12 text-right text-[10px] font-bold text-sky-700 tabular-nums">${Math.round(p.budget / 1000)}k</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {projects.length === 0 && (
+                          <p className="text-xs text-slate-400 italic">
+                            {locale === 'en' ? 'No projects registered in this program yet.' : 'Aucun projet enregistré dans ce programme.'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Countries, priorities, funders + register link */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          {locale === 'en' ? 'Countries covered' : 'Pays couverts'}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {totals.countries.size > 0 ? Array.from(totals.countries).map(c => (
+                            <span key={c} className="px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[11px] font-medium text-slate-700">
+                              {c}
+                            </span>
+                          )) : (
+                            <span className="text-xs text-slate-400 italic">—</span>
+                          )}
+                        </div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-3 mb-2">
+                          {locale === 'en' ? 'Health priorities' : 'Priorités de santé'}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {priorities.length > 0 ? priorities.map(code => {
+                            const pr = HEALTH_PRIORITIES.find(h => h.code === code);
+                            return (
+                              <span key={code} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-white border border-slate-200" style={{ color: pr?.color }}>
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: pr?.color }} />
+                                {pr?.name ?? code}
+                              </span>
+                            );
+                          }) : (
+                            <span className="text-[11px] text-slate-500 italic">
+                              {locale === 'en' ? 'Cross-cutting across priorities' : 'Transversal'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                          {locale === 'en' ? 'Funders in this program' : 'Bailleurs de ce programme'}
+                        </p>
+                        <div className="space-y-1.5">
+                          {funders.map(f => (
+                            <div key={f} className="text-[11px] font-medium text-slate-700 leading-snug">{f}</div>
+                          ))}
+                        </div>
+                        <Link
+                          href="/programs"
+                          className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-800"
+                        >
+                          {locale === 'en' ? 'Open full program register' : 'Registre complet des programmes'}
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
