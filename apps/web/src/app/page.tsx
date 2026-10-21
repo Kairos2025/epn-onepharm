@@ -83,7 +83,21 @@ export default function PublicPortalPage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-white to-slate-50 border-b border-slate-200 py-16 sm:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Background video: EPN online training course, muted autoplay loop */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/hSgiQQ3vEo8?autoplay=1&mute=1&controls=0&loop=1&playlist=hSgiQQ3vEo8&modestbranding=1&playsinline=1&rel=0&disablekb=1&iv_load_policy=3"
+            title="Background video"
+            allow="autoplay; encrypted-media"
+            tabIndex={-1}
+            className="absolute top-1/2 left-1/2 w-full h-full min-w-[177.78vh] min-h-[56.25vw] -translate-x-1/2 -translate-y-1/2"
+            style={{ border: 0 }}
+          />
+          {/* Readability overlay */}
+          <div className="absolute inset-0 bg-white/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/40 to-white/85" />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
