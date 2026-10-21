@@ -3,21 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
-  Activity,
   Grid,
   Search,
   Globe,
   BarChart3,
-  Database,
-  Layers,
-  MapPin,
   Package,
   BookOpen,
-  FileSpreadsheet,
-  Settings,
   CreditCard,
   Network,
-  ShieldCheck,
+  Layers,
+  Building,
   X
 } from 'lucide-react';
 
@@ -28,17 +23,13 @@ interface NavbarProps {
 
 export const APPS_LIST = [
   { name: 'Public Portal', href: '/', icon: Globe, authority: 'None' },
-  { name: 'Dashboard', href: '/dashboard', icon: BarChart3, authority: 'APP_DASHBOARD' },
-  { name: 'Network Explorer', href: '/explorer', icon: Network, authority: 'APP_EXPLORER' },
-  { name: 'Data Entry', href: '/data-entry', icon: Database, authority: 'APP_DATA_ENTRY' },
-  { name: 'Data Visualizer', href: '/visualizer', icon: BarChart3, authority: 'APP_VISUALIZER' },
-  { name: 'Thematic Maps', href: '/maps', icon: MapPin, authority: 'APP_MAPS' },
-  { name: 'Medstock Inventory', href: '/medstock', icon: Package, authority: 'APP_MEDSTOCK' },
-  { name: 'Stories & Impact', href: '/stories', icon: BookOpen, authority: 'APP_STORIES' },
-  { name: 'Reports & Scorecards', href: '/reports', icon: FileSpreadsheet, authority: 'APP_REPORTS' },
-  { name: 'Data Quality & Audit', href: '/quality', icon: ShieldCheck, authority: 'APP_DATA_QUALITY' },
-  { name: 'Subscriptions & Billing', href: '/billing', icon: CreditCard, authority: 'APP_BILLING' },
-  { name: 'Maintenance & Strategy', href: '/maintenance', icon: Settings, authority: 'APP_MAINTENANCE' }
+  { name: 'Membership', href: '/explorer', icon: Network, authority: 'APP_MEMBERSHIP' },
+  { name: 'Projects', href: '/programs', icon: Layers, authority: 'APP_PROJECTS' },
+  { name: 'Health Facilities', href: '/explorer', icon: Building, authority: 'APP_FACILITIES' },
+  { name: 'Medicines & Supply', href: '/medstock', icon: Package, authority: 'APP_MEDICINES' },
+  { name: 'Workforce Data', href: '/workforce', icon: BookOpen, authority: 'APP_WORKFORCE' },
+  { name: 'Financial Data', href: '/billing', icon: CreditCard, authority: 'APP_FINANCIAL' },
+  { name: 'Insights', href: '/dashboard', icon: BarChart3, authority: 'APP_INSIGHTS' }
 ];
 
 export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
