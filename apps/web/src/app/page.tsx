@@ -13,7 +13,7 @@ import {
   PROJECT_PROGRAM_MAP,
   PROJECT_PRIORITY_MAP
 } from '@epn/domain';
-import { SEED_PROJECTS } from '@epn/db';
+import { SEED_PROJECTS, SEED_COUNTRIES } from '@epn/db';
 import {
   Globe,
   TrendingUp,
@@ -35,7 +35,10 @@ import {
   Building,
   Globe2,
   BarChart3,
-  X
+  X,
+  Handshake,
+  MapPin,
+  CalendarClock
 } from 'lucide-react';
 
 export default function PublicPortalPage() {
@@ -45,6 +48,7 @@ export default function PublicPortalPage() {
   const [memberFilter, setMemberFilter] = useState<string>('ALL');
   const [searchMember, setSearchMember] = useState<string>('');
   const [openProgram, setOpenProgram] = useState<string | null>(null);
+  const [openCountry, setOpenCountry] = useState<string | null>(null);
 
   const priorityData = HEALTH_PRIORITIES.find(p => p.code === selectedPriority);
 
@@ -385,6 +389,229 @@ export default function PublicPortalPage() {
                           <ArrowRight className="w-3 h-3" />
                         </Link>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </section>
+
+      {/* Interactive country cards: members, ongoing projects, partners and completed work per area */}
+      <section className="py-14 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="text-center max-w-2xl mx-auto">
+            <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">
+              {locale === 'en' ? 'Where We Work' : 'Où Nous Intervenons'}
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mt-1">
+              {locale === 'en' ? 'Explore the Network by Country' : 'Explorer le Réseau par Pays'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              {locale === 'en'
+                ? 'Click a country card to see its health associations, ongoing projects, partners and completed work — all in one interactive card.'
+                : 'Cliquez sur une carte pays pour voir ses associations de santé, projets en cours, partenaires et projets réalisés.'}
+            </p>
+          </div>
+
+          {/* Country cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {SEED_COUNTRIES.map(country => {
+              const members = IMPLEMENTING_MEMBERS_SEED.filter(m => m.country === country.code);
+              const projects = SEED_PROJECTS.filter(p => p.countries.includes(country.code));
+              const ongoing = projects.filter(p => p.status === 'ACTIVE').length;
+              const done = projects.filter(p => p.status === 'COMPLETED').length;
+              const hasData = members.length > 0 || projects.length > 0;
+              return (
+                <button
+                  key={country.code}
+                  onClick={() => setOpenCountry(country.code)}
+                  className={`text-left rounded-xl border p-3.5 transition-all ${
+                    hasData
+                      ? 'border-slate-200 bg-white hover:border-sky-300 hover:shadow-md'
+                      : 'border-slate-200/60 bg-white/60 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-white">{country.code}</span>
+                    {hasData ? (
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" title={locale === 'en' ? 'Active presence' : 'Présence active'} />
+                    ) : (
+                      <span className="w-2 h-2 rounded-full bg-slate-300" title={locale === 'en' ? 'Mapped, data pending' : 'Cartographié, données à venir'} />
+                    )}
+                  </div>
+                  <p className="mt-2 text-xs font-bold text-slate-900 leading-tight truncate" title={country.name}>{country.name}</p>
+                  <div className="mt-2 flex items-center gap-2.5 text-[10px] text-slate-500">
+                    <span className="inline-flex items-center gap-0.5"><Users className="w-3 h-3" />{members.length}</span>
+                    <span className="inline-flex items-center gap-0.5"><CalendarClock className="w-3 h-3" />{ongoing}</span>
+                    <span className="inline-flex items-center gap-0.5"><CheckCircle2 className="w-3 h-3" />{done}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Country detail modal window */}
+          {(() => {
+            if (!openCountry) return null;
+            const country = SEED_COUNTRIES.find(c => c.code === openCountry);
+            if (!country) return null;
+            const members = IMPLEMENTING_MEMBERS_SEED.filter(m => m.country === country.code);
+            const projects = SEED_PROJECTS.filter(p => p.countries.includes(country.code));
+            const ongoing = projects.filter(p => p.status === 'ACTIVE');
+            const done = projects.filter(p => p.status === 'COMPLETED');
+            const partners = Array.from(new Set(projects.map(p => p.funder)));
+            const facilities = drilldownHospitals[country.code] ?? [];
+
+            const tiles = [
+              { label: locale === 'en' ? 'Health associations' : 'Associations de santé', value: String(members.length), icon: Users, color: 'text-sky-600' },
+              { label: locale === 'en' ? 'Ongoing projects' : 'Projets en cours', value: String(ongoing.length), icon: CalendarClock, color: 'text-amber-600' },
+              { label: locale === 'en' ? 'Projects completed' : 'Projets réalisés', value: String(done.length), icon: CheckCircle2, color: 'text-emerald-600' },
+              { label: locale === 'en' ? 'Partners involved' : 'Partenaires impliqués', value: String(partners.length), icon: Handshake, color: 'text-violet-600' },
+              { label: locale === 'en' ? 'Facilities listed' : 'Établissements listés', value: String(facilities.length), icon: MapPin, color: 'text-rose-600' }
+            ];
+
+            return (
+              <div
+                className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4"
+                onClick={() => setOpenCountry(null)}
+              >
+                <div
+                  className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl border border-slate-200 max-h-[88vh] overflow-y-auto"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {/* Modal header */}
+                  <div className="sticky top-0 bg-white/95 backdrop-blur border-b border-slate-200 px-6 py-4 flex items-start justify-between gap-4 z-10">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-sky-600">
+                        {locale === 'en' ? 'Country overview' : 'Vue par pays'} · {country.code}
+                      </span>
+                      <h3 className="text-lg font-bold text-slate-900 leading-tight">{country.name}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {locale === 'en' ? 'EPN network presence, projects and partners in this area.' : 'Présence du réseau EPN, projets et partenaires dans cette zone.'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setOpenCountry(null)}
+                      className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 shrink-0"
+                      aria-label="Close country overview"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="p-6 space-y-6">
+                    {/* Summary tiles */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {tiles.map(tile => {
+                        const Icon = tile.icon;
+                        return (
+                          <div key={tile.label} className="bg-slate-50 rounded-xl border border-slate-200 p-3.5">
+                            <Icon className={`w-4 h-4 ${tile.color}`} />
+                            <p className="mt-1.5 text-lg font-extrabold text-slate-900 tabular-nums leading-tight">{tile.value}</p>
+                            <p className="text-[10px] text-slate-500 font-medium">{tile.label}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="grid gap-5 lg:grid-cols-2">
+                      {/* Health associations */}
+                      <div className="rounded-xl border border-slate-200 p-4">
+                        <p className="text-xs font-bold text-slate-700 mb-3">
+                          {locale === 'en' ? 'Health associations (members)' : 'Associations de santé (membres)'}
+                        </p>
+                        <div className="space-y-2">
+                          {members.length > 0 ? members.map(m => (
+                            <div key={m.abbreviation} className="flex items-center justify-between gap-2 py-1.5">
+                              <div className="min-w-0">
+                                <span className="text-xs font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded mr-2">{m.abbreviation}</span>
+                                <span className="text-[11px] text-slate-600">{m.name}</span>
+                              </div>
+                              <span className="text-[9px] font-bold uppercase text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded shrink-0">{m.type}</span>
+                            </div>
+                          )) : (
+                            <p className="text-xs text-slate-400 italic">
+                              {locale === 'en' ? 'No member chapter registered yet — mapped for network expansion.' : 'Aucun chapitre membre — cartographié pour l’expansion.'}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Partners */}
+                        <p className="text-xs font-bold text-slate-700 mt-4 mb-2">
+                          {locale === 'en' ? 'Partners & funders' : 'Partenaires et bailleurs'}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {partners.length > 0 ? partners.map(f => (
+                            <span key={f} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-50 text-[10px] font-medium text-violet-700 border border-violet-100">
+                              <Handshake className="w-3 h-3" />
+                              {f}
+                            </span>
+                          )) : (
+                            <span className="text-xs text-slate-400 italic">—</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Projects: ongoing + completed */}
+                      <div className="rounded-xl border border-slate-200 p-4">
+                        <p className="text-xs font-bold text-slate-700 mb-3">
+                          {locale === 'en' ? 'Projects in this area' : 'Projets dans cette zone'}
+                        </p>
+                        {projects.length === 0 && (
+                          <p className="text-xs text-slate-400 italic">
+                            {locale === 'en' ? 'No projects registered in this area yet.' : 'Aucun projet enregistré dans cette zone.'}
+                          </p>
+                        )}
+                        <div className="space-y-2">
+                          {ongoing.map(p => (
+                            <div key={p.code} className="py-1.5 border-b border-slate-100 last:border-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[11px] font-semibold text-slate-900 truncate" title={p.name}>{p.name}</span>
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 shrink-0">{locale === 'en' ? 'ONGOING' : 'EN COURS'}</span>
+                              </div>
+                              <span className="text-[10px] text-slate-500">{p.funder} · {p.healthWorkersTrained} {locale === 'en' ? 'trained' : 'formés'} · ${Math.round(p.budget / 1000)}k</span>
+                            </div>
+                          ))}
+                          {done.map(p => (
+                            <div key={p.code} className="py-1.5 border-b border-slate-100 last:border-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[11px] font-semibold text-slate-500 truncate" title={p.name}>{p.name}</span>
+                                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">{locale === 'en' ? 'DONE' : 'RÉALISÉ'}</span>
+                              </div>
+                              <span className="text-[10px] text-slate-500">{p.funder} · {p.healthWorkersTrained} {locale === 'en' ? 'trained' : 'formés'} · ${Math.round(p.budget / 1000)}k</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Facilities + full register link */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-xs font-bold text-slate-700 mb-3">
+                        {locale === 'en' ? 'Featured health facilities' : 'Établissements de santé phares'}
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {facilities.map((h, idx) => (
+                          <div key={idx} className="bg-white rounded-lg border border-slate-200 p-3">
+                            <p className="text-[11px] font-bold text-slate-900 leading-tight">{h.name}</p>
+                            <p className="mt-1 text-[10px] text-slate-500">{h.member} · {h.beds} beds · {h.availability}</p>
+                          </div>
+                        ))}
+                        {facilities.length === 0 && (
+                          <p className="text-xs text-slate-400 italic sm:col-span-3">
+                            {locale === 'en' ? 'Full facility master list for this country is being onboarded (CSV import).' : 'La liste complète des établissements pour ce pays est en cours d’intégration.'}
+                          </p>
+                        )}
+                      </div>
+                      <Link
+                        href="/explorer"
+                        className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 hover:text-sky-800"
+                      >
+                        {locale === 'en' ? 'Open network explorer' : 'Ouvrir l’explorateur du réseau'}
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
                     </div>
                   </div>
                 </div>
