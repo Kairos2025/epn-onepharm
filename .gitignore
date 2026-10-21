@@ -11,3 +11,6 @@ build
 *.tsbuildinfo
 coverage
 data/*.sqlite
+
+.vercel
+.env*
