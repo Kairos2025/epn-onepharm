@@ -9,18 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@epn/db": "workspace:*",
     "@epn/domain": "workspace:*",
-    "@epn/periods": "workspace:*",
     "@epn/expression": "workspace:*",
     "@epn/i18n": "workspace:*",
-    "@epn/ui": "workspace:*",
-    "@epn/db": "workspace:*",
+    "@epn/periods": "workspace:*",
     "@epn/sdk": "workspace:*",
+    "@epn/ui": "workspace:*",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.16.0",
     "next": "^15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "lucide-react": "^1.16.0",
-    "clsx": "^2.1.1",
+    "react-simple-maps": "^5.0.5",
     "tailwind-merge": "^3.0.2"
   },
   "devDependencies": {

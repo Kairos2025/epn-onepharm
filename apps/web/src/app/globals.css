@@ -17,3 +17,13 @@ body {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Africa choropleth hover styles (react-simple-maps v5 uses CSS states) */
+.epn-geo-clickable {
+  cursor: pointer;
+}
+.epn-geo-clickable:hover {
+  fill: #0ea5e9 !important;
+  stroke: #0284c7;
+  stroke-width: 0.6;
+}

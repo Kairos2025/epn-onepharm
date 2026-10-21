@@ -2,8 +2,14 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { HeroBackground } from '@/components/HeroBackground';
+
+const AfricaMap = dynamic(
+  () => import('@/components/AfricaMap').then(m => m.AfricaMap),
+  { ssr: false, loading: () => <div className="h-80 animate-pulse bg-slate-100 rounded-xl" /> }
+);
 import {
   NETWORK_STATISTICS,
   HEALTH_PRIORITIES,
@@ -451,11 +457,6 @@ export default function PublicPortalPage() {
 
           {/* Network map window: interactive pin map showing the whole network */}
           {mapOpen && (() => {
-            const bounds = { minLng: -20, maxLng: 55, minLat: -35, maxLat: 40 };
-            const posFor = (lat: number, lng: number) => ({
-              left: `${((lng - bounds.minLng) / (bounds.maxLng - bounds.minLng)) * 100}%`,
-              top: `${((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * 100}%`
-            });
             const presenceCountries = SEED_COUNTRIES.filter(c =>
               IMPLEMENTING_MEMBERS_SEED.some(m => m.country === c.code) ||
               SEED_PROJECTS.some(p => p.countries.includes(c.code))
@@ -512,60 +513,20 @@ export default function PublicPortalPage() {
                       ))}
                     </div>
 
-                    {/* Map canvas (equirectangular projection from seed lat/lng) */}
-                    <div
-                      className="relative w-full aspect-[4/3] rounded-xl border border-slate-200 overflow-hidden"
-                      style={{
-                        backgroundColor: '#e8f4f8',
-                        backgroundImage:
-                          'linear-gradient(rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.18) 1px, transparent 1px)',
-                        backgroundSize: '12.5% 12.5%'
+                    {/* Interactive Africa choropleth (real borders, shaded by presence) */}
+                    <AfricaMap
+                      onPick={code => {
+                        setOpenCountry(code);
+                        setMapOpen(false);
                       }}
-                    >
-                      {SEED_COUNTRIES.map(country => {
-                        const members = IMPLEMENTING_MEMBERS_SEED.filter(m => m.country === country.code).length;
-                        const countryProjects = SEED_PROJECTS.filter(p => p.countries.includes(country.code));
-                        const ongoing = countryProjects.filter(p => p.status === 'ACTIVE').length;
-                        const done = countryProjects.filter(p => p.status === 'COMPLETED').length;
-                        const hasData = members > 0 || countryProjects.length > 0;
-                        const weight = countryProjects.length;
-                        const { left, top } = posFor(country.lat, country.lng);
-                        const size = hasData ? (weight >= 4 ? 'w-4 h-4' : weight >= 2 ? 'w-3.5 h-3.5' : 'w-3 h-3') : 'w-2 h-2';
-                        return (
-                          <button
-                            key={country.code}
-                            onClick={() => {
-                              setOpenCountry(country.code);
-                              setMapOpen(false);
-                            }}
-                            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group"
-                            style={{ left, top }}
-                            title={`${country.name} — ${members} ${locale === 'en' ? 'members' : 'membres'} · ${ongoing} ${locale === 'en' ? 'ongoing' : 'en cours'} · ${done} ${locale === 'en' ? 'done' : 'réalisés'}`}
-                          >
-                            <span className={`relative rounded-full ${size} ${hasData ? 'bg-emerald-500 ring-2 ring-white shadow' : 'bg-slate-300'} transition-transform group-hover:scale-150`}>
-                              {ongoing > 0 && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-white" />}
-                            </span>
-                            {hasData && (
-                              <span className="mt-0.5 px-1 py-0.5 rounded bg-white/90 border border-slate-200 text-[9px] font-bold text-slate-700 shadow-sm group-hover:bg-sky-600 group-hover:text-white group-hover:border-sky-600">
-                                {country.code}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-
-                      {/* Watermark stats */}
-                      <div className="absolute bottom-3 left-3 bg-white/85 backdrop-blur rounded-lg border border-slate-200 px-3 py-2 text-[10px] font-semibold text-slate-600">
-                        300M {locale === 'en' ? 'people · 25,000 facilities · represented by pins below/beside their true coordinates' : 'personnes · 25 000 établissements · repères aux coordonnées réelles'}
-                      </div>
-                    </div>
+                    />
 
                     {/* Legend */}
                     <div className="flex flex-wrap items-center gap-4 text-[10px] font-medium text-slate-500">
-                      <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />{locale === 'en' ? 'Active presence (members/projects)' : 'Présence active'}</span>
-                      <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" />{locale === 'en' ? 'Has ongoing project(s)' : 'Projets en cours'}</span>
-                      <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-300" />{locale === 'en' ? 'Mapped, data pending' : 'Cartographié, données à venir'}</span>
-                      <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-slate-200" />{locale === 'en' ? 'Bigger pin = more projects' : 'Repère plus grand = plus de projets'}</span>
+                      <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500" />{locale === 'en' ? 'Network presence (darker green = more projects)' : 'Présence du réseau (vert foncé = plus de projets)'}</span>
+                      <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-slate-100 border border-slate-200" />{locale === 'en' ? 'Mapped, data pending' : 'Cartographié, données à venir'}</span>
+                      <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-slate-300" />{locale === 'en' ? 'Outside current network data' : 'Hors données du réseau'}</span>
+                      <span className="inline-flex items-center gap-1.5">{locale === 'en' ? 'Hover highlights a country — click opens its full window' : 'Survolez un pays — cliquez pour ouvrir sa fenêtre'}</span>
                     </div>
                   </div>
                 </div>
