@@ -36,6 +36,10 @@ function ExplorerInner() {
   const [selectedFacility, setSelectedFacility] = useState<string>(searchParams.get('fosa') || 'Kilome Mission Hospital');
   const [directoryQuery, setDirectoryQuery] = useState('');
   const [directoryCategory, setDirectoryCategory] = useState<string>('ALL');
+  const [fosaQuery, setFosaQuery] = useState('');
+  const [fosaClass, setFosaClass] = useState<string>('ALL');
+  const [fosaMemberFilter, setFosaMemberFilter] = useState<string>('ALL');
+  const [fosaGovernanceFilter, setFosaGovernanceFilter] = useState<'ALL' | 'COMPLIANT' | 'ATTENTION'>('ALL');
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') as TabKind | null;
@@ -121,6 +125,40 @@ function ExplorerInner() {
       stockoutDays: 1,
       medstockActive: true,
       lastUpdate: '2026-10-17'
+    },
+    {
+      id: 'fac5',
+      name: 'Bunia Evangelical Health Centre',
+      member: 'CECA 20',
+      country: 'CD',
+      level: 'HEALTH_CENTRE',
+      beds: 48,
+      catchment: 42000,
+      services: ['Outpatient', 'Maternity', 'Immunization', 'Essential Pharmacy'],
+      dtc: true,
+      ipc: true,
+      drf: false,
+      tracerAvail: '84.0%',
+      stockoutDays: 4,
+      medstockActive: true,
+      lastUpdate: '2026-10-14'
+    },
+    {
+      id: 'fac6',
+      name: 'Tenwek Community Dispensary',
+      member: 'CHAK',
+      country: 'KE',
+      level: 'DISPENSARY',
+      beds: 8,
+      catchment: 15000,
+      services: ['Primary Care', 'MCH', 'Dispensary'],
+      dtc: false,
+      ipc: true,
+      drf: true,
+      tracerAvail: '91.5%',
+      stockoutDays: 2,
+      medstockActive: false,
+      lastUpdate: '2026-10-12'
     }
   ];
 
@@ -162,6 +200,37 @@ function ExplorerInner() {
     selectMember(abbr);
     setActiveTab('MEMBERS');
   };
+
+  const filteredFacilities = useMemo(() => {
+    const q = fosaQuery.trim().toLowerCase();
+    return facilities.filter(f => {
+      const matchesClass = fosaClass === 'ALL' || f.level === fosaClass;
+      const matchesMember = fosaMemberFilter === 'ALL' || f.member === fosaMemberFilter;
+      const fullGov = f.dtc && f.ipc && f.drf;
+      const matchesGov =
+        fosaGovernanceFilter === 'ALL' ||
+        (fosaGovernanceFilter === 'COMPLIANT' && fullGov) ||
+        (fosaGovernanceFilter === 'ATTENTION' && !fullGov);
+      const matchesQuery =
+        !q ||
+        f.name.toLowerCase().includes(q) ||
+        f.member.toLowerCase().includes(q) ||
+        f.country.toLowerCase().includes(q) ||
+        f.services.some(s => s.toLowerCase().includes(q));
+      return matchesClass && matchesMember && matchesGov && matchesQuery;
+    });
+  }, [fosaQuery, fosaClass, fosaMemberFilter, fosaGovernanceFilter]);
+
+  const fosaClassCounts = useMemo(
+    () => ({
+      REFERRAL_HOSPITAL: facilities.filter(f => f.level === 'REFERRAL_HOSPITAL').length,
+      HOSPITAL: facilities.filter(f => f.level === 'HOSPITAL').length,
+      HEALTH_CENTRE: facilities.filter(f => f.level === 'HEALTH_CENTRE').length,
+      DISPENSARY: facilities.filter(f => f.level === 'DISPENSARY').length,
+      COMPLIANT: facilities.filter(f => f.dtc && f.ipc && f.drf).length
+    }),
+    []
+  );
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
@@ -466,8 +535,160 @@ function ExplorerInner() {
           </div>
         )}
 
-        {/* Tab 2: FOSA Facility Brief (Section 8.7) */}
+        {/* Tab 2: FOSA Classification & Facility Brief (Section 8.7) */}
         {activeTab === 'FACILITIES' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">FOSA Classification Matrix</div>
+                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+                    Classify All Health Facilities (FOSAs) by Level, Member &amp; Governance
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Filter FOSAs by facility tier (Referral Hospital, Hospital, Health Centre, Dispensary), supporting member association, or DTC/IPC/DRF governance compliance.
+                  </p>
+                </div>
+                <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 shrink-0">
+                  Showing {filteredFacilities.length} of {facilities.length} seeded FOSAs
+                </span>
+              </div>
+
+              {/* Classification Tier Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                {(
+                  [
+                    { key: 'REFERRAL_HOSPITAL', label: 'Referral Hospital', count: fosaClassCounts.REFERRAL_HOSPITAL },
+                    { key: 'HOSPITAL', label: 'Hospital', count: fosaClassCounts.HOSPITAL },
+                    { key: 'HEALTH_CENTRE', label: 'Health Centre', count: fosaClassCounts.HEALTH_CENTRE },
+                    { key: 'DISPENSARY', label: 'Dispensary', count: fosaClassCounts.DISPENSARY }
+                  ] as const
+                ).map(tier => (
+                  <button
+                    key={tier.key}
+                    onClick={() => setFosaClass(prev => (prev === tier.key ? 'ALL' : tier.key))}
+                    className={`p-3 rounded-lg border text-left transition-colors ${
+                      fosaClass === tier.key
+                        ? 'border-sky-600 bg-sky-50'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="text-[10px] font-bold text-slate-500 uppercase">{tier.label}</div>
+                    <div className="text-lg font-extrabold text-slate-900">{tier.count}</div>
+                  </button>
+                ))}
+                <button
+                  onClick={() => setFosaGovernanceFilter(prev => (prev === 'COMPLIANT' ? 'ALL' : 'COMPLIANT'))}
+                  className={`p-3 rounded-lg border text-left transition-colors ${
+                    fosaGovernanceFilter === 'COMPLIANT'
+                      ? 'border-emerald-600 bg-emerald-50'
+                      : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="text-[10px] font-bold text-emerald-700 uppercase">Full DTC+IPC+DRF</div>
+                  <div className="text-lg font-extrabold text-emerald-800">{fosaClassCounts.COMPLIANT}</div>
+                </button>
+              </div>
+
+              {/* Filters */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+                <div className="relative sm:col-span-2">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={fosaQuery}
+                    onChange={e => setFosaQuery(e.target.value)}
+                    placeholder="Search FOSA name, member, country, or service..."
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <select
+                  aria-label="Filter by member association"
+                  value={fosaMemberFilter}
+                  onChange={e => setFosaMemberFilter(e.target.value)}
+                  className="p-2 rounded-lg border border-slate-200 bg-white font-medium text-slate-700"
+                >
+                  <option value="ALL">All Member Associations</option>
+                  <option value="CHAK">CHAK (Kenya)</option>
+                  <option value="CHAN">CHAN (Nigeria)</option>
+                  <option value="CBCHS">CBCHS (Cameroon)</option>
+                  <option value="CECA 20">CECA 20 (DR Congo)</option>
+                </select>
+                <select
+                  aria-label="Filter by governance compliance"
+                  value={fosaGovernanceFilter}
+                  onChange={e => setFosaGovernanceFilter(e.target.value as 'ALL' | 'COMPLIANT' | 'ATTENTION')}
+                  className="p-2 rounded-lg border border-slate-200 bg-white font-medium text-slate-700"
+                >
+                  <option value="ALL">All Governance Tiers</option>
+                  <option value="COMPLIANT">Full DTC + IPC + DRF</option>
+                  <option value="ATTENTION">Needs Governance Action</option>
+                </select>
+              </div>
+
+              {/* Classified FOSA Table */}
+              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3">FOSA Name</th>
+                      <th className="py-2.5 px-3">Class / Tier</th>
+                      <th className="py-2.5 px-3">Member</th>
+                      <th className="py-2.5 px-3">Beds / Catchment</th>
+                      <th className="py-2.5 px-3">Governance (DTC/IPC/DRF)</th>
+                      <th className="py-2.5 px-3">Tracer %</th>
+                      <th className="py-2.5 px-3 text-right">Brief</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredFacilities.map(f => (
+                      <tr
+                        key={f.id}
+                        className={`hover:bg-slate-50/80 ${activeFac.id === f.id ? 'bg-sky-50/60' : ''}`}
+                      >
+                        <td className="py-2.5 px-3 font-bold text-slate-900">{f.name}</td>
+                        <td className="py-2.5 px-3">
+                          <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-semibold text-[10px]">
+                            {f.level}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-700 font-medium">
+                          {f.member} ({f.country})
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {f.beds} beds · {f.catchment.toLocaleString()}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-1 text-[10px] font-bold">
+                            <span className={`px-1.5 py-0.5 rounded ${f.dtc ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>DTC</span>
+                            <span className={`px-1.5 py-0.5 rounded ${f.ipc ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>IPC</span>
+                            <span className={`px-1.5 py-0.5 rounded ${f.drf ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'}`}>DRF</span>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-emerald-700">{f.tracerAvail}</td>
+                        <td className="py-2.5 px-3 text-right">
+                          <button
+                            onClick={() => setSelectedFacility(f.name)}
+                            className="inline-flex items-center gap-1 text-sky-700 hover:text-sky-900 font-semibold"
+                          >
+                            <span>{activeFac.id === f.id ? 'Viewing' : 'Open Brief'}</span>
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredFacilities.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="py-6 text-center text-slate-400">
+                          No FOSAs match the selected classification filters.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
               <div>
@@ -548,6 +769,7 @@ function ExplorerInner() {
                 </div>
               </div>
             </div>
+          </div>
           </div>
         )}
 

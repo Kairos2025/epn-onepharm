@@ -1010,7 +1010,8 @@ class EpnDatabase {
     issuedDate: string,
     nextStatus: MemberRecordDetail['invoice2027']['status'] = 'ISSUED',
     actorId = 'membership_intern',
-    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+    actorRole: EpnActorRole = 'EPN_COORDINATOR',
+    sentToEmail?: string
   ): MemberRecordDetail | undefined {
     const rec = this.state.memberRecords.find(r => r.id === memberId || r.code === memberId);
     if (!rec) return undefined;
@@ -1019,13 +1020,76 @@ class EpnDatabase {
       ...rec.invoice2027,
       status: nextStatus,
       invoiceNo: invoiceNo || rec.invoice2027.invoiceNo || `INV-2027-${rec.code}`,
-      issuedDate: issuedDate || rec.invoice2027.issuedDate || new Date().toISOString().slice(0, 10)
+      issuedDate: issuedDate || rec.invoice2027.issuedDate || new Date().toISOString().slice(0, 10),
+      ...(sentToEmail ? { sentToEmail, sentAt: new Date().toISOString().slice(0, 10) } : {})
+    };
+    const sentNote = sentToEmail ? ` & dispatched to ${sentToEmail}` : '';
+    rec.changeHistory.unshift({
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      note: `2027 invoice ${rec.invoice2027.invoiceNo} marked ${nextStatus}${sentNote} by ${actorId}`
+    });
+    this.appendAudit(actorId, actorRole, 'UPDATE_MEMBER_INVOICE_2027', 'SHARING_POLICY', rec.code, nextStatus, prev);
+    this.saveToDisk();
+    return rec;
+  }
+
+  public updateMemberContacts(
+    memberId: string,
+    payload: {
+      primaryEmail?: string;
+      financeEmail?: string;
+      phone?: string;
+      referencePeople?: Array<{ name: string; role: string; email?: string; phone?: string }>;
+    },
+    actorId = 'membership_intern',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): MemberRecordDetail | undefined {
+    const rec = this.state.memberRecords.find(r => r.id === memberId || r.code === memberId);
+    if (!rec) return undefined;
+    const today = new Date().toISOString().slice(0, 10);
+    rec.contacts = {
+      primaryEmail: payload.primaryEmail ?? rec.contacts?.primaryEmail ?? '',
+      financeEmail: payload.financeEmail ?? rec.contacts?.financeEmail ?? '',
+      phone: payload.phone ?? rec.contacts?.phone ?? '',
+      referencePeople: payload.referencePeople ?? rec.contacts?.referencePeople ?? [],
+      lastVerifiedDate: today,
+      lastReminderSentDate: rec.contacts?.lastReminderSentDate
+    };
+    rec.missingFields = rec.missingFields.filter(
+      f => !f.toLowerCase().includes('contact') && !f.toLowerCase().includes('finance')
+    );
+    rec.completenessPct = Math.min(100, Math.max(rec.completenessPct, rec.contacts.financeEmail ? 95 : 88));
+    rec.changeHistory.unshift({
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      note: `Contacts & ${rec.contacts.referencePeople.length} reference person(s) verified by ${actorId}`
+    });
+    this.appendAudit(actorId, actorRole, 'UPDATE_MEMBER_CONTACTS', 'SHARING_POLICY', rec.code, today);
+    this.saveToDisk();
+    return rec;
+  }
+
+  public sendMemberDataReminder(
+    memberId: string,
+    payload: { toEmail: string; subject: string; message: string },
+    actorId = 'membership_intern',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): MemberRecordDetail | undefined {
+    const rec = this.state.memberRecords.find(r => r.id === memberId || r.code === memberId);
+    if (!rec) return undefined;
+    const today = new Date().toISOString().slice(0, 10);
+    rec.contacts = {
+      primaryEmail: rec.contacts?.primaryEmail ?? payload.toEmail,
+      financeEmail: rec.contacts?.financeEmail ?? '',
+      phone: rec.contacts?.phone ?? '',
+      referencePeople: rec.contacts?.referencePeople ?? [],
+      lastVerifiedDate: rec.contacts?.lastVerifiedDate,
+      lastReminderSentDate: today
     };
     rec.changeHistory.unshift({
       date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-      note: `2027 invoice ${rec.invoice2027.invoiceNo} marked ${nextStatus} by ${actorId}`
+      note: `Data & contact update reminder sent to ${payload.toEmail} (${payload.subject})`
     });
-    this.appendAudit(actorId, actorRole, 'UPDATE_MEMBER_INVOICE_2027', 'SHARING_POLICY', rec.code, nextStatus, prev);
+    this.appendAudit(actorId, actorRole, 'SEND_MEMBER_REMINDER', 'SHARING_POLICY', rec.code, payload.toEmail);
     this.saveToDisk();
     return rec;
   }

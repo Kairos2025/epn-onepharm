@@ -24,6 +24,16 @@ export const SEED_MEMBER_RECORDS: MemberRecordDetail[] = [
       status: 'PENDING',
       amountUsd: 350
     },
+    contacts: {
+      primaryEmail: 'coordination@ceca20-sante.org',
+      financeEmail: '',
+      phone: '+243 81 000 2020',
+      referencePeople: [
+        { name: 'Dr. Jean-Luc Mugisha', role: 'Health Coordinator (Focal Point)', email: 'coordination@ceca20-sante.org', phone: '+243 81 000 2020' },
+        { name: 'Sr. Marie-Claire Kavira', role: 'Chief Pharmacist', email: 'pharmacie@ceca20-sante.org' }
+      ],
+      lastVerifiedDate: '2025-10-12'
+    },
     changeHistory: [
       { date: '18 Nov 2026', note: 'Record opened by Membership Intern' },
       { date: 'Oct 2026', note: 'Welcomed at AGM 2026 as new Ordinary member' },
@@ -48,6 +58,15 @@ export const SEED_MEMBER_RECORDS: MemberRecordDetail[] = [
       status: 'PENDING',
       amountUsd: 500
     },
+    contacts: {
+      primaryEmail: 'partnerships@cmmb.org',
+      financeEmail: 'ap-grants@cmmb.org',
+      phone: '+1 212 242 7757',
+      referencePeople: [
+        { name: 'Dr. Grace Mwangi', role: 'Global Supply Chain Lead (Reference Person)', email: 'gmwangi@cmmb.org' }
+      ],
+      lastVerifiedDate: '2026-02-15'
+    },
     changeHistory: [
       { date: 'Feb 2026', note: 'Membership approved by the Board (HSS Ordinary)' }
     ]
@@ -70,7 +89,19 @@ export const SEED_MEMBER_RECORDS: MemberRecordDetail[] = [
       status: 'ISSUED',
       invoiceNo: 'INV-2027-001',
       issuedDate: '2026-11-18',
-      amountUsd: 750
+      amountUsd: 750,
+      sentToEmail: 'finance@chak.or.ke',
+      sentAt: '2026-11-18'
+    },
+    contacts: {
+      primaryEmail: 'secretariat@chak.or.ke',
+      financeEmail: 'finance@chak.or.ke',
+      phone: '+254 20 444 1920',
+      referencePeople: [
+        { name: 'Dr. Samuel Mwenda', role: 'General Secretary', email: 'secretariat@chak.or.ke', phone: '+254 20 444 1920' },
+        { name: 'Pharm. Lydia Njeri', role: 'Pharmaceutical Systems Focal Point', email: 'pharmacy@chak.or.ke' }
+      ],
+      lastVerifiedDate: '2026-10-20'
     },
     changeHistory: [
       { date: '18 Nov 2026', note: '2027 draft fee statement prepared' },

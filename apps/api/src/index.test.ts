@@ -186,12 +186,44 @@ describe('EPN One Network End-to-End API Workflows', () => {
     const invRes = await fetch(`${baseUrl}/membership/records/mem_ceca20/invoice`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-epn-role': 'EPN_COORDINATOR' },
-      body: JSON.stringify({ invoiceNo: 'INV-2027-014', issuedDate: '2027-01-05', status: 'ISSUED' })
+      body: JSON.stringify({
+        invoiceNo: 'INV-2027-014',
+        issuedDate: '2027-01-05',
+        status: 'ISSUED',
+        sentToEmail: 'finance@ceca20-sante.org'
+      })
     });
     assert.strictEqual(invRes.status, 200);
     const rec = await invRes.json();
     assert.strictEqual(rec.invoice2027.status, 'ISSUED');
     assert.strictEqual(rec.invoice2027.invoiceNo, 'INV-2027-014');
+    assert.strictEqual(rec.invoice2027.sentToEmail, 'finance@ceca20-sante.org');
+
+    const contactRes = await fetch(`${baseUrl}/membership/records/mem_ceca20/contacts`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-epn-role': 'EPN_COORDINATOR' },
+      body: JSON.stringify({
+        primaryEmail: 'coordination@ceca20-sante.org',
+        financeEmail: 'finance@ceca20-sante.org',
+        referencePeople: [{ name: 'Dr. Jean-Luc Mugisha', role: 'Focal Point', email: 'coordination@ceca20-sante.org' }]
+      })
+    });
+    assert.strictEqual(contactRes.status, 200);
+    const updatedContactRec = await contactRes.json();
+    assert.strictEqual(updatedContactRec.contacts.financeEmail, 'finance@ceca20-sante.org');
+
+    const remindRes = await fetch(`${baseUrl}/membership/records/mem_ceca20/remind`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-epn-role': 'EPN_COORDINATOR' },
+      body: JSON.stringify({
+        toEmail: 'coordination@ceca20-sante.org',
+        subject: 'Annual Contact Update Reminder',
+        message: 'Please confirm your reference people.'
+      })
+    });
+    assert.strictEqual(remindRes.status, 200);
+    const remindedRec = await remindRes.json();
+    assert.ok(remindedRec.contacts.lastReminderSentDate);
   });
 
   it('closes test server', async () => {

@@ -11,7 +11,12 @@ import {
   Calendar,
   ShieldCheck,
   Building2,
-  Globe
+  Globe,
+  Mail,
+  Send,
+  UserCheck,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import type {
   MembershipDashboardData,
@@ -33,7 +38,19 @@ export default function MembershipPage() {
   const [recordSubTab, setRecordSubTab] = useState<RecordSubTab>('SUBSCRIPTION');
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10));
   const [invoiceNo, setInvoiceNo] = useState('INV-2027-014');
+  const [invoiceRecipientEmail, setInvoiceRecipientEmail] = useState('');
   const [savingInvoice, setSavingInvoice] = useState(false);
+  const [contactPrimaryEmail, setContactPrimaryEmail] = useState('');
+  const [contactFinanceEmail, setContactFinanceEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [referencePeople, setReferencePeople] = useState<
+    Array<{ name: string; role: string; email?: string; phone?: string }>
+  >([]);
+  const [reminderToEmail, setReminderToEmail] = useState('');
+  const [reminderSubject, setReminderSubject] = useState('');
+  const [reminderBody, setReminderBody] = useState('');
+  const [savingContacts, setSavingContacts] = useState(false);
+  const [sendingReminder, setSendingReminder] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
@@ -56,22 +73,91 @@ export default function MembershipPage() {
   const activeRecord: MemberRecordDetail | undefined =
     data?.records.find(r => r.id === selectedRecordId) || data?.records[0];
 
-  const handleInvoiceStep = async (nextStatus: MemberRecordDetail['invoice2027']['status']) => {
+  useEffect(() => {
+    if (!activeRecord) return;
+    const primary = activeRecord.contacts?.primaryEmail || '';
+    const finance = activeRecord.contacts?.financeEmail || '';
+    setInvoiceRecipientEmail(finance || primary);
+    setContactPrimaryEmail(primary);
+    setContactFinanceEmail(finance);
+    setContactPhone(activeRecord.contacts?.phone || '');
+    setReferencePeople(activeRecord.contacts?.referencePeople || []);
+    setReminderToEmail(primary || finance);
+    setReminderSubject(`EPN One Network — Annual Contact & Reference People Update (${activeRecord.code})`);
+    const missingList = activeRecord.missingFields.length
+      ? `\n\nItems flagged for update:\n${activeRecord.missingFields.map(f => `- ${f}`).join('\n')}`
+      : '';
+    const refNames = (activeRecord.contacts?.referencePeople || []).map(p => `${p.name} (${p.role})`).join(', ');
+    setReminderBody(
+      `Dear ${refNames || activeRecord.name} team,\n\nAs part of the EPN One Network 2027 membership cycle, please review and confirm your health association's contact email, finance billing contact, and designated reference people.${missingList}\n\nThank you for keeping EPN One Network records up to date.\n\nWarm regards,\nEPN Secretariat`
+    );
+  }, [activeRecord]);
+
+  const handleInvoiceStep = async (
+    nextStatus: MemberRecordDetail['invoice2027']['status'],
+    includeDispatchEmail = false
+  ) => {
     if (!activeRecord) return;
     setSavingInvoice(true);
     try {
       await epnClient.issueMemberInvoice(activeRecord.id, {
         invoiceNo: invoiceNo || `INV-2027-${activeRecord.code}`,
         issuedDate: invoiceDate,
-        status: nextStatus
+        status: nextStatus,
+        ...(includeDispatchEmail && invoiceRecipientEmail ? { sentToEmail: invoiceRecipientEmail } : {})
       });
       await loadData();
-      setToast(`2027 invoice for ${activeRecord.code} updated to ${nextStatus}.`);
+      const sentInfo =
+        includeDispatchEmail && invoiceRecipientEmail ? ` and dispatched to ${invoiceRecipientEmail}` : '';
+      setToast(`2027 invoice for ${activeRecord.code} updated to ${nextStatus}${sentInfo}.`);
       setTimeout(() => setToast(null), 3500);
     } catch (err: any) {
       setError(err?.message || 'Failed to update 2027 invoice.');
     } finally {
       setSavingInvoice(false);
+    }
+  };
+
+  const handleSaveContacts = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeRecord) return;
+    setSavingContacts(true);
+    try {
+      await epnClient.updateMemberContacts(activeRecord.id, {
+        primaryEmail: contactPrimaryEmail,
+        financeEmail: contactFinanceEmail,
+        phone: contactPhone,
+        referencePeople: referencePeople.filter(p => p.name.trim())
+      });
+      await loadData();
+      setToast(`Contacts & reference people verified and saved for ${activeRecord.code}.`);
+      setTimeout(() => setToast(null), 3500);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to save member contacts.');
+    } finally {
+      setSavingContacts(false);
+    }
+  };
+
+  const handleSendReminder = async () => {
+    if (!activeRecord || !reminderToEmail.trim()) {
+      setError('Please enter a recipient email address for the reminder.');
+      return;
+    }
+    setSendingReminder(true);
+    try {
+      await epnClient.sendMemberDataReminder(activeRecord.id, {
+        toEmail: reminderToEmail.trim(),
+        subject: reminderSubject,
+        message: reminderBody
+      });
+      await loadData();
+      setToast(`Data & contact update reminder logged for ${activeRecord.code} (${reminderToEmail.trim()}).`);
+      setTimeout(() => setToast(null), 3500);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to send update reminder.');
+    } finally {
+      setSendingReminder(false);
     }
   };
 
@@ -679,21 +765,215 @@ export default function MembershipPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3 text-xs">
-                      {(['PROFILE', 'FACILITIES', 'CONTACTS', 'SUBSCRIPTION', 'ENGAGEMENT'] as const).map(sub => (
-                        <button
-                          key={sub}
-                          type="button"
-                          onClick={() => setRecordSubTab(sub)}
-                          className={`px-3 py-1 rounded-full font-semibold cursor-pointer ${
-                            recordSubTab === sub ? 'bg-cyan-100 text-cyan-900' : 'text-slate-600 hover:bg-slate-100'
-                          }`}
-                        >
-                          {sub.charAt(0) + sub.slice(1).toLowerCase()}
-                        </button>
-                      ))}
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs">
+                      <div className="flex flex-wrap gap-2">
+                        {(['PROFILE', 'FACILITIES', 'CONTACTS', 'SUBSCRIPTION', 'ENGAGEMENT'] as const).map(sub => (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => setRecordSubTab(sub)}
+                            className={`px-3 py-1 rounded-full font-semibold cursor-pointer ${
+                              recordSubTab === sub ? 'bg-cyan-100 text-cyan-900' : 'text-slate-600 hover:bg-slate-100'
+                            }`}
+                          >
+                            {sub === 'CONTACTS' ? 'Contacts & Reference People' : sub.charAt(0) + sub.slice(1).toLowerCase()}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setRecordSubTab('CONTACTS')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 font-semibold hover:bg-amber-100 cursor-pointer"
+                      >
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Remind Association to Update Data</span>
+                      </button>
                     </div>
                   </div>
+
+                  {/* Contacts, Reference People & Update Reminder Center */}
+                  {recordSubTab === 'CONTACTS' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <form onSubmit={handleSaveContacts} className="m3-glass-card p-5 sm:p-6 space-y-4 text-xs">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <UserCheck className="w-4 h-4 text-cyan-700" /> Contact Emails &amp; Reference People
+                          </h3>
+                          <span className="text-[11px] text-slate-500">
+                            Verified: <b>{activeRecord.contacts?.lastVerifiedDate || 'Needs verification'}</b>
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="font-semibold text-slate-700 block mb-1">Primary Association Email</label>
+                            <input
+                              type="email"
+                              value={contactPrimaryEmail}
+                              onChange={e => setContactPrimaryEmail(e.target.value)}
+                              placeholder="secretariat@association.org"
+                              className="w-full p-2 border border-slate-300 rounded-xl bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="font-semibold text-slate-700 block mb-1">Finance / Invoice Email</label>
+                            <input
+                              type="email"
+                              value={contactFinanceEmail}
+                              onChange={e => setContactFinanceEmail(e.target.value)}
+                              placeholder="finance@association.org"
+                              className="w-full p-2 border border-slate-300 rounded-xl bg-white"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Telephone / WhatsApp</label>
+                          <input
+                            type="text"
+                            value={contactPhone}
+                            onChange={e => setContactPhone(e.target.value)}
+                            placeholder="+254 ..."
+                            className="w-full p-2 border border-slate-300 rounded-xl bg-white"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="font-bold text-slate-800">Reference People (Focal Points)</label>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setReferencePeople(prev => [...prev, { name: '', role: 'Focal Point', email: '' }])
+                              }
+                              className="inline-flex items-center gap-1 text-cyan-800 font-semibold hover:underline cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" /> Add Reference Person
+                            </button>
+                          </div>
+                          {referencePeople.map((person, idx) => (
+                            <div key={idx} className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 items-center">
+                              <input
+                                type="text"
+                                value={person.name}
+                                onChange={e =>
+                                  setReferencePeople(prev =>
+                                    prev.map((p, i) => (i === idx ? { ...p, name: e.target.value } : p))
+                                  )
+                                }
+                                placeholder="Full name"
+                                className="p-1.5 border border-slate-300 rounded-lg bg-white"
+                              />
+                              <input
+                                type="text"
+                                value={person.role}
+                                onChange={e =>
+                                  setReferencePeople(prev =>
+                                    prev.map((p, i) => (i === idx ? { ...p, role: e.target.value } : p))
+                                  )
+                                }
+                                placeholder="Role (e.g. Chief Pharmacist)"
+                                className="p-1.5 border border-slate-300 rounded-lg bg-white"
+                              />
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="email"
+                                  value={person.email || ''}
+                                  onChange={e =>
+                                    setReferencePeople(prev =>
+                                      prev.map((p, i) => (i === idx ? { ...p, email: e.target.value } : p))
+                                    )
+                                  }
+                                  placeholder="Email"
+                                  className="w-full p-1.5 border border-slate-300 rounded-lg bg-white"
+                                />
+                                <button
+                                  type="button"
+                                  aria-label="Remove reference person"
+                                  onClick={() => setReferencePeople(prev => prev.filter((_, i) => i !== idx))}
+                                  className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={savingContacts}
+                          className="px-4 py-2 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white font-semibold cursor-pointer"
+                        >
+                          {savingContacts ? 'Saving...' : 'Save Contacts & Mark Verified'}
+                        </button>
+                      </form>
+
+                      {/* Data & Contact Update Reminder Composer */}
+                      <div className="m3-glass-card p-5 sm:p-6 space-y-4 text-xs">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                            <Mail className="w-4 h-4 text-amber-600" /> Remind Association to Update Data
+                          </h3>
+                          <span className="text-[11px] text-slate-500">
+                            Last reminder: <b>{activeRecord.contacts?.lastReminderSentDate || 'None yet'}</b>
+                          </span>
+                        </div>
+
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Recipient Email (Association / Reference Person)</label>
+                          <input
+                            type="email"
+                            value={reminderToEmail}
+                            onChange={e => setReminderToEmail(e.target.value)}
+                            placeholder="contact@association.org"
+                            className="w-full p-2 border border-slate-300 rounded-xl bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Subject</label>
+                          <input
+                            type="text"
+                            value={reminderSubject}
+                            onChange={e => setReminderSubject(e.target.value)}
+                            className="w-full p-2 border border-slate-300 rounded-xl bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Reminder Message</label>
+                          <textarea
+                            rows={7}
+                            value={reminderBody}
+                            onChange={e => setReminderBody(e.target.value)}
+                            className="w-full p-2.5 border border-slate-300 rounded-xl bg-white leading-relaxed"
+                          />
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            disabled={sendingReminder}
+                            onClick={handleSendReminder}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-600 hover:bg-amber-700 text-white font-semibold cursor-pointer"
+                          >
+                            <Send className="w-3.5 h-3.5" />
+                            <span>{sendingReminder ? 'Logging...' : 'Send & Log Update Reminder'}</span>
+                          </button>
+                          {reminderToEmail && (
+                            <a
+                              href={`mailto:${encodeURIComponent(reminderToEmail)}?subject=${encodeURIComponent(reminderSubject)}&body=${encodeURIComponent(reminderBody)}`}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              <span>Open in Email Client</span>
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* 2027 Subscription Invoice Workflow */}
                   <div className="m3-glass-card p-5 sm:p-6 space-y-5">
@@ -736,8 +1016,15 @@ export default function MembershipPage() {
                     </div>
 
                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
-                      <div className="font-bold text-slate-900">Record / advance 2027 invoice step</div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                        <div className="font-bold text-slate-900">Record, send &amp; advance 2027 invoice</div>
+                        {activeRecord.invoice2027.sentToEmail && (
+                          <span className="text-[11px] text-emerald-700 font-semibold">
+                            Dispatched to {activeRecord.invoice2027.sentToEmail} ({activeRecord.invoice2027.sentAt})
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
                           <label className="font-semibold text-slate-700 block mb-1">Date</label>
                           <input
@@ -756,16 +1043,36 @@ export default function MembershipPage() {
                             className="w-full p-2 border border-slate-300 rounded-xl bg-white font-mono"
                           />
                         </div>
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Send to Email (Finance / Focal)</label>
+                          <input
+                            type="email"
+                            value={invoiceRecipientEmail}
+                            onChange={e => setInvoiceRecipientEmail(e.target.value)}
+                            placeholder="finance@association.org"
+                            className="w-full p-2 border border-slate-300 rounded-xl bg-white"
+                          />
+                        </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
                           disabled={savingInvoice}
-                          onClick={() => handleInvoiceStep('ISSUED')}
-                          className="px-4 py-2 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white font-semibold cursor-pointer"
+                          onClick={() => handleInvoiceStep('ISSUED', true)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white font-semibold cursor-pointer"
                         >
-                          Issue invoice
+                          <Send className="w-3.5 h-3.5" />
+                          <span>Send Invoice &amp; Mark Issued</span>
                         </button>
+                        {invoiceRecipientEmail && (
+                          <a
+                            href={`mailto:${encodeURIComponent(invoiceRecipientEmail)}?subject=${encodeURIComponent(`EPN One Network 2027 Membership Invoice — ${invoiceNo || activeRecord.code}`)}&body=${encodeURIComponent(`Dear ${activeRecord.name} Finance Team,\n\nPlease find attached your 2027 EPN One Network membership fee invoice (${invoiceNo || `INV-2027-${activeRecord.code}`}) for $${activeRecord.invoice2027.amountUsd} USD, dated ${invoiceDate}.\n\nKindly acknowledge receipt and confirm your finance contact & reference people.\n\nWarm regards,\nEPN Secretariat`)}`}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold"
+                          >
+                            <Mail className="w-3.5 h-3.5" />
+                            <span>Open Email Draft</span>
+                          </a>
+                        )}
                         <button
                           type="button"
                           disabled={savingInvoice}

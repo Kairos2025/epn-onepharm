@@ -277,8 +277,43 @@ apiRouter.post('/membership/records/:id/invoice', (req, res) => {
     return res.status(403).json({ error: 'Insufficient authority' });
   }
   const actor = req.header('x-epn-actor') || 'membership_intern';
-  const { invoiceNo, issuedDate, status } = req.body || {};
-  const updated = db.issueMemberInvoice(req.params.id, invoiceNo, issuedDate, status || 'ISSUED', actor, role);
+  const { invoiceNo, issuedDate, status, sentToEmail } = req.body || {};
+  const updated = db.issueMemberInvoice(req.params.id, invoiceNo, issuedDate, status || 'ISSUED', actor, role, sentToEmail);
+  if (!updated) return res.status(404).json({ error: 'Member record not found' });
+  res.json(updated);
+});
+
+apiRouter.patch('/membership/records/:id/contacts', (req, res) => {
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority' });
+  }
+  const actor = req.header('x-epn-actor') || 'membership_intern';
+  const updated = db.updateMemberContacts(req.params.id, req.body || {}, actor, role);
+  if (!updated) return res.status(404).json({ error: 'Member record not found' });
+  res.json(updated);
+});
+
+apiRouter.post('/membership/records/:id/remind', (req, res) => {
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority' });
+  }
+  const actor = req.header('x-epn-actor') || 'membership_intern';
+  const { toEmail, subject, message } = req.body || {};
+  if (!toEmail) {
+    return res.status(400).json({ error: 'toEmail is required' });
+  }
+  const updated = db.sendMemberDataReminder(
+    req.params.id,
+    {
+      toEmail: String(toEmail),
+      subject: String(subject || 'EPN One Network — Annual Member Contact & Data Update'),
+      message: String(message || '')
+    },
+    actor,
+    role
+  );
   if (!updated) return res.status(404).json({ error: 'Member record not found' });
   res.json(updated);
 });

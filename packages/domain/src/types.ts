@@ -297,6 +297,16 @@ export interface MemberRecordDetail {
     invoiceNo?: string;
     issuedDate?: string;
     amountUsd: number;
+    sentToEmail?: string;
+    sentAt?: string;
+  };
+  contacts?: {
+    primaryEmail?: string;
+    financeEmail?: string;
+    phone?: string;
+    referencePeople: Array<{ name: string; role: string; email?: string; phone?: string }>;
+    lastVerifiedDate?: string;
+    lastReminderSentDate?: string;
   };
   changeHistory: Array<{ date: string; note: string }>;
 }

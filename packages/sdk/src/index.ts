@@ -221,9 +221,39 @@ export class EpnClient {
 
   async issueMemberInvoice(
     memberId: string,
-    payload: { invoiceNo: string; issuedDate: string; status?: MemberRecordDetail['invoice2027']['status'] }
+    payload: {
+      invoiceNo: string;
+      issuedDate: string;
+      status?: MemberRecordDetail['invoice2027']['status'];
+      sentToEmail?: string;
+    }
   ) {
     return this.request<MemberRecordDetail>(`/membership/records/${memberId}/invoice`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async updateMemberContacts(
+    memberId: string,
+    payload: {
+      primaryEmail?: string;
+      financeEmail?: string;
+      phone?: string;
+      referencePeople?: Array<{ name: string; role: string; email?: string; phone?: string }>;
+    }
+  ) {
+    return this.request<MemberRecordDetail>(`/membership/records/${memberId}/contacts`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async sendMemberDataReminder(
+    memberId: string,
+    payload: { toEmail: string; subject: string; message: string }
+  ) {
+    return this.request<MemberRecordDetail>(`/membership/records/${memberId}/remind`, {
       method: 'POST',
       body: JSON.stringify(payload)
     });
