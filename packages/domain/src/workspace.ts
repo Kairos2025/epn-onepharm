@@ -28,10 +28,11 @@ export interface WorkspaceCategory {
   subs: readonly WorkspaceSubCategory[];
 }
 
-export const START_FROM_ENTRY_POINTS = [  { code: 'MEMBER', name: 'Member', href: '/explorer', description: 'Start from a member organization and reach its facilities, projects and funders.' },
-  { code: 'FACILITY', name: 'Health Facility', href: '/explorer', description: 'Start from a facility and reach its member, data and supply indicators.' },
-  { code: 'FUNDER', name: 'Funder (Buyer)', href: '/explorer', description: 'Start from a funder and see all funded projects, amounts and periods.' },
-  { code: 'PROJECT', name: 'Project', href: '/programs', description: 'Start from a project and see its funder, program and priority area.' }
+export const START_FROM_ENTRY_POINTS = [
+  { code: 'MEMBER', name: 'Member', href: '/explorer?tab=DIRECTORY', description: 'Start from a member organization and reach its facilities, projects and funders.' },
+  { code: 'FACILITY', name: 'Health Facility', href: '/explorer?tab=FACILITIES', description: 'Start from a facility and reach its member, data and supply indicators.' },
+  { code: 'FUNDER', name: 'Funder (Buyer)', href: '/explorer?tab=FUNDERS', description: 'Start from a funder and see all funded projects, amounts and periods.' },
+  { code: 'PROJECT', name: 'Project', href: '/explorer?tab=PROJECTS', description: 'Start from a project and see its funder, program and priority area.' }
 ] as const;
 
 export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
@@ -44,9 +45,9 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     description: 'Member identities, voting rights, 2027 fee cycle, and group composition across the network.',
     subs: [
       { code: 'MEMBERSHIP_HEALTH', name: 'Membership Health & 2027 Fees', nameFr: 'Santé des membres & cotisations 2027', description: '151 members, voting rights, fee collection, and 2027 invoice cycle.', href: '/membership' },
-      { code: 'MEMBER_DIRECTORY', name: 'Member Directory', nameFr: 'Annuaire des membres', description: 'All 151 member organizations with type, country and status.', href: '/explorer' },
-      { code: 'MEMBER_PROFILE', name: 'Member Profiles', nameFr: 'Profils des membres', description: 'Identity, membership category and strategic plan per member.', href: '/explorer' },
-      { code: 'MEMBER_FACILITIES', name: 'Facilities & Networks', nameFr: 'Établissements et réseaux', description: 'Health facilities linked back to each member organization.', href: '/explorer' },
+      { code: 'MEMBER_DIRECTORY', name: 'Member Directory', nameFr: 'Annuaire des membres', description: 'All 151 member organizations with type, country and status.', href: '/explorer?tab=DIRECTORY' },
+      { code: 'MEMBER_PROFILE', name: 'Member Profiles', nameFr: 'Profils des membres', description: 'Identity, membership category and strategic plan per member.', href: '/explorer?tab=MEMBERS' },
+      { code: 'MEMBER_FACILITIES', name: 'Facilities & Networks', nameFr: 'Établissements et réseaux', description: 'Health facilities linked back to each member organization.', href: '/explorer?tab=FACILITIES' },
       { code: 'CHAPTERS', name: 'Chapters & Regions', nameFr: 'Chapitres et régions', description: 'Regional chapters and country groupings.', href: '/maps' },
       { code: 'MEMBERSHIP_FEES', name: 'Institutional DPAs', nameFr: 'Accords DPA et licences', description: 'Institutional data-sharing agreements and member licensing.', href: '/licensing' },
       { code: 'DATA_SHARING', name: 'Data Sharing Agreements', nameFr: 'Accords de partage des données', description: 'Sovereign data-sharing controls per member (P2).', href: '/maintenance' }
@@ -61,9 +62,9 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     description: 'Projects organized by program area and health priority, with funder and period links.',
     subs: [
       { code: 'PROGRAM_AREAS', name: 'Program Areas', nameFr: 'Domaines de programmes', description: 'The 5 official EPN program areas and their projects.', href: '/programs' },
-      { code: 'PROJECT_REGISTER', name: 'Project Register', nameFr: 'Registre des projets', description: 'Browse the full project list with status, budget and period.', href: '/explorer' },
-      { code: 'BY_PRIORITY', name: 'By Health Priority', nameFr: 'Par priorité de santé', description: 'MNCH/RH, IPC & AMR, NCDs, NTDs project views.', href: '/explorer' },
-      { code: 'BY_FUNDER', name: 'By Funder', nameFr: 'Par bailleur', description: 'Funders (Buyers) with all funded projects, amounts and periods.', href: '/explorer' },
+      { code: 'PROJECT_REGISTER', name: 'Project Register', nameFr: 'Registre des projets', description: 'Browse the full project list with status, budget and period.', href: '/explorer?tab=PROJECTS' },
+      { code: 'BY_PRIORITY', name: 'By Health Priority', nameFr: 'Par priorité de santé', description: 'MNCH/RH, IPC & AMR, NCDs, NTDs project views.', href: '/programs' },
+      { code: 'BY_FUNDER', name: 'By Funder', nameFr: 'Par bailleur', description: 'Funders (Buyers) with all funded projects, amounts and periods.', href: '/explorer?tab=FUNDERS' },
       { code: 'PROJECT_RESULTS', name: 'Project Results', nameFr: 'Résultats des projets', description: 'People trained, facilities reached and outcomes per project.', href: '/reports' }
     ]
   },
@@ -72,14 +73,14 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     name: 'Health Facilities',
     nameFr: 'Établissements de santé',
     icon: 'building',
-    href: '/explorer',
+    href: '/explorer?tab=FACILITIES',
     description: 'Facility data linked to members and geography across 29 African nations.',
     subs: [
-      { code: 'FACILITY_REGISTRY', name: 'Facility Registry', nameFr: 'Registre des établissements', description: 'Master list of network health facilities.', href: '/explorer' },
-      { code: 'FACILITY_PROFILE', name: 'Facility Profiles', nameFr: 'Profils des établissements', description: 'Level, beds, catchment, services and pharmacy capacity.', href: '/explorer' },
+      { code: 'FACILITY_REGISTRY', name: 'Facility Registry', nameFr: 'Registre des établissements', description: 'Master list of network health facilities.', href: '/explorer?tab=FACILITIES' },
+      { code: 'FACILITY_PROFILE', name: 'Facility Profiles', nameFr: 'Profils des établissements', description: 'Level, beds, catchment, services and pharmacy capacity.', href: '/explorer?tab=FACILITIES' },
       { code: 'GEO_COVERAGE', name: 'Geographic Coverage', nameFr: 'Couverture géographique', description: 'Country and subnational mapping of the network.', href: '/maps' },
       { code: 'REPORTING', name: 'Reporting & Completeness', nameFr: 'Rapports et complétude', description: 'Data quality, completeness and timeliness per facility.', href: '/quality' },
-      { code: 'FACILITY_MEMBER_LINKS', name: 'Facility–Member Links', nameFr: 'Liens établissement–membre', description: 'Ownership chains: Network → Country → Member → Facility.', href: '/explorer' }
+      { code: 'FACILITY_MEMBER_LINKS', name: 'Facility–Member Links', nameFr: 'Liens établissement–membre', description: 'Ownership chains: Network → Country → Member → Facility.', href: '/explorer?tab=COVERAGE' }
     ]
   },
   {

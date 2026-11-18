@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
@@ -20,20 +20,37 @@ import {
   MapPin,
   Package
 } from 'lucide-react';
-import { IMPLEMENTING_MEMBERS_SEED, FUNDERS_SEED } from '@epn/domain';
+import { IMPLEMENTING_MEMBERS_SEED, FUNDERS_SEED, MEMBER_CATEGORIES, NETWORK_STATISTICS } from '@epn/domain';
 import { SEED_PROJECTS, SEED_COUNTRIES } from '@epn/db';
 
-type TabKind = 'MEMBERS' | 'FACILITIES' | 'PROJECTS' | 'FUNDERS' | 'COVERAGE';
-const TAB_KINDS: readonly TabKind[] = ['MEMBERS', 'FACILITIES', 'PROJECTS', 'FUNDERS', 'COVERAGE'];
+type TabKind = 'DIRECTORY' | 'MEMBERS' | 'FACILITIES' | 'PROJECTS' | 'FUNDERS' | 'COVERAGE';
+const TAB_KINDS: readonly TabKind[] = ['DIRECTORY', 'MEMBERS', 'FACILITIES', 'PROJECTS', 'FUNDERS', 'COVERAGE'];
 
 function ExplorerInner() {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab') as TabKind | null;
   const [activeTab, setActiveTab] = useState<TabKind>(
-    requestedTab && TAB_KINDS.includes(requestedTab) ? requestedTab : 'MEMBERS'
+    requestedTab && TAB_KINDS.includes(requestedTab) ? requestedTab : 'DIRECTORY'
   );
   const [selectedMember, setSelectedMember] = useState<string>(searchParams.get('member') || 'CHAK');
   const [selectedFacility, setSelectedFacility] = useState<string>(searchParams.get('fosa') || 'Kilome Mission Hospital');
+  const [directoryQuery, setDirectoryQuery] = useState('');
+  const [directoryCategory, setDirectoryCategory] = useState<string>('ALL');
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as TabKind | null;
+    if (tabParam && TAB_KINDS.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    const memberParam = searchParams.get('member');
+    if (memberParam) {
+      setSelectedMember(memberParam);
+    }
+    const fosaParam = searchParams.get('fosa');
+    if (fosaParam) {
+      setSelectedFacility(fosaParam);
+    }
+  }, [searchParams]);
 
   // Sample facilities
   const facilities = [
@@ -127,6 +144,25 @@ function ExplorerInner() {
     setActiveTab('FACILITIES');
   };
 
+  const filteredDirectoryMembers = useMemo(() => {
+    const q = directoryQuery.trim().toLowerCase();
+    return IMPLEMENTING_MEMBERS_SEED.filter(m => {
+      const matchesCat = directoryCategory === 'ALL' || m.type === directoryCategory;
+      const matchesQuery =
+        !q ||
+        m.abbreviation.toLowerCase().includes(q) ||
+        m.name.toLowerCase().includes(q) ||
+        countryName(m.country).toLowerCase().includes(q) ||
+        m.country.toLowerCase().includes(q);
+      return matchesCat && matchesQuery;
+    });
+  }, [directoryQuery, directoryCategory]);
+
+  const openMemberProfile = (abbr: string) => {
+    selectMember(abbr);
+    setActiveTab('MEMBERS');
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
       <Navbar />
@@ -156,13 +192,22 @@ function ExplorerInner() {
           {/* Top Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 text-xs">
             <button
+              onClick={() => setActiveTab('DIRECTORY')}
+              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
+                activeTab === 'DIRECTORY' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>Member Directory ({NETWORK_STATISTICS.totalMembers})</span>
+            </button>
+            <button
               onClick={() => setActiveTab('MEMBERS')}
               className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
                 activeTab === 'MEMBERS' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               <Network className="w-3.5 h-3.5" />
-              <span>Members (19)</span>
+              <span>Member Profiles ({IMPLEMENTING_MEMBERS_SEED.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('FACILITIES')}
@@ -171,7 +216,7 @@ function ExplorerInner() {
               }`}
             >
               <Building className="w-3.5 h-3.5" />
-              <span>FOSA Briefs</span>
+              <span>Facilities (FOSA)</span>
             </button>
             <button
               onClick={() => setActiveTab('PROJECTS')}
@@ -180,7 +225,7 @@ function ExplorerInner() {
               }`}
             >
               <FolderKanban className="w-3.5 h-3.5" />
-              <span>Projects (6)</span>
+              <span>Projects ({SEED_PROJECTS.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('FUNDERS')}
@@ -189,7 +234,7 @@ function ExplorerInner() {
               }`}
             >
               <Coins className="w-3.5 h-3.5" />
-              <span>Funders (9)</span>
+              <span>Funders ({FUNDERS_SEED.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('COVERAGE')}
@@ -198,10 +243,140 @@ function ExplorerInner() {
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              <span>Union Coverage</span>
+              <span>Network Coverage</span>
             </button>
           </div>
         </div>
+
+        {/* Tab 0: Member Directory (Master List & Category Breakdown) */}
+        {activeTab === 'DIRECTORY' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">
+                    Official Network Registry • {NETWORK_STATISTICS.asOf}
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+                    EPN One Network Member Directory ({NETWORK_STATISTICS.totalMembers} Members across {NETWORK_STATISTICS.totalCountries} Countries)
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    76 Ordinary voting members &bull; 75 Associate members &bull; Select any implementing member chapter below to open its full Member Profile.
+                  </p>
+                </div>
+                <Link
+                  href="/membership"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 shrink-0"
+                >
+                  <span>Open Membership Health &amp; 2027 Fees</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              {/* Category Summary Pills */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-2">
+                {MEMBER_CATEGORIES.map(cat => (
+                  <button
+                    key={cat.code}
+                    onClick={() => setDirectoryCategory(prev => (prev === cat.code ? 'ALL' : cat.code))}
+                    className={`p-3 rounded-lg border text-left transition-colors ${
+                      directoryCategory === cat.code
+                        ? 'border-sky-600 bg-sky-50'
+                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="text-[11px] font-bold text-slate-500 uppercase">{cat.code}</div>
+                    <div className="text-lg font-extrabold text-slate-900">{cat.count}</div>
+                    <div className="text-[11px] text-slate-600 truncate">{cat.name}</div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Search & Filter Controls */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={directoryQuery}
+                    onChange={e => setDirectoryQuery(e.target.value)}
+                    placeholder="Search by abbreviation, organization name, or country..."
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+                  {(['ALL', 'CHA', 'HSS', 'DSO', 'CHI'] as const).map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setDirectoryCategory(cat)}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                        directoryCategory === cat
+                          ? 'bg-sky-600 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Directory Table */}
+              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3">Abbreviation</th>
+                      <th className="py-2.5 px-3">Member Organization</th>
+                      <th className="py-2.5 px-3">Country</th>
+                      <th className="py-2.5 px-3">Category</th>
+                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3 text-right">Profile</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredDirectoryMembers.map(m => (
+                      <tr key={m.abbreviation + m.country} className="hover:bg-slate-50/80">
+                        <td className="py-2.5 px-3 font-bold text-slate-900">{m.abbreviation}</td>
+                        <td className="py-2.5 px-3 text-slate-700">{m.name}</td>
+                        <td className="py-2.5 px-3 text-slate-600">
+                          {countryName(m.country)} ({m.country})
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[10px]">
+                            {m.type}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold text-[10px]">
+                            Active
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-right">
+                          <button
+                            onClick={() => openMemberProfile(m.abbreviation)}
+                            className="inline-flex items-center gap-1 text-sky-700 hover:text-sky-900 font-semibold"
+                          >
+                            <span>View Profile</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredDirectoryMembers.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="py-6 text-center text-slate-400">
+                          No seeded member chapters match &ldquo;{directoryQuery}&rdquo;.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tab 1: Member Chapter Overview */}
         {activeTab === 'MEMBERS' && (
