@@ -28,8 +28,16 @@ export default function DashboardPage() {
   const [surveillance, setSurveillance] = useState<SurveillanceSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [alertFilter, setAlertFilter] = useState<'ALL' | 'ACTIVE' | 'RESOLVED'>('ACTIVE');
+  const [countrySearch, setCountrySearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ALERT' | 'WATCH' | 'OPTIMAL'>('ALL');
+  const [actionToast, setActionToast] = useState<string | null>(null);
 
   const periods = generateMonthlyPeriods(12);
+
+  const showToast = (msg: string) => {
+    setActionToast(msg);
+    setTimeout(() => setActionToast(null), 3500);
+  };
 
   const loadSurveillance = useCallback(async () => {
     setLoading(true);
@@ -51,6 +59,7 @@ export default function DashboardPage() {
     try {
       await epnClient.acknowledgeAlert(id);
       await loadSurveillance();
+      showToast('Sentinel alert acknowledged and logged.');
     } catch {
       // ignore
     }
@@ -60,6 +69,7 @@ export default function DashboardPage() {
     try {
       await epnClient.resolveAlert(id);
       await loadSurveillance();
+      showToast('Sentinel alert marked as resolved.');
     } catch {
       // ignore
     }
@@ -101,6 +111,7 @@ export default function DashboardPage() {
     link.download = `epn-onepharm-control-scorecard-${surveillance.epiWeek}.csv`;
     link.click();
     URL.revokeObjectURL(url);
+    showToast(`Exported ${surveillance.epiWeek} control scorecard CSV.`);
   };
 
   const trendData = [
@@ -118,9 +129,18 @@ export default function DashboardPage() {
     { month: 'Oct 26', availability: 84.2, stockouts: 6.8 }
   ];
 
-  const filteredScorecards = (surveillance?.countryScorecards || []).filter(c =>
-    selectedOrgUnit === 'ALL' ? true : c.country === selectedOrgUnit
-  );
+  const filteredScorecards = (surveillance?.countryScorecards || []).filter(c => {
+    if (selectedOrgUnit !== 'ALL' && c.country !== selectedOrgUnit) return false;
+    if (statusFilter !== 'ALL' && c.controlStatus !== statusFilter) return false;
+    if (
+      countrySearch.trim() &&
+      !c.countryName.toLowerCase().includes(countrySearch.toLowerCase()) &&
+      !c.country.toLowerCase().includes(countrySearch.toLowerCase())
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   const visibleAlerts = (surveillance?.alerts || []).filter(a => {
     if (selectedOrgUnit !== 'ALL' && a.country !== selectedOrgUnit) return false;
@@ -140,7 +160,19 @@ export default function DashboardPage() {
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6">
+        {actionToast && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm flex items-center justify-between"
+          >
+            <span className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              <span>{actionToast}</span>
+            </span>
+          </div>
+        )}
         {/* CDC-Style Surveillance Command Banner */}
         <div className="bg-slate-900 text-white rounded-xl p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-3">
@@ -427,7 +459,7 @@ export default function DashboardPage() {
 
         {/* National Pharmaceutical Control Scorecard Table */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-5 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900">
                 Country Pharmaceutical Surveillance &amp; Control Scorecard
@@ -436,9 +468,33 @@ export default function DashboardPage() {
                 Completeness, timeliness, essential medicine availability, and AMR stewardship across priority EPN countries
               </p>
             </div>
-            <Link href="/maps" className="text-xs font-semibold text-sky-600 hover:text-sky-700">
-              View GIS Control Map &rarr;
-            </Link>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <input
+                type="text"
+                value={countrySearch}
+                onChange={e => setCountrySearch(e.target.value)}
+                placeholder="Filter country..."
+                aria-label="Filter countries"
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-xs outline-none focus:border-cyan-600 w-36"
+              />
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                {(['ALL', 'ALERT', 'WATCH', 'OPTIMAL'] as const).map(st => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setStatusFilter(st)}
+                    className={`px-2 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                      statusFilter === st ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {st}
+                  </button>
+                ))}
+              </div>
+              <Link href="/maps" className="text-xs font-semibold text-cyan-700 hover:text-cyan-800 ml-1">
+                GIS Map &rarr;
+              </Link>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
@@ -455,39 +511,75 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredScorecards.map(c => (
-                  <tr key={c.country} className="hover:bg-slate-50">
-                    <td className="py-3 px-4 font-bold text-slate-900">
-                      {c.countryName} <span className="text-slate-400 font-normal">({c.country})</span>
-                    </td>
-                    <td className="py-3 px-4 text-slate-700 tabular-nums">
-                      {c.facilitiesReporting.toLocaleString()} / {c.totalFacilities.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 font-semibold tabular-nums">{c.reportingCompletenessPct}%</td>
-                    <td className="py-3 px-4 text-slate-700 tabular-nums">{c.timelinessPct}%</td>
-                    <td className="py-3 px-4 font-bold text-slate-900 tabular-nums">{c.tracerAvailabilityPct}%</td>
-                    <td className="py-3 px-4 text-slate-700 tabular-nums">{c.stockoutRatePct}%</td>
-                    <td className="py-3 px-4 text-slate-700 tabular-nums">{c.amrStewardshipScorePct}%</td>
-                    <td className="py-3 px-4 text-right">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          c.controlStatus === 'OPTIMAL'
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : c.controlStatus === 'WATCH'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-rose-100 text-rose-800'
-                        }`}
-                      >
-                        {c.controlStatus === 'OPTIMAL' ? (
-                          <CheckCircle className="w-3 h-3" />
-                        ) : (
-                          <AlertTriangle className="w-3 h-3" />
-                        )}
-                        {c.controlStatus}
-                      </span>
+                {filteredScorecards.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-6 text-center text-slate-500">
+                      No countries match the selected filter.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  filteredScorecards.map(c => (
+                    <tr key={c.country} className="hover:bg-slate-50 transition-colors">
+                      <td className="py-3 px-4 font-bold text-slate-900">
+                        {c.countryName} <span className="text-slate-400 font-mono font-normal">({c.country})</span>
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 tabular-nums">
+                        {c.facilitiesReporting.toLocaleString()} / {c.totalFacilities.toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold tabular-nums w-11">{c.reportingCompletenessPct}%</span>
+                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden hidden sm:block">
+                            <div
+                              className={`h-full rounded-full ${
+                                c.reportingCompletenessPct >= 80 ? 'bg-emerald-600' : 'bg-amber-500'
+                              }`}
+                              style={{ width: `${Math.min(100, c.reportingCompletenessPct)}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 tabular-nums">{c.timelinessPct}%</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 tabular-nums w-11">{c.tracerAvailabilityPct}%</span>
+                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden hidden sm:block">
+                            <div
+                              className={`h-full rounded-full ${
+                                c.tracerAvailabilityPct >= 85
+                                  ? 'bg-cyan-600'
+                                  : c.tracerAvailabilityPct >= 78
+                                  ? 'bg-amber-500'
+                                  : 'bg-rose-600'
+                              }`}
+                              style={{ width: `${Math.min(100, c.tracerAvailabilityPct)}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 tabular-nums">{c.stockoutRatePct}%</td>
+                      <td className="py-3 px-4 text-slate-700 tabular-nums">{c.amrStewardshipScorePct}%</td>
+                      <td className="py-3 px-4 text-right">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            c.controlStatus === 'OPTIMAL'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : c.controlStatus === 'WATCH'
+                              ? 'bg-amber-100 text-amber-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {c.controlStatus === 'OPTIMAL' ? (
+                            <CheckCircle className="w-3 h-3" />
+                          ) : (
+                            <AlertTriangle className="w-3 h-3" />
+                          )}
+                          {c.controlStatus}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

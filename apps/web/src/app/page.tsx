@@ -106,7 +106,10 @@ export default function PublicPortalPage() {
       <Navbar locale={locale} onLocaleChange={l => setLocale(l as any)} />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-white to-slate-50 border-b border-slate-200 py-16 sm:py-20">
+      <section
+        id="main-content"
+        className="relative overflow-hidden bg-gradient-to-b from-cyan-50 via-white to-slate-50 border-b border-slate-200 py-16 sm:py-20"
+      >
         {/* Background video: EPN online training course, muted autoplay loop with sound toggle */}
         <HeroBackground />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
