@@ -38,6 +38,7 @@ const BASELINE_ROWS: Record<string, { stockOnHand: number; batchNo: string; expi
 
 export default function MedstockPage() {
   const [selectedLocation, setSelectedLocation] = useState('MAIN_STORE');
+  const [medstockTab, setMedstockTab] = useState<'LEDGER' | 'TRANSACTIONS'>('LEDGER');
   const [modalKind, setModalKind] = useState<'RECEIPT' | 'DISPENSE' | null>(null);
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
   const [transactions, setTransactions] = useState<StockTransaction[]>([]);
@@ -285,7 +286,29 @@ export default function MedstockPage() {
           </div>
         </div>
 
-        {/* Stock Ledger Table */}
+        {/* Folder Navigation Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-white/90 p-1.5 rounded-full border border-slate-200 w-fit text-xs shadow-2xs">
+          {(
+            [
+              { id: 'LEDGER', label: `1 · Stock on Hand & FEFO (${stockList.length})` },
+              { id: 'TRANSACTIONS', label: `2 · Recent Transactions (${transactions.length})` }
+            ] as const
+          ).map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setMedstockTab(tab.id)}
+              className={`px-4 py-1.5 rounded-full font-semibold transition-colors cursor-pointer ${
+                medstockTab === tab.id ? 'bg-cyan-800 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* FOLDER 1: Stock Ledger Table */}
+        {medstockTab === 'LEDGER' && (
         <div className="bg-white/95 rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
           <div className="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <div>
@@ -408,8 +431,10 @@ export default function MedstockPage() {
             </>
           )}
         </div>
+        )}
 
-        {/* Recent Transactions Feed */}
+        {/* FOLDER 2: Recent Transactions Feed */}
+        {medstockTab === 'TRANSACTIONS' && (
         <div className="bg-white/95 rounded-2xl border border-slate-200 shadow-xs p-5 space-y-3">
           <h3 className="text-sm font-bold text-slate-900">Recent Stock Transactions</h3>
           <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
@@ -428,6 +453,7 @@ export default function MedstockPage() {
             ))}
           </div>
         </div>
+        )}
       </main>
 
       {/* Receive / Dispense Modal */}

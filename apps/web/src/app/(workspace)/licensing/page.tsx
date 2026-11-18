@@ -8,6 +8,7 @@ import { epnClient } from '@/lib/api';
 
 export default function LicensingPage() {
   const [selectedBilling, setSelectedBilling] = useState<'MONTHLY' | 'ANNUAL'>('ANNUAL');
+  const [licensingTab, setLicensingTab] = useState<'TIERS' | 'SETTLEMENT'>('TIERS');
   const [selectedTier, setSelectedTier] = useState<string>('FULL');
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'CARD'>('MPESA');
   const [phoneNumber, setPhoneNumber] = useState('254712345678');
@@ -73,6 +74,28 @@ export default function LicensingPage() {
           </div>
         </div>
 
+        {/* Folder Navigation Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-white/90 p-1.5 rounded-full border border-slate-200 w-fit text-xs shadow-2xs">
+          {(
+            [
+              { id: 'TIERS', label: '1 · Access Tiers & DPAs' },
+              { id: 'SETTLEMENT', label: '2 · Institutional Settlement' }
+            ] as const
+          ).map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setLicensingTab(tab.id)}
+              className={`px-4 py-1.5 rounded-full font-semibold transition-colors cursor-pointer ${
+                licensingTab === tab.id ? 'bg-cyan-800 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {licensingTab === 'TIERS' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {ACCESS_TIERS.slice(2, 5).map(tier => {
             const isSelected = selectedTier === tier.tier;
@@ -121,7 +144,9 @@ export default function LicensingPage() {
             );
           })}
         </div>
+        )}
 
+        {licensingTab === 'SETTLEMENT' && (
         <div className="m3-glass-card p-6 space-y-5 max-w-xl">
           <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Institutional Settlement</h3>
 
@@ -193,6 +218,7 @@ export default function LicensingPage() {
             </div>
           )}
         </div>
+        )}
       </main>
     </div>
   );

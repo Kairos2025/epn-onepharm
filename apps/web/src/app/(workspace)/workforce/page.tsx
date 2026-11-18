@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 import {
@@ -19,6 +19,7 @@ const COUNTRY_NAMES: Record<string, string> = Object.fromEntries(
 );
 
 export default function WorkforcePage() {
+  const [workforceTab, setWorkforceTab] = useState<'PROJECTS' | 'COUNTRIES'>('PROJECTS');
   const totalTrained = SEED_PROJECTS.reduce((s, p) => s + p.healthWorkersTrained, 0);
   const totalFacilities = SEED_PROJECTS.reduce((s, p) => s + p.facilitiesCount, 0);
   const champions = SEED_PROJECTS
@@ -72,8 +73,30 @@ export default function WorkforcePage() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        {/* Folder Navigation Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-white/90 p-1.5 rounded-full border border-slate-200 w-fit text-xs shadow-2xs mb-6">
+          {(
+            [
+              { id: 'PROJECTS', label: '1 · Trainings by Project' },
+              { id: 'COUNTRIES', label: '2 · People Trained by Country' }
+            ] as const
+          ).map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setWorkforceTab(tab.id)}
+              className={`px-4 py-1.5 rounded-full font-semibold transition-colors cursor-pointer ${
+                workforceTab === tab.id ? 'bg-cyan-800 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div>
           {/* Training by project */}
+          {workforceTab === 'PROJECTS' && (
           <section>
             <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-3">Trainings by project</h2>
             <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100">
@@ -110,8 +133,10 @@ export default function WorkforcePage() {
               })}
             </div>
           </section>
+          )}
 
           {/* People trained by country */}
+          {workforceTab === 'COUNTRIES' && (
           <section>
             <h2 className="text-sm font-bold uppercase tracking-widest text-slate-400 mb-3">People trained by country</h2>
             <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2.5">
@@ -150,6 +175,7 @@ export default function WorkforcePage() {
               </a>
             </div>
           </section>
+          )}
         </div>
       </div>
     </>
