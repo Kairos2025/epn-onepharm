@@ -692,6 +692,7 @@ export default function MembershipPage() {
                           <div className="text-[11px] text-slate-500">{step.desc}</div>
                         </div>
                       ))}
+                    </div>
                     <div className="flex justify-end">
                       <button
                         type="button"
