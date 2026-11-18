@@ -256,6 +256,16 @@ apiRouter.get('/dhis2/pull', (req, res) => {
   res.json(executeDhis2Pull(connectionId, dryRun, actor, role));
 });
 
+apiRouter.get('/jurisdictions', (req, res) => {
+  res.json(db.getJurisdictions());
+});
+
+apiRouter.get('/jurisdictions/:country', (req, res) => {
+  const partition = db.getJurisdictionPartition(req.params.country);
+  if (!partition) return res.status(404).json({ error: 'Jurisdiction not found' });
+  res.json(partition);
+});
+
 // 11. Stories
 apiRouter.get('/stories', (req, res) => {
   res.json(db.getStories());

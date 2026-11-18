@@ -159,6 +159,16 @@ export async function GET(req: NextRequest, context: RouteContext) {
     return NextResponse.json(executeDhis2Pull(connectionId, dryRun, actor, role));
   }
 
+  if (route === '/jurisdictions') {
+    return NextResponse.json(db.getJurisdictions());
+  }
+
+  if (path[0] === 'jurisdictions' && path[1]) {
+    const partition = db.getJurisdictionPartition(path[1]);
+    if (!partition) return NextResponse.json({ error: 'Jurisdiction not found' }, { status: 404 });
+    return NextResponse.json(partition);
+  }
+
   return NextResponse.json({ error: `Not found: ${route}` }, { status: 404 });
 }
 

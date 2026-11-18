@@ -20,7 +20,8 @@ import {
   FUNDERS_SEED,
   ACCESS_TIERS,
   PROJECT_PROGRAM_MAP,
-  PROJECT_PRIORITY_MAP
+  PROJECT_PRIORITY_MAP,
+  UHC_MANDATE_MAP
 } from '@epn/domain';
 import { SEED_PROJECTS, SEED_COUNTRIES } from '@epn/db';
 import {
@@ -211,6 +212,32 @@ export default function PublicPortalPage() {
               <Activity className="w-4 h-4" />
               <span>{locale === 'en' ? 'Open Control Center' : 'Centre de Contrôle'}</span>
             </Link>
+          </div>
+
+          {/* UHC Mandate Alignment Cards */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            {UHC_MANDATE_MAP.map(uhc => (
+              <Link
+                key={uhc.commitment}
+                href={uhc.targetRoute}
+                className="m3-glass-card p-5 flex flex-col justify-between gap-3 cursor-pointer"
+              >
+                <div className="space-y-1.5">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-cyan-100 text-cyan-900">
+                    UHC Mandate
+                  </span>
+                  <h3 className="text-sm font-bold text-slate-900">{uhc.title}</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">{uhc.policyFocus}</p>
+                </div>
+                <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+                  {uhc.indicators.map(ind => (
+                    <span key={ind} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium">
+                      {ind}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

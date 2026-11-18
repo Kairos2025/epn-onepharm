@@ -35,7 +35,7 @@ export const APPS_LIST = [
   { name: 'GIS Control Map', href: '/maps', icon: MapPin, authority: 'APP_MAPS' },
   { name: 'Workforce Data', href: '/workforce', icon: BookOpen, authority: 'APP_WORKFORCE' },
   { name: 'Quality & AMR', href: '/quality', icon: ShieldAlert, authority: 'APP_QUALITY' },
-  { name: 'Financial Data', href: '/billing', icon: CreditCard, authority: 'APP_FINANCIAL' }
+  { name: 'Institutional DPA', href: '/licensing', icon: CreditCard, authority: 'APP_FINANCIAL' }
 ];
 
 const SEARCH_INDEX = [

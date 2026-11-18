@@ -167,6 +167,15 @@ describe('EPN OnePharm End-to-End API Workflows', () => {
     assert.strictEqual(updated.shareFacilityAlerts, false);
   });
 
+  it('GET /jurisdictions returns jurisdiction-partitioned residency summaries', async () => {
+    const res = await fetch(`${baseUrl}/jurisdictions`);
+    assert.strictEqual(res.status, 200);
+    const list = await res.json();
+    assert.ok(Array.isArray(list) && list.length >= 8);
+    const ke = list.find((j: any) => j.country === 'KE');
+    assert.strictEqual(ke.residencyMode, 'IN_COUNTRY_PARTITION');
+  });
+
   it('closes test server', async () => {
     await new Promise<void>(resolve => {
       server.close(() => resolve());

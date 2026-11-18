@@ -17,6 +17,7 @@ import {
   MemberSharingPolicy,
   EpnActorRole,
   DataProvenance,
+  JurisdictionPartitionSummary,
   generateUid
 } from '@epn/domain';
 import {
@@ -984,6 +985,55 @@ class EpnDatabase {
       `INGESTED_${ingestedCount}_RECORDS`
     );
     this.saveToDisk();
+  }
+
+  public getJurisdictions(): JurisdictionPartitionSummary[] {
+    const frameworks: Record<string, { name: string; framework: string }> = {
+      KE: { name: 'Kenya', framework: 'Kenya Data Protection Act 2019 & MoH KHIS MOU' },
+      NG: { name: 'Nigeria', framework: 'NDPR 2019 & FMOH National Health Data Policy' },
+      TZ: { name: 'Tanzania', framework: 'Personal Data Protection Act 2022 & MoH DHIS2' },
+      CM: { name: 'Cameroon', framework: 'MINSANTE Health Information Governance' },
+      CD: { name: 'DR Congo', framework: 'MSP National SNIS / DHIS2 Framework' },
+      UG: { name: 'Uganda', framework: 'Data Protection & Privacy Act 2019 & MoH HMIS' },
+      RW: { name: 'Rwanda', framework: 'Law No. 058/2021 & RBC HMIS Residency' },
+      SS: { name: 'South Sudan', framework: 'MoH DHIS2 Aggregate Reporting Protocol' }
+    };
+
+    return Object.entries(frameworks).map(([country, meta]) => {
+      const countryOrgIds = new Set(
+        this.state.orgUnits.filter(o => o.country === country).map(o => o.id)
+      );
+      const policies = this.state.sharingPolicies.filter(p => p.country === country);
+      const dpaSignedMembers = policies.filter(p => p.dpaSigned).length;
+      const dataValuesCount = this.state.dataValues.filter(dv => countryOrgIds.has(dv.org_unit_id)).length;
+      const stockTransactionsCount = this.state.stockTransactions.filter(t => countryOrgIds.has(t.org_unit_id)).length;
+
+      return {
+        country,
+        countryName: meta.name,
+        residencyMode: dpaSignedMembers > 0 ? 'IN_COUNTRY_PARTITION' : 'REGIONAL_AGGREGATE_ONLY',
+        dataValuesCount,
+        stockTransactionsCount,
+        dpaSignedMembers,
+        totalMembers: policies.length,
+        regulatoryFramework: meta.framework
+      };
+    });
+  }
+
+  public getJurisdictionPartition(countryCode: string) {
+    const code = countryCode.toUpperCase();
+    const summary = this.getJurisdictions().find(j => j.country === code);
+    if (!summary) return undefined;
+    const countryOrgIds = new Set(
+      this.state.orgUnits.filter(o => o.country === code).map(o => o.id)
+    );
+    return {
+      ...summary,
+      orgUnits: this.state.orgUnits.filter(o => o.country === code),
+      sharingPolicies: this.state.sharingPolicies.filter(p => p.country === code),
+      dataValuesCount: this.state.dataValues.filter(dv => countryOrgIds.has(dv.org_unit_id)).length
+    };
   }
 
   public getSurveillanceSummary(): SurveillanceSummary {

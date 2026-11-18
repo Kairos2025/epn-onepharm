@@ -47,7 +47,7 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
       { code: 'MEMBER_PROFILE', name: 'Member Profiles', nameFr: 'Profils des membres', description: 'Identity, membership category and strategic plan per member.', href: '/explorer' },
       { code: 'MEMBER_FACILITIES', name: 'Facilities & Networks', nameFr: 'Établissements et réseaux', description: 'Health facilities linked back to each member organization.', href: '/explorer' },
       { code: 'CHAPTERS', name: 'Chapters & Regions', nameFr: 'Chapitres et régions', description: 'Regional chapters and country groupings.', href: '/maps' },
-      { code: 'MEMBERSHIP_FEES', name: 'Fees & Subscriptions', nameFr: 'Cotisations et abonnements', description: 'Subscription tiers and payment status per member.', href: '/billing' },
+      { code: 'MEMBERSHIP_FEES', name: 'Institutional DPAs', nameFr: 'Accords DPA et licences', description: 'Institutional data-sharing agreements and member licensing.', href: '/licensing' },
       { code: 'DATA_SHARING', name: 'Data Sharing Agreements', nameFr: 'Accords de partage des données', description: 'Sovereign data-sharing controls per member (P2).', href: '/maintenance' }
     ]
   },
@@ -125,7 +125,7 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
       { code: 'FUNDING_PROJECT', name: 'Funding by Project', nameFr: 'Financement par projet', description: 'Budgets and disbursements per project.', href: '/explorer' },
       { code: 'BUSINESS_ACTIVITY', name: 'Member Business Activity', nameFr: 'Activité des entreprises membres', description: 'DSO revenues, DRF status and trading activity.', href: '/explorer' },
       { code: 'JOBS', name: 'Jobs & Consultancies', nameFr: 'Emplois et consultations', description: 'Ongoing jobs and consultancies in the network.', href: '/reports' },
-      { code: 'BILLING', name: 'Billing & Payments', nameFr: 'Facturation et paiements', description: 'Subscription invoices and payment tracking.', href: '/billing' },
+      { code: 'BILLING', name: 'Institutional Licensing', nameFr: 'Licences institutionnelles', description: 'Institutional DPA agreements and DFI co-financing settlement.', href: '/licensing' },
       { code: 'FIN_REPORTS', name: 'Financial Reports', nameFr: 'Rapports financiers', description: 'Donor reports and financial exports.', href: '/reports' }
     ]
   },

@@ -262,6 +262,18 @@ export interface Story {
 
 export type DataProvenance = 'VALIDATED_SURVEY' | 'DHIS2_LIVE_SYNC' | 'SIMULATED_BENCHMARK';
 export type EpnActorRole = 'EPN_COORDINATOR' | 'MEMBER_PHARMACIST' | 'DOCTOR' | 'PUBLIC_VIEWER';
+export type UhcCommitment = 'QUALITY_IMPROVEMENT' | 'FINANCIAL_PROTECTION' | 'COVERAGE_EXTENSION';
+
+export interface JurisdictionPartitionSummary {
+  country: string;
+  countryName: string;
+  residencyMode: 'IN_COUNTRY_PARTITION' | 'REGIONAL_AGGREGATE_ONLY';
+  dataValuesCount: number;
+  stockTransactionsCount: number;
+  dpaSignedMembers: number;
+  totalMembers: number;
+  regulatoryFramework: string;
+}
 
 export type SurveillanceAlertSeverity = 'CRITICAL' | 'WARNING' | 'WATCH' | 'NORMAL';
 export type SurveillanceAlertCategory =

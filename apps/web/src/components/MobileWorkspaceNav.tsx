@@ -12,8 +12,7 @@ const MOBILE_NAV = [
   { label: 'Explorer', href: '/explorer' },
   { label: 'Quality & AMR', href: '/quality' },
   { label: 'Visualizer', href: '/visualizer' },
-  { label: 'Reports', href: '/reports' },
-  { label: 'Billing', href: '/billing' }
+  { label: 'Reports', href: '/reports' }
 ];
 
 export function MobileWorkspaceNav() {

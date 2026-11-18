@@ -16,7 +16,8 @@ import {
   AuditLogEntry,
   MemberSharingPolicy,
   Dhis2PullResult,
-  EpnActorRole
+  EpnActorRole,
+  JurisdictionPartitionSummary
 } from '@epn/domain';
 
 export interface SdkOptions {
@@ -205,6 +206,10 @@ export class EpnClient {
     return this.request<Dhis2PullResult>(
       `/dhis2/pull?connectionId=${encodeURIComponent(connectionId)}&dryRun=${dryRun}`
     );
+  }
+
+  async getJurisdictions() {
+    return this.request<JurisdictionPartitionSummary[]>('/jurisdictions');
   }
 
   // Payments

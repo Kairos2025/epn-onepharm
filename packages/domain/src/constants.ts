@@ -147,3 +147,27 @@ export const ACCESS_TIERS = [
     export: 'All formats'
   }
 ] as const;
+
+export const UHC_MANDATE_MAP = [
+  {
+    commitment: 'QUALITY_IMPROVEMENT' as const,
+    title: 'Quality Improvement',
+    policyFocus: 'Essential Medicine Availability, WHO AWaRe AMR Stewardship, and Minilab Screening',
+    indicators: ['Tracer Medicine Availability (85% Target)', 'AMR Stewardship Compliance', 'Minilab Quality Pass Rate'],
+    targetRoute: '/quality'
+  },
+  {
+    commitment: 'FINANCIAL_PROTECTION' as const,
+    title: 'Financial Protection',
+    policyFocus: 'Ring-Fenced Drug Revolving Funds (DRFs) Preventing Catastrophic Out-of-Pocket Spend',
+    indicators: ['Active Revolving Fund Rate (73%)', 'Stock-out Days Reduction', 'Pooled Procurement Savings'],
+    targetRoute: '/medstock'
+  },
+  {
+    commitment: 'COVERAGE_EXTENSION' as const,
+    title: 'Coverage Extension',
+    policyFocus: 'Rural Faith-Based Facility (FOSA) Reach and Offline-First DHIS2 Reporting',
+    indicators: ['25,000+ Network Facilities', '29 African Nations Covered', 'Monthly Reporting Completeness'],
+    targetRoute: '/maps'
+  }
+] as const;
