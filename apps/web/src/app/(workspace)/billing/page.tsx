@@ -7,7 +7,7 @@ import { ACCESS_TIERS } from '@epn/domain';
 import { epnClient } from '@/lib/api';
 
 export default function BillingPage() {
-  const [selectedBilling, setSelectedBilling] = useState<'HOURLY' | 'DAILY' | 'MONTHLY' | 'ANNUAL'>('MONTHLY');
+  const [selectedBilling, setSelectedBilling] = useState<'MONTHLY' | 'ANNUAL'>('ANNUAL');
   const [selectedTier, setSelectedTier] = useState<string>('PRO');
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'CARD'>('MPESA');
   const [phoneNumber, setPhoneNumber] = useState('254712345678');
@@ -16,9 +16,9 @@ export default function BillingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const priceMap: Record<string, Record<string, string>> = {
-    BASIC: { HOURLY: '$2', DAILY: '$5', MONTHLY: '$29', ANNUAL: '$290' },
-    PRO: { HOURLY: '$8', DAILY: '$19', MONTHLY: '$99', ANNUAL: '$990' },
-    FULL: { HOURLY: 'Custom', DAILY: 'Custom', MONTHLY: 'Custom', ANNUAL: 'Institutional DPA' }
+    BASIC: { MONTHLY: '$29', ANNUAL: '$290' },
+    PRO: { MONTHLY: '$99', ANNUAL: '$990' },
+    FULL: { MONTHLY: 'Custom', ANNUAL: 'Institutional DPA' }
   };
 
   const handleSimulatePayment = async () => {
@@ -48,19 +48,19 @@ export default function BillingPage() {
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 uppercase tracking-wider">
-                Access Tiers & Subscriptions
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-100 text-cyan-900 uppercase tracking-wider">
+                Institutional DPA &amp; Member Licensing
               </span>
-              <h1 className="text-xl font-bold text-slate-900">Subscription & Billing Management</h1>
+              <h1 className="text-xl font-bold text-slate-900">Institutional Licensing &amp; Settlement</h1>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Time-boxed and recurring analytical access passes supporting pan-African mobile money (M-Pesa) and cards.
+              Annual institutional Data Processing Agreements (DPAs) and member association licensing with M-Pesa and card settlement.
             </p>
           </div>
 
-          {/* Billing Cadence Selector (Meeting Requirement: Hourly, Daily, Monthly, Annual) */}
-          <div className="flex items-center p-1 bg-slate-100 rounded-lg text-xs">
-            {(['HOURLY', 'DAILY', 'MONTHLY', 'ANNUAL'] as const).map(cadence => (
+          {/* Billing Cadence Selector (Institutional Monthly / Annual) */}
+          <div className="flex items-center p-1 bg-slate-100 rounded-full text-xs">
+            {(['MONTHLY', 'ANNUAL'] as const).map(cadence => (
               <button
                 key={cadence}
                 onClick={() => setSelectedBilling(cadence)}

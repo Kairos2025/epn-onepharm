@@ -260,6 +260,9 @@ export interface Story {
   project_id?: string;
 }
 
+export type DataProvenance = 'VALIDATED_SURVEY' | 'DHIS2_LIVE_SYNC' | 'SIMULATED_BENCHMARK';
+export type EpnActorRole = 'EPN_COORDINATOR' | 'MEMBER_PHARMACIST' | 'DOCTOR' | 'PUBLIC_VIEWER';
+
 export type SurveillanceAlertSeverity = 'CRITICAL' | 'WARNING' | 'WATCH' | 'NORMAL';
 export type SurveillanceAlertCategory =
   | 'STOCK_OUT'
@@ -286,6 +289,7 @@ export interface SurveillanceAlert {
   recommendedAction: string;
   detectedAt: string;
   status: SurveillanceAlertStatus;
+  provenance: DataProvenance;
 }
 
 export interface CountryControlScorecard {
@@ -300,12 +304,14 @@ export interface CountryControlScorecard {
   stockoutRatePct: number;
   amrStewardshipScorePct: number;
   controlStatus: 'OPTIMAL' | 'WATCH' | 'ALERT';
+  provenance: DataProvenance;
 }
 
 export interface SurveillanceSummary {
   networkAlertLevel: 'ROUTINE' | 'ELEVATED' | 'HIGH_ALERT';
   epiWeek: string;
   lastUpdated: string;
+  provenance: DataProvenance;
   reportingCompletenessPct: number;
   timelinessPct: number;
   activeAlertsCount: number;
@@ -315,6 +321,41 @@ export interface SurveillanceSummary {
   amrCompliancePct: number;
   alerts: SurveillanceAlert[];
   countryScorecards: CountryControlScorecard[];
+}
+
+export interface AuditLogEntry {
+  id: string;
+  actorId: string;
+  actorRole: EpnActorRole;
+  action: string;
+  targetType: 'ALERT' | 'DATA_VALUE' | 'STOCK_TRANSACTION' | 'SHARING_POLICY' | 'DHIS2_SYNC';
+  targetId: string;
+  previousState?: string;
+  newState: string;
+  occurredAt: string;
+}
+
+export interface MemberSharingPolicy {
+  memberCode: string;
+  memberName: string;
+  country: string;
+  shareFacilityAlerts: boolean;
+  shareAmrSignals: boolean;
+  dpaSigned: boolean;
+  updatedAt: string;
+}
+
+export interface Dhis2PullResult {
+  connectionId: string;
+  connectionName: string;
+  country: string;
+  dryRun: boolean;
+  pulledAt: string;
+  recordsReceived: number;
+  recordsMapped: number;
+  unmappedRatePct: number;
+  ingestedCount: number;
+  provenance: DataProvenance;
 }
 
 export interface MpesaStkPushResponse {

@@ -13,6 +13,10 @@ import {
   SurveillanceAlert,
   SurveillanceSummary,
   CountryControlScorecard,
+  AuditLogEntry,
+  MemberSharingPolicy,
+  EpnActorRole,
+  DataProvenance,
   generateUid
 } from '@epn/domain';
 import {
@@ -45,6 +49,9 @@ export interface DatabaseState {
   stockTransactions: StockTransaction[];
   stories: Story[];
   surveillanceAlerts: SurveillanceAlert[];
+  auditLogs: AuditLogEntry[];
+  sharingPolicies: MemberSharingPolicy[];
+  dhis2SyncedConnections: string[];
 }
 
 class EpnDatabase {
@@ -60,7 +67,10 @@ class EpnDatabase {
     stockItems: [],
     stockTransactions: [],
     stories: [],
-    surveillanceAlerts: []
+    surveillanceAlerts: [],
+    auditLogs: [],
+    sharingPolicies: [],
+    dhis2SyncedConnections: []
   };
 
   private initialized = false;
@@ -103,6 +113,9 @@ class EpnDatabase {
         if (Array.isArray(parsed.dataValues)) this.state.dataValues = parsed.dataValues;
         if (Array.isArray(parsed.stockTransactions)) this.state.stockTransactions = parsed.stockTransactions;
         if (Array.isArray(parsed.surveillanceAlerts)) this.state.surveillanceAlerts = parsed.surveillanceAlerts;
+        if (Array.isArray(parsed.auditLogs)) this.state.auditLogs = parsed.auditLogs;
+        if (Array.isArray(parsed.sharingPolicies)) this.state.sharingPolicies = parsed.sharingPolicies;
+        if (Array.isArray(parsed.dhis2SyncedConnections)) this.state.dhis2SyncedConnections = parsed.dhis2SyncedConnections;
       }
     } catch {
       // Graceful fallback to seeded in-memory state
@@ -125,12 +138,40 @@ class EpnDatabase {
         JSON.stringify({
           dataValues: this.state.dataValues,
           stockTransactions: this.state.stockTransactions,
-          surveillanceAlerts: this.state.surveillanceAlerts
+          surveillanceAlerts: this.state.surveillanceAlerts,
+          auditLogs: this.state.auditLogs,
+          sharingPolicies: this.state.sharingPolicies,
+          dhis2SyncedConnections: this.state.dhis2SyncedConnections
         }),
         'utf8'
       );
     } catch {
       // Read-only filesystem fallback
+    }
+  }
+
+  private appendAudit(
+    actorId: string,
+    actorRole: EpnActorRole,
+    action: string,
+    targetType: AuditLogEntry['targetType'],
+    targetId: string,
+    newState: string,
+    previousState?: string
+  ) {
+    this.state.auditLogs.unshift({
+      id: `aud_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      actorId,
+      actorRole,
+      action,
+      targetType,
+      targetId,
+      previousState,
+      newState,
+      occurredAt: new Date().toISOString()
+    });
+    if (this.state.auditLogs.length > 200) {
+      this.state.auditLogs = this.state.auditLogs.slice(0, 200);
     }
   }
 
@@ -560,7 +601,7 @@ class EpnDatabase {
       published_at: '2026-09-15T10:00:00Z'
     }));
 
-    // 11. CDC-Style Surveillance & Control Alerts
+    // 11. CDC-Style Surveillance & Control Alerts (tagged with explicit provenance)
     const surveillanceAlerts: SurveillanceAlert[] = [
       {
         id: 'alt_ceftriaxone_ke',
@@ -577,7 +618,8 @@ class EpnDatabase {
         threshold: '>= 1.5 Months of Stock',
         recommendedAction: 'Trigger emergency MEDS pooled replenishment order within 24 hours.',
         detectedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        provenance: 'SIMULATED_BENCHMARK'
       },
       {
         id: 'alt_amr_watch_cd',
@@ -594,7 +636,8 @@ class EpnDatabase {
         threshold: '<= 30.0% WHO AWaRe Target',
         recommendedAction: 'Convene facility DTC antimicrobial stewardship audit and culture-guided review.',
         detectedAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        provenance: 'SIMULATED_BENCHMARK'
       },
       {
         id: 'alt_oxytocin_cold_cm',
@@ -611,7 +654,8 @@ class EpnDatabase {
         threshold: '>= 90 days shelf-life buffer',
         recommendedAction: 'Redistribute batch OXY-2025-11 to high-volume maternity wards immediately.',
         detectedAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        provenance: 'SIMULATED_BENCHMARK'
       },
       {
         id: 'alt_al_low_ng',
@@ -628,7 +672,8 @@ class EpnDatabase {
         threshold: '>= 2.0 MOS (Peak Malaria Season)',
         recommendedAction: 'Issue pre-emptive CHAN-MediPharm regional buffer stock release.',
         detectedAt: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        provenance: 'SIMULATED_BENCHMARK'
       },
       {
         id: 'alt_reporting_ss',
@@ -645,7 +690,34 @@ class EpnDatabase {
         threshold: '>= 80.0% Control Benchmark',
         recommendedAction: 'Deploy offline Medstock sync reminder to diocesan pharmacy focal points.',
         detectedAt: new Date(Date.now() - 30 * 3600 * 1000).toISOString(),
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        provenance: 'SIMULATED_BENCHMARK'
+      }
+    ];
+
+    // 12. Member Data Sovereignty & DPA Sharing Policies
+    const nowIso = new Date().toISOString();
+    const sharingPolicies: MemberSharingPolicy[] = [
+      { memberCode: 'CHAK', memberName: 'Christian Health Association of Kenya', country: 'KE', shareFacilityAlerts: true, shareAmrSignals: true, dpaSigned: true, updatedAt: nowIso },
+      { memberCode: 'MEDS', memberName: 'Mission for Essential Drugs and Supplies', country: 'KE', shareFacilityAlerts: true, shareAmrSignals: true, dpaSigned: true, updatedAt: nowIso },
+      { memberCode: 'CHAN', memberName: 'Christian Health Association of Nigeria', country: 'NG', shareFacilityAlerts: true, shareAmrSignals: true, dpaSigned: true, updatedAt: nowIso },
+      { memberCode: 'CSSC', memberName: 'Christian Social Services Commission', country: 'TZ', shareFacilityAlerts: true, shareAmrSignals: true, dpaSigned: true, updatedAt: nowIso },
+      { memberCode: 'CBCHS', memberName: 'Cameroon Baptist Convention Health Services', country: 'CM', shareFacilityAlerts: true, shareAmrSignals: true, dpaSigned: true, updatedAt: nowIso },
+      { memberCode: 'ECC', memberName: 'Eglise du Christ au Congo', country: 'CD', shareFacilityAlerts: true, shareAmrSignals: true, dpaSigned: false, updatedAt: nowIso },
+      { memberCode: 'BUFMAR', memberName: 'Bureau des Formations Médicales Agréées du Rwanda', country: 'RW', shareFacilityAlerts: true, shareAmrSignals: true, dpaSigned: true, updatedAt: nowIso },
+      { memberCode: 'CHASS', memberName: 'Christian Health Association of South Sudan', country: 'SS', shareFacilityAlerts: true, shareAmrSignals: false, dpaSigned: false, updatedAt: nowIso }
+    ];
+
+    const auditLogs: AuditLogEntry[] = [
+      {
+        id: 'aud_init_seed',
+        actorId: 'system_seed',
+        actorRole: 'EPN_COORDINATOR',
+        action: 'INITIALIZE_SURVEILLANCE_BASELINE',
+        targetType: 'DHIS2_SYNC',
+        targetId: 'epnNetwork1',
+        newState: 'SEED_BASELINE_ACTIVE',
+        occurredAt: nowIso
       }
     ];
 
@@ -661,7 +733,10 @@ class EpnDatabase {
       stockItems,
       stockTransactions,
       stories,
-      surveillanceAlerts
+      surveillanceAlerts,
+      auditLogs,
+      sharingPolicies,
+      dhis2SyncedConnections: []
     };
 
     this.initialized = true;
@@ -765,12 +840,22 @@ class EpnDatabase {
             dv.org_unit_id === newVal.org_unit_id
     );
 
+    const prevVal = existingIdx >= 0 ? this.state.dataValues[existingIdx].value : undefined;
     if (existingIdx >= 0) {
       newVal.version = this.state.dataValues[existingIdx].version + 1;
       this.state.dataValues[existingIdx] = newVal;
     } else {
       this.state.dataValues.push(newVal);
     }
+    this.appendAudit(
+      newVal.stored_by,
+      'MEMBER_PHARMACIST',
+      existingIdx >= 0 ? 'UPDATE_DATA_VALUE' : 'CREATE_DATA_VALUE',
+      'DATA_VALUE',
+      `${newVal.org_unit_id}:${newVal.data_element_id}:${newVal.period_iso}`,
+      newVal.value,
+      prevVal
+    );
     this.saveToDisk();
     return newVal;
   }
@@ -786,37 +871,126 @@ class EpnDatabase {
 
   public recordStockTransaction(txn: StockTransaction): StockTransaction {
     this.state.stockTransactions.unshift(txn);
+    this.appendAudit(
+      txn.recorded_by || 'pharmacist',
+      'MEMBER_PHARMACIST',
+      `STOCK_${txn.kind}`,
+      'STOCK_TRANSACTION',
+      txn.id,
+      `${txn.item_id}:${txn.qty}`
+    );
     this.saveToDisk();
     return txn;
   }
 
   public getSurveillanceAlerts(severity?: string, status?: string): SurveillanceAlert[] {
     return this.state.surveillanceAlerts.filter(a => {
+      const policy = this.state.sharingPolicies.find(p => p.memberCode === a.memberCode);
+      if (policy) {
+        if (!policy.shareFacilityAlerts) return false;
+        if (a.category === 'AMR_SIGNAL' && !policy.shareAmrSignals) return false;
+      }
       if (severity && a.severity !== severity) return false;
       if (status && a.status !== status) return false;
       return true;
     });
   }
 
-  public acknowledgeAlert(id: string): SurveillanceAlert | undefined {
+  public acknowledgeAlert(
+    id: string,
+    actorId = 'epn_coordinator',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): SurveillanceAlert | undefined {
     const alert = this.state.surveillanceAlerts.find(a => a.id === id);
     if (!alert) return undefined;
+    const prev = alert.status;
     alert.status = 'ACKNOWLEDGED';
+    this.appendAudit(actorId, actorRole, 'ACKNOWLEDGE_ALERT', 'ALERT', alert.code, 'ACKNOWLEDGED', prev);
     this.saveToDisk();
     return alert;
   }
 
-  public resolveAlert(id: string): SurveillanceAlert | undefined {
+  public resolveAlert(
+    id: string,
+    actorId = 'epn_coordinator',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): SurveillanceAlert | undefined {
     const alert = this.state.surveillanceAlerts.find(a => a.id === id);
     if (!alert) return undefined;
+    const prev = alert.status;
     alert.status = 'RESOLVED';
+    this.appendAudit(actorId, actorRole, 'RESOLVE_ALERT', 'ALERT', alert.code, 'RESOLVED', prev);
     this.saveToDisk();
     return alert;
+  }
+
+  public getAuditLogs(limit = 50): AuditLogEntry[] {
+    return this.state.auditLogs.slice(0, limit);
+  }
+
+  public getSharingPolicies(): MemberSharingPolicy[] {
+    return this.state.sharingPolicies;
+  }
+
+  public updateSharingPolicy(
+    memberCode: string,
+    patch: Partial<Pick<MemberSharingPolicy, 'shareFacilityAlerts' | 'shareAmrSignals' | 'dpaSigned'>>,
+    actorId = 'member_admin',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): MemberSharingPolicy | undefined {
+    const policy = this.state.sharingPolicies.find(p => p.memberCode === memberCode);
+    if (!policy) return undefined;
+    const prev = JSON.stringify({
+      shareFacilityAlerts: policy.shareFacilityAlerts,
+      shareAmrSignals: policy.shareAmrSignals,
+      dpaSigned: policy.dpaSigned
+    });
+    if (patch.shareFacilityAlerts !== undefined) policy.shareFacilityAlerts = patch.shareFacilityAlerts;
+    if (patch.shareAmrSignals !== undefined) policy.shareAmrSignals = patch.shareAmrSignals;
+    if (patch.dpaSigned !== undefined) policy.dpaSigned = patch.dpaSigned;
+    policy.updatedAt = new Date().toISOString();
+    this.appendAudit(
+      actorId,
+      actorRole,
+      'UPDATE_SHARING_POLICY',
+      'SHARING_POLICY',
+      memberCode,
+      JSON.stringify({
+        shareFacilityAlerts: policy.shareFacilityAlerts,
+        shareAmrSignals: policy.shareAmrSignals,
+        dpaSigned: policy.dpaSigned
+      }),
+      prev
+    );
+    this.saveToDisk();
+    return policy;
+  }
+
+  public markDhis2Synced(
+    connectionId: string,
+    ingestedCount: number,
+    actorId = 'dhis2_scheduler',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ) {
+    if (!this.state.dhis2SyncedConnections.includes(connectionId)) {
+      this.state.dhis2SyncedConnections.push(connectionId);
+    }
+    this.appendAudit(
+      actorId,
+      actorRole,
+      'DHIS2_INBOUND_PULL',
+      'DHIS2_SYNC',
+      connectionId,
+      `INGESTED_${ingestedCount}_RECORDS`
+    );
+    this.saveToDisk();
   }
 
   public getSurveillanceSummary(): SurveillanceSummary {
-    const activeAlerts = this.state.surveillanceAlerts.filter(a => a.status !== 'RESOLVED');
+    const visibleAlerts = this.getSurveillanceAlerts();
+    const activeAlerts = visibleAlerts.filter(a => a.status !== 'RESOLVED');
     const criticalAlerts = activeAlerts.filter(a => a.severity === 'CRITICAL');
+    const khisSynced = this.state.dhis2SyncedConnections.includes('khis_ke');
 
     const countryMeta: Array<{
       country: string;
@@ -829,15 +1003,16 @@ class EpnDatabase {
       tracerAvailabilityPct: number;
       stockoutRatePct: number;
       amrStewardshipScorePct: number;
+      provenance: DataProvenance;
     }> = [
-      { country: 'KE', countryName: 'Kenya', memberCount: 3, facilitiesReporting: 1084, totalFacilities: 1140, reportingCompletenessPct: 95.1, timelinessPct: 91.4, tracerAvailabilityPct: 92.4, stockoutRatePct: 3.8, amrStewardshipScorePct: 88.0 },
-      { country: 'NG', countryName: 'Nigeria', memberCount: 2, facilitiesReporting: 3410, totalFacilities: 3920, reportingCompletenessPct: 87.0, timelinessPct: 82.5, tracerAvailabilityPct: 84.1, stockoutRatePct: 7.4, amrStewardshipScorePct: 79.5 },
-      { country: 'TZ', countryName: 'Tanzania', memberCount: 1, facilitiesReporting: 860, totalFacilities: 940, reportingCompletenessPct: 91.5, timelinessPct: 88.0, tracerAvailabilityPct: 87.8, stockoutRatePct: 5.2, amrStewardshipScorePct: 84.2 },
-      { country: 'CM', countryName: 'Cameroon', memberCount: 2, facilitiesReporting: 512, totalFacilities: 580, reportingCompletenessPct: 88.3, timelinessPct: 84.1, tracerAvailabilityPct: 86.5, stockoutRatePct: 6.1, amrStewardshipScorePct: 82.0 },
-      { country: 'CD', countryName: 'DR Congo', memberCount: 1, facilitiesReporting: 1420, totalFacilities: 1850, reportingCompletenessPct: 76.8, timelinessPct: 68.4, tracerAvailabilityPct: 75.3, stockoutRatePct: 12.6, amrStewardshipScorePct: 66.4 },
-      { country: 'UG', countryName: 'Uganda', memberCount: 1, facilitiesReporting: 690, totalFacilities: 760, reportingCompletenessPct: 90.8, timelinessPct: 86.2, tracerAvailabilityPct: 88.1, stockoutRatePct: 4.9, amrStewardshipScorePct: 83.7 },
-      { country: 'RW', countryName: 'Rwanda', memberCount: 1, facilitiesReporting: 315, totalFacilities: 330, reportingCompletenessPct: 95.5, timelinessPct: 93.8, tracerAvailabilityPct: 93.6, stockoutRatePct: 2.9, amrStewardshipScorePct: 90.1 },
-      { country: 'SS', countryName: 'South Sudan', memberCount: 1, facilitiesReporting: 128, totalFacilities: 200, reportingCompletenessPct: 64.0, timelinessPct: 54.2, tracerAvailabilityPct: 69.5, stockoutRatePct: 16.8, amrStewardshipScorePct: 61.0 }
+      { country: 'KE', countryName: 'Kenya', memberCount: 3, facilitiesReporting: 1084, totalFacilities: 1140, reportingCompletenessPct: 95.1, timelinessPct: 91.4, tracerAvailabilityPct: 92.4, stockoutRatePct: 3.8, amrStewardshipScorePct: 88.0, provenance: khisSynced ? 'DHIS2_LIVE_SYNC' : 'SIMULATED_BENCHMARK' },
+      { country: 'NG', countryName: 'Nigeria', memberCount: 2, facilitiesReporting: 3410, totalFacilities: 3920, reportingCompletenessPct: 87.0, timelinessPct: 82.5, tracerAvailabilityPct: 84.1, stockoutRatePct: 7.4, amrStewardshipScorePct: 79.5, provenance: 'SIMULATED_BENCHMARK' },
+      { country: 'TZ', countryName: 'Tanzania', memberCount: 1, facilitiesReporting: 860, totalFacilities: 940, reportingCompletenessPct: 91.5, timelinessPct: 88.0, tracerAvailabilityPct: 87.8, stockoutRatePct: 5.2, amrStewardshipScorePct: 84.2, provenance: 'SIMULATED_BENCHMARK' },
+      { country: 'CM', countryName: 'Cameroon', memberCount: 2, facilitiesReporting: 512, totalFacilities: 580, reportingCompletenessPct: 88.3, timelinessPct: 84.1, tracerAvailabilityPct: 86.5, stockoutRatePct: 6.1, amrStewardshipScorePct: 82.0, provenance: 'SIMULATED_BENCHMARK' },
+      { country: 'CD', countryName: 'DR Congo', memberCount: 1, facilitiesReporting: 1420, totalFacilities: 1850, reportingCompletenessPct: 76.8, timelinessPct: 68.4, tracerAvailabilityPct: 75.3, stockoutRatePct: 12.6, amrStewardshipScorePct: 66.4, provenance: 'SIMULATED_BENCHMARK' },
+      { country: 'UG', countryName: 'Uganda', memberCount: 1, facilitiesReporting: 690, totalFacilities: 760, reportingCompletenessPct: 90.8, timelinessPct: 86.2, tracerAvailabilityPct: 88.1, stockoutRatePct: 4.9, amrStewardshipScorePct: 83.7, provenance: 'SIMULATED_BENCHMARK' },
+      { country: 'RW', countryName: 'Rwanda', memberCount: 1, facilitiesReporting: 315, totalFacilities: 330, reportingCompletenessPct: 95.5, timelinessPct: 93.8, tracerAvailabilityPct: 93.6, stockoutRatePct: 2.9, amrStewardshipScorePct: 90.1, provenance: 'SIMULATED_BENCHMARK' },
+      { country: 'SS', countryName: 'South Sudan', memberCount: 1, facilitiesReporting: 128, totalFacilities: 200, reportingCompletenessPct: 64.0, timelinessPct: 54.2, tracerAvailabilityPct: 69.5, stockoutRatePct: 16.8, amrStewardshipScorePct: 61.0, provenance: 'SIMULATED_BENCHMARK' }
     ];
 
     const countryScorecards: CountryControlScorecard[] = countryMeta.map(c => {
@@ -871,6 +1046,7 @@ class EpnDatabase {
       networkAlertLevel: criticalAlerts.length >= 2 ? 'HIGH_ALERT' : activeAlerts.length > 0 ? 'ELEVATED' : 'ROUTINE',
       epiWeek: `${now.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`,
       lastUpdated: now.toISOString(),
+      provenance: khisSynced ? 'DHIS2_LIVE_SYNC' : 'SIMULATED_BENCHMARK',
       reportingCompletenessPct: Number(avgCompleteness.toFixed(1)),
       timelinessPct: Number(avgTimeliness.toFixed(1)),
       activeAlertsCount: activeAlerts.length,
@@ -878,7 +1054,7 @@ class EpnDatabase {
       tracerAvailabilityPct: Number(avgTracer.toFixed(1)),
       stockoutRatePct: Number(avgStockout.toFixed(1)),
       amrCompliancePct: Number(avgAmr.toFixed(1)),
-      alerts: this.state.surveillanceAlerts,
+      alerts: visibleAlerts,
       countryScorecards
     };
   }

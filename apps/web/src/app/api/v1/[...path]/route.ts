@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@epn/db';
-import { ACCESS_TIERS, DataValueWriteSchema, StockTransactionSchema } from '@epn/domain';
+import { db, executeDhis2Pull } from '@epn/db';
+import { ACCESS_TIERS, DataValueWriteSchema, EpnActorRole, StockTransactionSchema } from '@epn/domain';
 
 export const dynamic = 'force-dynamic';
 
@@ -142,6 +142,23 @@ export async function GET(req: NextRequest, context: RouteContext) {
     return NextResponse.json(ACCESS_TIERS);
   }
 
+  if (route === '/audit') {
+    const limit = sp.get('limit') ? parseInt(sp.get('limit')!, 10) : 50;
+    return NextResponse.json(db.getAuditLogs(limit));
+  }
+
+  if (route === '/governance/sharing') {
+    return NextResponse.json(db.getSharingPolicies());
+  }
+
+  if (route === '/dhis2/pull') {
+    const connectionId = sp.get('connectionId') || 'khis_ke';
+    const dryRun = sp.get('dryRun') !== 'false';
+    const role = (req.headers.get('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+    const actor = req.headers.get('x-epn-actor') || 'dhis2_scheduler';
+    return NextResponse.json(executeDhis2Pull(connectionId, dryRun, actor, role));
+  }
+
   return NextResponse.json({ error: `Not found: ${route}` }, { status: 404 });
 }
 
@@ -149,6 +166,8 @@ export async function POST(req: NextRequest, context: RouteContext) {
   const { path } = await context.params;
   const route = '/' + path.join('/');
   const body = await req.json().catch(() => ({}));
+  const role = (req.headers.get('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  const actor = req.headers.get('x-epn-actor') || 'epn_coordinator';
 
   if (route === '/dataValues') {
     const parseRes = DataValueWriteSchema.safeParse(body);
@@ -189,14 +208,29 @@ export async function POST(req: NextRequest, context: RouteContext) {
   }
 
   if (path[0] === 'surveillance' && path[1] === 'alerts' && path[2] && path[3] === 'acknowledge') {
-    const updated = db.acknowledgeAlert(path[2]);
+    if (role === 'PUBLIC_VIEWER') {
+      return NextResponse.json({ error: 'Insufficient authority: authenticated role required' }, { status: 403 });
+    }
+    const updated = db.acknowledgeAlert(path[2], actor, role);
     if (!updated) return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
     return NextResponse.json(updated);
   }
 
   if (path[0] === 'surveillance' && path[1] === 'alerts' && path[2] && path[3] === 'resolve') {
-    const updated = db.resolveAlert(path[2]);
+    if (role === 'PUBLIC_VIEWER') {
+      return NextResponse.json({ error: 'Insufficient authority: authenticated role required' }, { status: 403 });
+    }
+    const updated = db.resolveAlert(path[2], actor, role);
     if (!updated) return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
+    return NextResponse.json(updated);
+  }
+
+  if (path[0] === 'governance' && path[1] === 'sharing' && path[2]) {
+    if (role === 'PUBLIC_VIEWER') {
+      return NextResponse.json({ error: 'Insufficient authority: member or coordinator role required' }, { status: 403 });
+    }
+    const updated = db.updateSharingPolicy(path[2], body, actor, role);
+    if (!updated) return NextResponse.json({ error: 'Member sharing policy not found' }, { status: 404 });
     return NextResponse.json(updated);
   }
 

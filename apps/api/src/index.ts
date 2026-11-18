@@ -1,8 +1,8 @@
 import express, { Express } from 'express';
 import cors from 'cors';
-import { db } from '@epn/db';
+import { db, executeDhis2Pull } from '@epn/db';
 import { parsePeriod, generateMonthlyPeriods } from '@epn/periods';
-import { ACCESS_TIERS, DataValueWriteSchema, StockTransactionSchema } from '@epn/domain';
+import { ACCESS_TIERS, DataValueWriteSchema, EpnActorRole, StockTransactionSchema } from '@epn/domain';
 
 const app: Express = express();
 const port = process.env.PORT || 4000;
@@ -206,15 +206,54 @@ apiRouter.get('/surveillance/alerts', (req, res) => {
 });
 
 apiRouter.post('/surveillance/alerts/:id/acknowledge', (req, res) => {
-  const updated = db.acknowledgeAlert(req.params.id);
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority: authenticated role required' });
+  }
+  const actor = req.header('x-epn-actor') || 'epn_coordinator';
+  const updated = db.acknowledgeAlert(req.params.id, actor, role);
   if (!updated) return res.status(404).json({ error: 'Alert not found' });
   res.json(updated);
 });
 
 apiRouter.post('/surveillance/alerts/:id/resolve', (req, res) => {
-  const updated = db.resolveAlert(req.params.id);
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority: authenticated role required' });
+  }
+  const actor = req.header('x-epn-actor') || 'epn_coordinator';
+  const updated = db.resolveAlert(req.params.id, actor, role);
   if (!updated) return res.status(404).json({ error: 'Alert not found' });
   res.json(updated);
+});
+
+// 10b. Audit Trail, Member Data Sovereignty & DHIS2 Inbound Sync
+apiRouter.get('/audit', (req, res) => {
+  const limit = req.query.limit ? parseInt(String(req.query.limit), 10) : 50;
+  res.json(db.getAuditLogs(limit));
+});
+
+apiRouter.get('/governance/sharing', (req, res) => {
+  res.json(db.getSharingPolicies());
+});
+
+apiRouter.post('/governance/sharing/:memberCode', (req, res) => {
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority: member or coordinator role required' });
+  }
+  const actor = req.header('x-epn-actor') || 'member_admin';
+  const updated = db.updateSharingPolicy(req.params.memberCode, req.body, actor, role);
+  if (!updated) return res.status(404).json({ error: 'Member sharing policy not found' });
+  res.json(updated);
+});
+
+apiRouter.get('/dhis2/pull', (req, res) => {
+  const connectionId = req.query.connectionId ? String(req.query.connectionId) : 'khis_ke';
+  const dryRun = req.query.dryRun !== 'false';
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  const actor = req.header('x-epn-actor') || 'dhis2_scheduler';
+  res.json(executeDhis2Pull(connectionId, dryRun, actor, role));
 });
 
 // 11. Stories

@@ -12,27 +12,43 @@ import {
   Story,
   SurveillanceAlert,
   SurveillanceSummary,
-  MpesaStkPushResponse
+  MpesaStkPushResponse,
+  AuditLogEntry,
+  MemberSharingPolicy,
+  Dhis2PullResult,
+  EpnActorRole
 } from '@epn/domain';
 
 export interface SdkOptions {
   baseUrl: string;
   token?: string;
+  role?: EpnActorRole;
+  actorId?: string;
 }
 
 export class EpnClient {
   private baseUrl: string;
   private token?: string;
+  private role: EpnActorRole;
+  private actorId: string;
 
   constructor(options: SdkOptions) {
     this.baseUrl = options.baseUrl.replace(/\/$/, '');
     this.token = options.token;
+    this.role = options.role || 'EPN_COORDINATOR';
+    this.actorId = options.actorId || 'web_operator';
+  }
+
+  public setRole(role: EpnActorRole) {
+    this.role = role;
   }
 
   private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'application/json',
+      'x-epn-role': this.role,
+      'x-epn-actor': this.actorId,
       ...((options.headers as any) || {})
     };
 
@@ -164,6 +180,31 @@ export class EpnClient {
     return this.request<SurveillanceAlert>(`/surveillance/alerts/${id}/resolve`, {
       method: 'POST'
     });
+  }
+
+  // Governance, Audit Trail & DHIS2 Inbound Sync
+  async getAuditLogs(limit = 50) {
+    return this.request<AuditLogEntry[]>(`/audit?limit=${limit}`);
+  }
+
+  async getSharingPolicies() {
+    return this.request<MemberSharingPolicy[]>('/governance/sharing');
+  }
+
+  async updateSharingPolicy(
+    memberCode: string,
+    patch: Partial<Pick<MemberSharingPolicy, 'shareFacilityAlerts' | 'shareAmrSignals' | 'dpaSigned'>>
+  ) {
+    return this.request<MemberSharingPolicy>(`/governance/sharing/${memberCode}`, {
+      method: 'POST',
+      body: JSON.stringify(patch)
+    });
+  }
+
+  async pullDhis2(connectionId = 'khis_ke', dryRun = true) {
+    return this.request<Dhis2PullResult>(
+      `/dhis2/pull?connectionId=${encodeURIComponent(connectionId)}&dryRun=${dryRun}`
+    );
   }
 
   // Payments

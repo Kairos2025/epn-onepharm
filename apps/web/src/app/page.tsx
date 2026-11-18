@@ -181,6 +181,15 @@ export default function PublicPortalPage() {
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white">
                   {surveillance?.networkAlertLevel?.replace('_', ' ') || 'SURVEILLANCE ACTIVE'}
                 </span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    surveillance?.provenance === 'DHIS2_LIVE_SYNC'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/30'
+                  }`}
+                >
+                  {surveillance?.provenance === 'DHIS2_LIVE_SYNC' ? 'DHIS2 LIVE SYNC' : 'BENCHMARK PREVIEW'}
+                </span>
                 <span className="text-xs font-mono text-slate-300">
                   EPI-WEEK {surveillance?.epiWeek || '2026-W47'}
                 </span>

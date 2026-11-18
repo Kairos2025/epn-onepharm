@@ -16,16 +16,27 @@ import {
   RefreshCw,
   Check,
   AlertTriangle,
-  Radio
+  Radio,
+  ShieldCheck,
+  Database,
+  Lock
 } from 'lucide-react';
 import { generateMonthlyPeriods } from '@epn/periods';
-import type { SurveillanceSummary } from '@epn/domain';
+import type {
+  SurveillanceSummary,
+  AuditLogEntry,
+  MemberSharingPolicy,
+  EpnActorRole
+} from '@epn/domain';
 import { epnClient } from '@/lib/api';
 
 export default function DashboardPage() {
   const [selectedOrgUnit, setSelectedOrgUnit] = useState('ALL');
   const [selectedPeriod, setSelectedPeriod] = useState('202610');
   const [surveillance, setSurveillance] = useState<SurveillanceSummary | null>(null);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [sharingPolicies, setSharingPolicies] = useState<MemberSharingPolicy[]>([]);
+  const [actorRole, setActorRole] = useState<EpnActorRole>('EPN_COORDINATOR');
   const [loading, setLoading] = useState(true);
   const [alertFilter, setAlertFilter] = useState<'ALL' | 'ACTIVE' | 'RESOLVED'>('ACTIVE');
   const [countrySearch, setCountrySearch] = useState('');
@@ -42,8 +53,14 @@ export default function DashboardPage() {
   const loadSurveillance = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await epnClient.getSurveillanceSummary();
-      setSurveillance(data);
+      const [summary, logs, policies] = await Promise.all([
+        epnClient.getSurveillanceSummary(),
+        epnClient.getAuditLogs(20),
+        epnClient.getSharingPolicies()
+      ]);
+      setSurveillance(summary);
+      setAuditLogs(logs);
+      setSharingPolicies(policies);
     } catch {
       // Keep previous state on transient failure
     } finally {
@@ -55,13 +72,19 @@ export default function DashboardPage() {
     loadSurveillance();
   }, [loadSurveillance]);
 
+  const handleRoleChange = (role: EpnActorRole) => {
+    setActorRole(role);
+    epnClient.setRole(role);
+    showToast(`Active operator role switched to ${role}.`);
+  };
+
   const handleAcknowledge = async (id: string) => {
     try {
       await epnClient.acknowledgeAlert(id);
       await loadSurveillance();
-      showToast('Sentinel alert acknowledged and logged.');
-    } catch {
-      // ignore
+      showToast('Sentinel alert acknowledged and recorded in audit log.');
+    } catch (err: any) {
+      showToast(err?.message || 'Permission denied for current role.');
     }
   };
 
@@ -69,9 +92,37 @@ export default function DashboardPage() {
     try {
       await epnClient.resolveAlert(id);
       await loadSurveillance();
-      showToast('Sentinel alert marked as resolved.');
-    } catch {
-      // ignore
+      showToast('Sentinel alert marked as resolved and recorded in audit log.');
+    } catch (err: any) {
+      showToast(err?.message || 'Permission denied for current role.');
+    }
+  };
+
+  const handleDhis2Pull = async (dryRun: boolean) => {
+    try {
+      const res = await epnClient.pullDhis2('khis_ke', dryRun);
+      await loadSurveillance();
+      showToast(
+        dryRun
+          ? `KHIS Kenya Dry-Run: ${res.recordsMapped}/${res.recordsReceived} mapped (${res.unmappedRatePct}% unmapped).`
+          : `KHIS Kenya Live Sync: ingested ${res.ingestedCount} records (${res.provenance}).`
+      );
+    } catch (err: any) {
+      showToast(err?.message || 'DHIS2 sync failed.');
+    }
+  };
+
+  const handleToggleSharing = async (
+    memberCode: string,
+    field: 'shareFacilityAlerts' | 'shareAmrSignals' | 'dpaSigned',
+    value: boolean
+  ) => {
+    try {
+      await epnClient.updateSharingPolicy(memberCode, { [field]: value });
+      await loadSurveillance();
+      showToast(`Updated ${memberCode} sovereignty policy (${field}: ${value}).`);
+    } catch (err: any) {
+      showToast(err?.message || 'Permission denied for current role.');
     }
   };
 
@@ -184,6 +235,15 @@ export default function DashboardPage() {
                 <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${alertLevelBadge}`}>
                   {surveillance?.networkAlertLevel?.replace('_', ' ') || 'SURVEILLANCE ACTIVE'}
                 </span>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                    surveillance?.provenance === 'DHIS2_LIVE_SYNC'
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-400/30'
+                  }`}
+                >
+                  {surveillance?.provenance?.replace(/_/g, ' ') || 'SIMULATED BENCHMARK'}
+                </span>
                 <span className="text-[11px] font-mono text-slate-300">
                   EPI-WEEK: {surveillance?.epiWeek || '2026-W47'}
                 </span>
@@ -200,20 +260,36 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <div className="px-3.5 py-2 rounded-full bg-white/10 border border-white/15 backdrop-blur-md">
-              <span className="text-slate-300">Active Alerts: </span>
-              <span className="font-bold text-white">{surveillance?.activeAlertsCount ?? 5}</span>
-              <span className="text-rose-300 font-semibold ml-1.5">
-                ({surveillance?.criticalAlertsCount ?? 2} Critical)
-              </span>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 border border-white/15">
+              <Lock className="w-3.5 h-3.5 text-cyan-300" />
+              <select
+                aria-label="Operator Role"
+                value={actorRole}
+                onChange={e => handleRoleChange(e.target.value as EpnActorRole)}
+                className="bg-transparent text-white font-semibold outline-none cursor-pointer"
+              >
+                <option value="EPN_COORDINATOR" className="text-slate-900">Role: EPN Coordinator</option>
+                <option value="DOCTOR" className="text-slate-900">Role: Hospital Doctor</option>
+                <option value="MEMBER_PHARMACIST" className="text-slate-900">Role: Member Pharmacist</option>
+                <option value="PUBLIC_VIEWER" className="text-slate-900">Role: Public Viewer (Read-Only)</option>
+              </select>
             </div>
             <button
+              type="button"
+              onClick={() => handleDhis2Pull(false)}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors cursor-pointer"
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>Sync KHIS Kenya</span>
+            </button>
+            <button
+              type="button"
               onClick={loadSurveillance}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 text-white font-semibold transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 text-white font-semibold transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-              <span>Sync Feed</span>
+              <span>Refresh</span>
             </button>
           </div>
         </div>
@@ -691,6 +767,106 @@ export default function DashboardPage() {
               <p className="text-sky-800 text-[11px] leading-relaxed">
                 Over 1,200 healthcare workers trained in EmONC, supply chain forecasting, and AMR surveillance. 63% female participation in the Ecumenical Scholarship Programme.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Member Data Sovereignty & Append-Only Audit Trail */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="m3-glass-card p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-cyan-700" />
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Member Data Sovereignty &amp; DPA Controls
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Each member association governs upward sharing of facility alerts and AMR signals
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleDhis2Pull(true)}
+                className="px-3 py-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer"
+              >
+                Test KHIS Dry-Run
+              </button>
+            </div>
+
+            <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl overflow-hidden bg-white/70">
+              {sharingPolicies.map(p => (
+                <div key={p.memberCode} className="p-3 flex items-center justify-between gap-3 text-xs">
+                  <div className="min-w-0">
+                    <div className="font-bold text-slate-900 truncate">
+                      {p.memberCode} <span className="font-normal text-slate-500">({p.country})</span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 truncate">{p.memberName}</div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleToggleSharing(p.memberCode, 'shareFacilityAlerts', !p.shareFacilityAlerts)}
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
+                        p.shareFacilityAlerts ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      Alerts: {p.shareFacilityAlerts ? 'ON' : 'MASKED'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleSharing(p.memberCode, 'shareAmrSignals', !p.shareAmrSignals)}
+                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-colors ${
+                        p.shareAmrSignals ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      AMR: {p.shareAmrSignals ? 'ON' : 'MASKED'}
+                    </button>
+                    <span
+                      className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
+                        p.dpaSigned ? 'bg-sky-50 text-sky-800' : 'bg-amber-50 text-amber-800'
+                      }`}
+                    >
+                      {p.dpaSigned ? 'DPA Signed' : 'DPA Pending'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="m3-glass-card p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Append-Only Governance Audit Trail</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Immutable log of alert actions, DHIS2 syncs, data entries, and sovereignty updates
+                </p>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-slate-100 text-[10px] font-mono font-semibold text-slate-600">
+                {auditLogs.length} Events
+              </span>
+            </div>
+
+            <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 border border-slate-200/80 rounded-2xl bg-white/70">
+              {auditLogs.map(log => (
+                <div key={log.id} className="p-3 text-xs space-y-0.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-bold text-cyan-800 text-[11px]">{log.action}</span>
+                    <span className="text-[10px] font-mono text-slate-400">
+                      {new Date(log.occurredAt).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-700">
+                    Target: <span className="font-mono">{log.targetId}</span> &rarr;{' '}
+                    <span className="font-semibold">{log.newState}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500">
+                    Actor: {log.actorId} ({log.actorRole})
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

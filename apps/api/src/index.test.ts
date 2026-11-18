@@ -121,11 +121,50 @@ describe('EPN OnePharm End-to-End API Workflows', () => {
 
   it('POST /surveillance/alerts/:id/acknowledge updates alert status', async () => {
     const res = await fetch(`${baseUrl}/surveillance/alerts/alt_ceftriaxone_ke/acknowledge`, {
-      method: 'POST'
+      method: 'POST',
+      headers: { 'x-epn-role': 'DOCTOR', 'x-epn-actor': 'dr_mwangi' }
     });
     assert.strictEqual(res.status, 200);
     const alert = await res.json();
     assert.strictEqual(alert.status, 'ACKNOWLEDGED');
+  });
+
+  it('RBAC rejects PUBLIC_VIEWER mutations and logs audit trail', async () => {
+    const forbidden = await fetch(`${baseUrl}/surveillance/alerts/alt_ceftriaxone_ke/resolve`, {
+      method: 'POST',
+      headers: { 'x-epn-role': 'PUBLIC_VIEWER' }
+    });
+    assert.strictEqual(forbidden.status, 403);
+
+    const auditRes = await fetch(`${baseUrl}/audit`);
+    assert.strictEqual(auditRes.status, 200);
+    const logs = await auditRes.json();
+    assert.ok(Array.isArray(logs) && logs.length > 0);
+  });
+
+  it('GET /dhis2/pull executes anchor KHIS mapping and live ingestion', async () => {
+    const dryRes = await fetch(`${baseUrl}/dhis2/pull?connectionId=khis_ke&dryRun=true`);
+    assert.strictEqual(dryRes.status, 200);
+    const dryData = await dryRes.json();
+    assert.strictEqual(dryData.recordsMapped, 3);
+    assert.strictEqual(dryData.ingestedCount, 0);
+
+    const liveRes = await fetch(`${baseUrl}/dhis2/pull?connectionId=khis_ke&dryRun=false`);
+    assert.strictEqual(liveRes.status, 200);
+    const liveData = await liveRes.json();
+    assert.strictEqual(liveData.ingestedCount, 3);
+    assert.strictEqual(liveData.provenance, 'DHIS2_LIVE_SYNC');
+  });
+
+  it('POST /governance/sharing/:memberCode enforces member sovereignty', async () => {
+    const res = await fetch(`${baseUrl}/governance/sharing/CHASS`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-epn-role': 'EPN_COORDINATOR' },
+      body: JSON.stringify({ shareFacilityAlerts: false })
+    });
+    assert.strictEqual(res.status, 200);
+    const updated = await res.json();
+    assert.strictEqual(updated.shareFacilityAlerts, false);
   });
 
   it('closes test server', async () => {
