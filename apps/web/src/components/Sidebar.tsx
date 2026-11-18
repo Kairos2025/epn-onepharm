@@ -29,9 +29,17 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
 
 export function Sidebar() {
   const pathname = usePathname();
-  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({
-    MEMBERSHIP: true,
-    PROJECTS: true
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = { MEMBERSHIP: true };
+    for (const cat of WORKSPACE_CATEGORIES) {
+      if (
+        cat.href.split('?')[0] === pathname ||
+        cat.subs.some(s => !s.external && s.href.split('?')[0] === pathname)
+      ) {
+        initial[cat.code] = true;
+      }
+    }
+    return initial;
   });
 
   const toggle = (code: string) =>
@@ -47,7 +55,7 @@ export function Sidebar() {
           {WORKSPACE_CATEGORIES.map(category => {
             const Icon = ICONS[category.icon] ?? BarChart3;
             const isOpen = openCategories[category.code];
-            const categoryActive = pathname === category.href;
+            const categoryActive = pathname === category.href.split('?')[0];
             return (
               <div key={category.code}>
                 <div className="flex items-stretch gap-1">
@@ -89,8 +97,8 @@ export function Sidebar() {
                           <Link
                             href={sub.href}
                             className={`block px-2.5 py-1.5 rounded-md text-xs transition-colors ${
-                              pathname === sub.href
-                                ? 'text-sky-700 font-medium'
+                              pathname === sub.href.split('?')[0]
+                                ? 'text-sky-700 font-semibold bg-sky-50/70'
                                 : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                             }`}
                             title={sub.description}

@@ -242,8 +242,36 @@ export default function PublicPortalPage() {
         </div>
       </section>
 
+      {/* Sticky Section Jump Bar (Information Hierarchy) */}
+      <nav
+        aria-label="Portal sections"
+        className="sticky top-16 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-2xs"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center gap-2 overflow-x-auto text-xs">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0 mr-1">
+            Explore:
+          </span>
+          {[
+            { href: '#programs', label: '01 · Programs' },
+            { href: '#countries', label: '02 · Countries & Map' },
+            { href: '#priorities', label: '03 · Health Priorities' },
+            { href: '#results', label: '04 · Results & Stories' },
+            { href: '#members', label: '05 · Members (151)' },
+            { href: '#access', label: '06 · Access Tiers' }
+          ].map(item => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="px-3 py-1 rounded-full bg-slate-100 hover:bg-cyan-800 hover:text-white text-slate-700 font-semibold whitespace-nowrap transition-colors"
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
+      </nav>
+
       {/* Our 5 Program Areas with expandable program graph panel */}
-      <section className="py-14 bg-white border-b border-slate-200">
+      <section id="programs" className="scroll-mt-28 py-14 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center max-w-2xl mx-auto">
             <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">
@@ -478,7 +506,7 @@ export default function PublicPortalPage() {
       </section>
 
       {/* Interactive country cards: members, ongoing projects, partners and completed work per area */}
-      <section className="py-14 bg-slate-50 border-b border-slate-200">
+      <section id="countries" className="scroll-mt-28 py-14 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center max-w-2xl mx-auto">
             <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">
@@ -787,7 +815,7 @@ export default function PublicPortalPage() {
       </section>
 
       {/* Strategic Programmes & Priority Explorer with Drilldown (Meeting requirement) */}
-      <section className="py-14 bg-white border-b border-slate-200">
+      <section id="priorities" className="scroll-mt-28 py-14 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div>
             <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">Strategic Framework</div>
@@ -895,7 +923,7 @@ export default function PublicPortalPage() {
       </section>
 
       {/* Verified Reported Results (Section 2.5) */}
-      <section className="py-14 bg-slate-50 border-b border-slate-200">
+      <section id="results" className="scroll-mt-28 py-14 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
             <div>
@@ -1023,7 +1051,7 @@ export default function PublicPortalPage() {
       </section>
 
       {/* Member Organizations Directory Filter (Section 2.1 & 8.7) */}
-      <section className="py-14 bg-slate-50 border-b border-slate-200">
+      <section id="members" className="scroll-mt-28 py-14 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -1061,8 +1089,8 @@ export default function PublicPortalPage() {
                 <h4 className="text-xs font-bold text-slate-900 leading-snug">{m.name}</h4>
                 <div className="pt-2 flex justify-between items-center text-[11px] text-slate-500 border-t border-slate-100">
                   <span>Status: Active Chapter</span>
-                  <Link href={`/explorer?member=${m.abbreviation}`} className="text-sky-600 font-semibold hover:underline">
-                    View Network →
+                  <Link href={`/explorer?tab=MEMBERS&member=${m.abbreviation}`} className="text-sky-600 font-semibold hover:underline">
+                    View Profile →
                   </Link>
                 </div>
               </div>
@@ -1072,7 +1100,7 @@ export default function PublicPortalPage() {
       </section>
 
       {/* Access Tiers & Subscriptions (Section 12.3) */}
-      <section className="py-14 bg-white border-b border-slate-200">
+      <section id="access" className="scroll-mt-28 py-14 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="text-center max-w-2xl mx-auto">
             <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">Access Tiers & Governance</div>

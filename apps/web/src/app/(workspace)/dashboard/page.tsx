@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const [alertFilter, setAlertFilter] = useState<'ALL' | 'ACTIVE' | 'RESOLVED'>('ACTIVE');
   const [countrySearch, setCountrySearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ALERT' | 'WATCH' | 'OPTIMAL'>('ALL');
+  const [dashboardTab, setDashboardTab] = useState<'ALERTS' | 'TRENDS' | 'GOVERNANCE'>('ALERTS');
   const [actionToast, setActionToast] = useState<string | null>(null);
 
   const periods = generateMonthlyPeriods(12);
@@ -396,6 +397,31 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Folder Navigation Tabs */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-white/90 p-1.5 rounded-full border border-slate-200 w-fit text-xs shadow-2xs">
+          {(
+            [
+              { id: 'ALERTS', label: '1 · Alerts & Country Scorecard' },
+              { id: 'TRENDS', label: '2 · Trends & Governance' },
+              { id: 'GOVERNANCE', label: '3 · Sovereignty & Audit Trail' }
+            ] as const
+          ).map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setDashboardTab(tab.id)}
+              className={`px-4 py-1.5 rounded-full font-semibold transition-colors cursor-pointer ${
+                dashboardTab === tab.id ? 'bg-cyan-800 text-white shadow-xs' : 'text-slate-700 hover:bg-slate-100'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* FOLDER 1: Alerts & Country Scorecard */}
+        {dashboardTab === 'ALERTS' && (
+        <>
         {/* FIRST-READ OBJECT: Active Sentinel Alerts & Early Warning Control Signals */}
         <div className="bg-white/95 backdrop-blur-md p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -793,8 +819,11 @@ export default function DashboardPage() {
             </table>
           </div>
         </div>
+        </>
+        )}
 
-        {/* 12-Month Analytical Trend Visualization & Governance Structures */}
+        {/* FOLDER 2: 12-Month Analytical Trend Visualization & Governance Structures */}
+        {dashboardTab === 'TRENDS' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 m3-glass-card p-6 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -875,8 +904,10 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        )}
 
-        {/* Member Data Sovereignty & Append-Only Audit Trail */}
+        {/* FOLDER 3: Member Data Sovereignty & Append-Only Audit Trail */}
+        {dashboardTab === 'GOVERNANCE' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white/95 backdrop-blur-md p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
@@ -975,6 +1006,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+        )}
       </main>
     </div>
   );

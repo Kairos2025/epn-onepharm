@@ -16,6 +16,7 @@ import {
   MapPin,
   ShieldAlert,
   ClipboardCheck,
+  Users,
   X
 } from 'lucide-react';
 
@@ -25,17 +26,18 @@ interface NavbarProps {
 }
 
 export const APPS_LIST = [
-  { name: 'Public Portal', href: '/', icon: Globe, authority: 'None' },
-  { name: 'Control Center', href: '/dashboard', icon: BarChart3, authority: 'APP_INSIGHTS' },
-  { name: 'Membership Health', href: '/membership', icon: Network, authority: 'APP_MEMBERSHIP' },
-  { name: 'Projects', href: '/programs', icon: Layers, authority: 'APP_PROJECTS' },
-  { name: 'Health Facilities', href: '/explorer?tab=FACILITIES', icon: Building, authority: 'APP_FACILITIES' },
-  { name: 'Medicines & Supply', href: '/medstock', icon: Package, authority: 'APP_MEDICINES' },
-  { name: 'Data Entry', href: '/data-entry', icon: ClipboardCheck, authority: 'APP_DATA_ENTRY' },
-  { name: 'GIS Control Map', href: '/maps', icon: MapPin, authority: 'APP_MAPS' },
-  { name: 'Workforce Data', href: '/workforce', icon: BookOpen, authority: 'APP_WORKFORCE' },
-  { name: 'Quality & AMR', href: '/quality', icon: ShieldAlert, authority: 'APP_QUALITY' },
-  { name: 'Institutional DPA', href: '/licensing', icon: CreditCard, authority: 'APP_FINANCIAL' }
+  { name: 'Public Portal', href: '/', icon: Globe, authority: 'None', group: 'Network & Membership' },
+  { name: 'Membership Health', href: '/membership', icon: Network, authority: 'APP_MEMBERSHIP', group: 'Network & Membership' },
+  { name: 'Member Directory', href: '/explorer?tab=DIRECTORY', icon: Users, authority: 'APP_MEMBERSHIP', group: 'Network & Membership' },
+  { name: 'Health Facilities', href: '/explorer?tab=FACILITIES', icon: Building, authority: 'APP_FACILITIES', group: 'Field Operations' },
+  { name: 'Medicines & Supply', href: '/medstock', icon: Package, authority: 'APP_MEDICINES', group: 'Field Operations' },
+  { name: 'Data Entry', href: '/data-entry', icon: ClipboardCheck, authority: 'APP_DATA_ENTRY', group: 'Field Operations' },
+  { name: 'Workforce Data', href: '/workforce', icon: BookOpen, authority: 'APP_WORKFORCE', group: 'Field Operations' },
+  { name: 'Control Center', href: '/dashboard', icon: BarChart3, authority: 'APP_INSIGHTS', group: 'Surveillance & Governance' },
+  { name: 'Projects', href: '/programs', icon: Layers, authority: 'APP_PROJECTS', group: 'Surveillance & Governance' },
+  { name: 'GIS Control Map', href: '/maps', icon: MapPin, authority: 'APP_MAPS', group: 'Surveillance & Governance' },
+  { name: 'Quality & AMR', href: '/quality', icon: ShieldAlert, authority: 'APP_QUALITY', group: 'Surveillance & Governance' },
+  { name: 'Institutional DPA', href: '/licensing', icon: CreditCard, authority: 'APP_FINANCIAL', group: 'Surveillance & Governance' }
 ];
 
 const SEARCH_INDEX = [
@@ -235,25 +237,34 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
                         <X className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="grid grid-cols-3 gap-2">
-                      {APPS_LIST.map(app => {
-                        const Icon = app.icon;
-                        return (
-                          <Link
-                            key={app.name}
-                            href={app.href}
-                            onClick={() => setLauncherOpen(false)}
-                            className="flex flex-col items-center justify-center p-2.5 rounded-2xl hover:bg-cyan-50/90 text-slate-700 hover:text-cyan-900 text-center transition-colors group cursor-pointer"
-                          >
-                            <div className="w-10 h-10 rounded-2xl bg-slate-100/80 group-hover:bg-cyan-100 flex items-center justify-center mb-1.5 text-slate-600 group-hover:text-cyan-700 transition-colors">
-                              <Icon className="w-4 h-4" />
-                            </div>
-                            <span className="text-[11px] font-medium leading-tight line-clamp-2">
-                              {app.name}
-                            </span>
-                          </Link>
-                        );
-                      })}
+                    <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-0.5">
+                      {(['Network & Membership', 'Field Operations', 'Surveillance & Governance'] as const).map(groupName => (
+                        <div key={groupName}>
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-1">
+                            {groupName}
+                          </div>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {APPS_LIST.filter(a => a.group === groupName).map(app => {
+                              const Icon = app.icon;
+                              return (
+                                <Link
+                                  key={app.name}
+                                  href={app.href}
+                                  onClick={() => setLauncherOpen(false)}
+                                  className="flex flex-col items-center justify-center p-2 rounded-2xl hover:bg-cyan-50/90 text-slate-700 hover:text-cyan-900 text-center transition-colors group cursor-pointer"
+                                >
+                                  <div className="w-9 h-9 rounded-2xl bg-slate-100/80 group-hover:bg-cyan-100 flex items-center justify-center mb-1 text-slate-600 group-hover:text-cyan-700 transition-colors">
+                                    <Icon className="w-4 h-4" />
+                                  </div>
+                                  <span className="text-[10.5px] font-medium leading-tight line-clamp-2">
+                                    {app.name}
+                                  </span>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </>

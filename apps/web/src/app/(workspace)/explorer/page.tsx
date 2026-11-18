@@ -237,6 +237,27 @@ function ExplorerInner() {
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+        {/* Explorer Hierarchy Header */}
+        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-cyan-800">
+              EPN One Network · Circular Hierarchy
+            </div>
+            <h1 className="text-xl font-bold text-slate-900 mt-0.5">
+              Network, Members, Health Facilities (FOSAs) &amp; Projects
+            </h1>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Navigate seamlessly: <b>1. Member Directory</b> &rarr; <b>2. Member Profile</b> &rarr; <b>3. Classified FOSAs</b> &rarr; <b>4. Projects, Funders &amp; Coverage</b>.
+            </p>
+          </div>
+          <Link
+            href="/membership"
+            className="px-3.5 py-2 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white text-xs font-semibold shrink-0 self-start sm:self-center"
+          >
+            Membership Health &amp; 2027 Fees &rarr;
+          </Link>
+        </div>
+
         {/* Navigation Breadcrumb / Pivot rail */}
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-xs flex-wrap">
