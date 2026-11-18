@@ -1,4 +1,4 @@
-# EPN OnePharm
+# EPN One Network
 
 [![Production Deployment](https://img.shields.io/badge/Deployment-Vercel-success?style=flat-square&logo=vercel)](https://epn-onepharm.vercel.app)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-Kairos2025%2Fepn--onepharm-blue?style=flat-square&logo=github)](https://github.com/Kairos2025/epn-onepharm)
@@ -18,7 +18,7 @@
 
 ## 🏛️ Platform Architecture
 
-EPN OnePharm is architected following DHIS2-inspired health informatics standards:
+EPN One Network is architected following DHIS2-inspired health informatics standards:
 
 ```text
 epn-onepharm/
@@ -32,7 +32,7 @@ epn-onepharm/
 │   ├── i18n/          # Bilingual translation engine (English & French)
 │   ├── ui/            # Reusable accessible component library (Tailwind CSS, Lucide icons)
 │   ├── db/            # SQLite/PostgreSQL schema layer, repositories & EPN seed dataset
-│   └── sdk/           # Isomorphic typed HTTP client for OnePharm API
+│   └── sdk/           # Isomorphic typed HTTP client for EPN One Network API
 ├── docs/              # Architectural decision records & deployment specifications
 └── infra/             # Docker compose & deployment configurations
 ```

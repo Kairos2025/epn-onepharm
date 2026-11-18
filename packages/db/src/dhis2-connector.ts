@@ -30,7 +30,7 @@ export interface Dhis2PullSummary {
 }
 
 /**
- * Transforms external DHIS2 data values to EPN OnePharm format
+ * Transforms external DHIS2 data values to EPN One Network format
  */
 export function transformDhis2DataValueSet(
   remotePayload: { dataValues: Array<{ dataElement: string; period: string; orgUnit: string; value: string }> },

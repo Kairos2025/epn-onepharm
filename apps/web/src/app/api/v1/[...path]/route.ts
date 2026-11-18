@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, context: RouteContext) {
   if (route === '/health') {
     return NextResponse.json({
       status: 'HEALTHY',
-      service: 'EPN OnePharm API (Next.js Edge/Node Bridge)',
+      service: 'EPN One Network API (Next.js Edge/Node Bridge)',
       version: '1.0.0',
       timestamp: new Date().toISOString()
     });

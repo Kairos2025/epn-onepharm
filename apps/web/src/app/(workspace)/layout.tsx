@@ -3,7 +3,7 @@ import { Sidebar } from '@/components/Sidebar';
 import { MobileWorkspaceNav } from '@/components/MobileWorkspaceNav';
 
 export const metadata: Metadata = {
-  title: 'EPN OnePharm Workspace',
+  title: 'EPN One Network Workspace',
   description: 'Authenticated data workspace across the 7 EPN data categories.'
 };
 

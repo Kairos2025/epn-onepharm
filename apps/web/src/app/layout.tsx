@@ -17,7 +17,7 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: 'EPN OnePharm | Ecumenical Pharmaceutical Network Information Platform',
+  title: 'EPN One Network | Ecumenical Pharmaceutical Network Information Platform',
   description:
     'Centralized health information, pharmaceutical surveillance, and systems strengthening platform for church health facilities across Africa.'
 };

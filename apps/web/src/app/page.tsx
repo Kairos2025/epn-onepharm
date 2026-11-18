@@ -128,8 +128,8 @@ export default function PublicPortalPage() {
 
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
               {locale === 'en'
-                ? 'Connecting 149 members, 25,000 health facilities and 300 million people. EPN OnePharm tracks medicine availability, rational use, supply chain resilience, and capacity building in near real time.'
-                : 'Reliant 149 membres, 25 000 formations sanitaires et 300 millions de personnes. EPN OnePharm assure le suivi en temps réel de la disponibilité des médicaments et du renforcement des capacités.'}
+                ? 'Connecting 149 members, 25,000 health facilities and 300 million people. EPN One Network tracks medicine availability, rational use, supply chain resilience, and capacity building in near real time.'
+                : 'Reliant 149 membres, 25 000 formations sanitaires et 300 millions de personnes. EPN One Network assure le suivi en temps réel de la disponibilité des médicaments et du renforcement des capacités.'}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -1115,7 +1115,7 @@ export default function PublicPortalPage() {
                 <div className="w-7 h-7 rounded bg-sky-500 text-white font-bold flex items-center justify-center text-sm">
                   EPN
                 </div>
-                <span className="text-white font-bold text-base">OnePharm</span>
+                <span className="text-white font-bold text-base">One Network</span>
               </div>
               <p className="text-slate-400 leading-relaxed text-xs">
                 Ecumenical Pharmaceutical Network (EPN), P.O. Box 73860-00200 Nairobi, Kenya. Modelled on DHIS2 conventions for church health networks.

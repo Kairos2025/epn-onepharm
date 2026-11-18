@@ -16,7 +16,7 @@ const apiRouter = express.Router();
 apiRouter.get('/health', (req, res) => {
   res.json({
     status: 'HEALTHY',
-    service: 'EPN OnePharm API',
+    service: 'EPN One Network API',
     version: '1.0.0',
     timestamp: new Date().toISOString()
   });
@@ -291,7 +291,7 @@ app.use('/api/v1', apiRouter);
 // Export for tests or direct execution
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, () => {
-    console.log(`[EPN OnePharm API] Running on http://localhost:${port}/api/v1`);
+    console.log(`[EPN One Network API] Running on http://localhost:${port}/api/v1`);
   });
 }
 

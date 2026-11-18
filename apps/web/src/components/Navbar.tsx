@@ -140,7 +140,7 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
               </div>
               <div className="flex flex-col">
                 <span className="font-bold text-slate-900 leading-tight tracking-tight text-lg">
-                  OnePharm
+                  One Network
                 </span>
                 <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
                   Surveillance &amp; Health Systems

@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import app from './index.js';
 
-describe('EPN OnePharm End-to-End API Workflows', () => {
+describe('EPN One Network End-to-End API Workflows', () => {
   let server: any;
   const baseUrl = 'http://localhost:4005/api/v1';
 

@@ -4,7 +4,7 @@ const args = process.argv.slice(2);
 const isMinimal = args.includes('--minimal');
 const isEpnOnly = args.includes('--epn');
 
-console.log('--- EPN OnePharm Database Seed ---');
+console.log('--- EPN One Network Database Seed ---');
 if (isMinimal) {
   console.log('Mode: Minimal Metadata Only');
   db.initializeData('epn');
