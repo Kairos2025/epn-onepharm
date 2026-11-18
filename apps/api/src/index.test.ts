@@ -58,7 +58,7 @@ describe('EPN OnePharm End-to-End API Workflows', () => {
   it('POST /dataValues validates and records data values', async () => {
     const payload = {
       data_element_id: 'deTracerAvail',
-      period_iso: '202611',
+      period_iso: '209912',
       org_unit_id: 'fac00000-0000-0000-0000-000000000001',
       value: '48',
       comment: 'Routine monthly survey'
@@ -108,6 +108,24 @@ describe('EPN OnePharm End-to-End API Workflows', () => {
     assert.strictEqual(res.status, 200);
     const data = await res.json();
     assert.strictEqual(data.status, 'REQUEST_ACCEPTED');
+  });
+
+  it('GET /surveillance/summary returns CDC-style control summary and alerts', async () => {
+    const res = await fetch(`${baseUrl}/surveillance/summary`);
+    assert.strictEqual(res.status, 200);
+    const data = await res.json();
+    assert.ok(data.epiWeek);
+    assert.ok(Array.isArray(data.alerts) && data.alerts.length >= 5);
+    assert.ok(Array.isArray(data.countryScorecards) && data.countryScorecards.length >= 8);
+  });
+
+  it('POST /surveillance/alerts/:id/acknowledge updates alert status', async () => {
+    const res = await fetch(`${baseUrl}/surveillance/alerts/alt_ceftriaxone_ke/acknowledge`, {
+      method: 'POST'
+    });
+    assert.strictEqual(res.status, 200);
+    const alert = await res.json();
+    assert.strictEqual(alert.status, 'ACKNOWLEDGED');
   });
 
   it('closes test server', async () => {

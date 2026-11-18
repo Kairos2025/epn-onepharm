@@ -10,6 +10,9 @@ import {
   StockItem,
   StockTransaction,
   Story,
+  SurveillanceAlert,
+  SurveillanceSummary,
+  CountryControlScorecard,
   generateUid
 } from '@epn/domain';
 import {
@@ -41,6 +44,7 @@ export interface DatabaseState {
   stockItems: StockItem[];
   stockTransactions: StockTransaction[];
   stories: Story[];
+  surveillanceAlerts: SurveillanceAlert[];
 }
 
 class EpnDatabase {
@@ -55,13 +59,79 @@ class EpnDatabase {
     dataValues: [],
     stockItems: [],
     stockTransactions: [],
-    stories: []
+    stories: [],
+    surveillanceAlerts: []
   };
 
   private initialized = false;
 
   constructor() {
     this.initializeData();
+    this.loadFromDisk();
+  }
+
+  private isTestEnv(): boolean {
+    return (
+      typeof process !== 'undefined' &&
+      (process.env?.NODE_ENV === 'test' || Boolean(process.env?.NODE_TEST_CONTEXT))
+    );
+  }
+
+  private getNodeBuiltin<T = any>(mod: string): T | null {
+    if (typeof window !== 'undefined' || typeof process === 'undefined') return null;
+    const getter = (process as unknown as { getBuiltinModule?: (id: string) => T }).getBuiltinModule;
+    return typeof getter === 'function' ? getter(mod) : null;
+  }
+
+  private getStoragePath(): string | null {
+    const pathMod = this.getNodeBuiltin<typeof import('node:path')>('node:path');
+    if (!pathMod) return null;
+    if (process.env.EPN_DB_FILE) return process.env.EPN_DB_FILE;
+    if (process.env.VERCEL) return '/tmp/epn-onepharm-state.json';
+    return pathMod.join(process.cwd(), 'data', 'epn-state.json');
+  }
+
+  private loadFromDisk() {
+    if (this.isTestEnv()) return;
+    try {
+      const fsMod = this.getNodeBuiltin<typeof import('node:fs')>('node:fs');
+      const file = this.getStoragePath();
+      if (!fsMod || !file) return;
+      if (fsMod.existsSync(file)) {
+        const raw = fsMod.readFileSync(file, 'utf8');
+        const parsed = JSON.parse(raw) as Partial<DatabaseState>;
+        if (Array.isArray(parsed.dataValues)) this.state.dataValues = parsed.dataValues;
+        if (Array.isArray(parsed.stockTransactions)) this.state.stockTransactions = parsed.stockTransactions;
+        if (Array.isArray(parsed.surveillanceAlerts)) this.state.surveillanceAlerts = parsed.surveillanceAlerts;
+      }
+    } catch {
+      // Graceful fallback to seeded in-memory state
+    }
+  }
+
+  private saveToDisk() {
+    if (this.isTestEnv()) return;
+    try {
+      const fsMod = this.getNodeBuiltin<typeof import('node:fs')>('node:fs');
+      const pathMod = this.getNodeBuiltin<typeof import('node:path')>('node:path');
+      const file = this.getStoragePath();
+      if (!fsMod || !pathMod || !file) return;
+      const dir = pathMod.dirname(file);
+      if (!fsMod.existsSync(dir)) {
+        fsMod.mkdirSync(dir, { recursive: true });
+      }
+      fsMod.writeFileSync(
+        file,
+        JSON.stringify({
+          dataValues: this.state.dataValues,
+          stockTransactions: this.state.stockTransactions,
+          surveillanceAlerts: this.state.surveillanceAlerts
+        }),
+        'utf8'
+      );
+    } catch {
+      // Read-only filesystem fallback
+    }
   }
 
   public initializeData(mode: 'epn' | 'demo' = 'demo') {
@@ -490,6 +560,95 @@ class EpnDatabase {
       published_at: '2026-09-15T10:00:00Z'
     }));
 
+    // 11. CDC-Style Surveillance & Control Alerts
+    const surveillanceAlerts: SurveillanceAlert[] = [
+      {
+        id: 'alt_ceftriaxone_ke',
+        code: 'SENTINEL-STK-001',
+        title: 'Ceftriaxone 1g IV Stock-Out Cluster',
+        category: 'STOCK_OUT',
+        severity: 'CRITICAL',
+        country: 'KE',
+        countryName: 'Kenya',
+        memberCode: 'CHAK',
+        facilityName: 'Kilome Mission Hospital',
+        indicatorCode: 'STOCK_ON_HAND',
+        currentValue: '0 vials (0.0 MOS)',
+        threshold: '>= 1.5 Months of Stock',
+        recommendedAction: 'Trigger emergency MEDS pooled replenishment order within 24 hours.',
+        detectedAt: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+        status: 'ACTIVE'
+      },
+      {
+        id: 'alt_amr_watch_cd',
+        code: 'SENTINEL-AMR-014',
+        title: 'WHO Watch-Group Antibiotic Dispensing Spike',
+        category: 'AMR_SIGNAL',
+        severity: 'CRITICAL',
+        country: 'CD',
+        countryName: 'Democratic Republic of Congo',
+        memberCode: 'ECC',
+        facilityName: 'CBCA Ndosho Hospital Goma',
+        indicatorCode: 'AMR_WATCH_SHARE',
+        currentValue: '46.2% of prescriptions',
+        threshold: '<= 30.0% WHO AWaRe Target',
+        recommendedAction: 'Convene facility DTC antimicrobial stewardship audit and culture-guided review.',
+        detectedAt: new Date(Date.now() - 5 * 3600 * 1000).toISOString(),
+        status: 'ACTIVE'
+      },
+      {
+        id: 'alt_oxytocin_cold_cm',
+        code: 'SENTINEL-EXP-008',
+        title: 'Oxytocin 10 IU Near-Expiry & Cold-Chain Watch',
+        category: 'NEAR_EXPIRY',
+        severity: 'WARNING',
+        country: 'CM',
+        countryName: 'Cameroon',
+        memberCode: 'CBCHS',
+        facilityName: 'Mbingo Baptist Hospital',
+        indicatorCode: 'DAYS_TO_EXPIRY',
+        currentValue: '28 days remaining (350 ampoules)',
+        threshold: '>= 90 days shelf-life buffer',
+        recommendedAction: 'Redistribute batch OXY-2025-11 to high-volume maternity wards immediately.',
+        detectedAt: new Date(Date.now() - 12 * 3600 * 1000).toISOString(),
+        status: 'ACTIVE'
+      },
+      {
+        id: 'alt_al_low_ng',
+        code: 'SENTINEL-STK-019',
+        title: 'Artemether-Lumefantrine 20/120mg Below Safety Buffer',
+        category: 'OUTBREAK_PREPAREDNESS',
+        severity: 'WARNING',
+        country: 'NG',
+        countryName: 'Nigeria',
+        memberCode: 'CHAN',
+        facilityName: 'St. Gerard Catholic Hospital Kaduna',
+        indicatorCode: 'MONTHS_OF_STOCK',
+        currentValue: '0.6 Months of Stock',
+        threshold: '>= 2.0 MOS (Peak Malaria Season)',
+        recommendedAction: 'Issue pre-emptive CHAN-MediPharm regional buffer stock release.',
+        detectedAt: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
+        status: 'ACTIVE'
+      },
+      {
+        id: 'alt_reporting_ss',
+        code: 'SENTINEL-RPT-004',
+        title: 'Monthly DHIS2 Reporting Completeness Below Control Threshold',
+        category: 'REPORTING_GAP',
+        severity: 'WATCH',
+        country: 'SS',
+        countryName: 'South Sudan',
+        memberCode: 'CHASS',
+        facilityName: 'Wau Diocesan Health Network',
+        indicatorCode: 'REPORTING_COMPLETENESS',
+        currentValue: '64.0%',
+        threshold: '>= 80.0% Control Benchmark',
+        recommendedAction: 'Deploy offline Medstock sync reminder to diocesan pharmacy focal points.',
+        detectedAt: new Date(Date.now() - 30 * 3600 * 1000).toISOString(),
+        status: 'ACTIVE'
+      }
+    ];
+
     this.state = {
       members,
       orgUnits,
@@ -501,7 +660,8 @@ class EpnDatabase {
       dataValues,
       stockItems,
       stockTransactions,
-      stories
+      stories,
+      surveillanceAlerts
     };
 
     this.initialized = true;
@@ -611,6 +771,7 @@ class EpnDatabase {
     } else {
       this.state.dataValues.push(newVal);
     }
+    this.saveToDisk();
     return newVal;
   }
 
@@ -625,7 +786,101 @@ class EpnDatabase {
 
   public recordStockTransaction(txn: StockTransaction): StockTransaction {
     this.state.stockTransactions.unshift(txn);
+    this.saveToDisk();
     return txn;
+  }
+
+  public getSurveillanceAlerts(severity?: string, status?: string): SurveillanceAlert[] {
+    return this.state.surveillanceAlerts.filter(a => {
+      if (severity && a.severity !== severity) return false;
+      if (status && a.status !== status) return false;
+      return true;
+    });
+  }
+
+  public acknowledgeAlert(id: string): SurveillanceAlert | undefined {
+    const alert = this.state.surveillanceAlerts.find(a => a.id === id);
+    if (!alert) return undefined;
+    alert.status = 'ACKNOWLEDGED';
+    this.saveToDisk();
+    return alert;
+  }
+
+  public resolveAlert(id: string): SurveillanceAlert | undefined {
+    const alert = this.state.surveillanceAlerts.find(a => a.id === id);
+    if (!alert) return undefined;
+    alert.status = 'RESOLVED';
+    this.saveToDisk();
+    return alert;
+  }
+
+  public getSurveillanceSummary(): SurveillanceSummary {
+    const activeAlerts = this.state.surveillanceAlerts.filter(a => a.status !== 'RESOLVED');
+    const criticalAlerts = activeAlerts.filter(a => a.severity === 'CRITICAL');
+
+    const countryMeta: Array<{
+      country: string;
+      countryName: string;
+      memberCount: number;
+      facilitiesReporting: number;
+      totalFacilities: number;
+      reportingCompletenessPct: number;
+      timelinessPct: number;
+      tracerAvailabilityPct: number;
+      stockoutRatePct: number;
+      amrStewardshipScorePct: number;
+    }> = [
+      { country: 'KE', countryName: 'Kenya', memberCount: 3, facilitiesReporting: 1084, totalFacilities: 1140, reportingCompletenessPct: 95.1, timelinessPct: 91.4, tracerAvailabilityPct: 92.4, stockoutRatePct: 3.8, amrStewardshipScorePct: 88.0 },
+      { country: 'NG', countryName: 'Nigeria', memberCount: 2, facilitiesReporting: 3410, totalFacilities: 3920, reportingCompletenessPct: 87.0, timelinessPct: 82.5, tracerAvailabilityPct: 84.1, stockoutRatePct: 7.4, amrStewardshipScorePct: 79.5 },
+      { country: 'TZ', countryName: 'Tanzania', memberCount: 1, facilitiesReporting: 860, totalFacilities: 940, reportingCompletenessPct: 91.5, timelinessPct: 88.0, tracerAvailabilityPct: 87.8, stockoutRatePct: 5.2, amrStewardshipScorePct: 84.2 },
+      { country: 'CM', countryName: 'Cameroon', memberCount: 2, facilitiesReporting: 512, totalFacilities: 580, reportingCompletenessPct: 88.3, timelinessPct: 84.1, tracerAvailabilityPct: 86.5, stockoutRatePct: 6.1, amrStewardshipScorePct: 82.0 },
+      { country: 'CD', countryName: 'DR Congo', memberCount: 1, facilitiesReporting: 1420, totalFacilities: 1850, reportingCompletenessPct: 76.8, timelinessPct: 68.4, tracerAvailabilityPct: 75.3, stockoutRatePct: 12.6, amrStewardshipScorePct: 66.4 },
+      { country: 'UG', countryName: 'Uganda', memberCount: 1, facilitiesReporting: 690, totalFacilities: 760, reportingCompletenessPct: 90.8, timelinessPct: 86.2, tracerAvailabilityPct: 88.1, stockoutRatePct: 4.9, amrStewardshipScorePct: 83.7 },
+      { country: 'RW', countryName: 'Rwanda', memberCount: 1, facilitiesReporting: 315, totalFacilities: 330, reportingCompletenessPct: 95.5, timelinessPct: 93.8, tracerAvailabilityPct: 93.6, stockoutRatePct: 2.9, amrStewardshipScorePct: 90.1 },
+      { country: 'SS', countryName: 'South Sudan', memberCount: 1, facilitiesReporting: 128, totalFacilities: 200, reportingCompletenessPct: 64.0, timelinessPct: 54.2, tracerAvailabilityPct: 69.5, stockoutRatePct: 16.8, amrStewardshipScorePct: 61.0 }
+    ];
+
+    const countryScorecards: CountryControlScorecard[] = countryMeta.map(c => {
+      const hasCritical = criticalAlerts.some(a => a.country === c.country);
+      const hasAnyAlert = activeAlerts.some(a => a.country === c.country);
+      const controlStatus: 'OPTIMAL' | 'WATCH' | 'ALERT' =
+        hasCritical || c.reportingCompletenessPct < 75 || c.tracerAvailabilityPct < 78
+          ? 'ALERT'
+          : hasAnyAlert || c.tracerAvailabilityPct < 85
+          ? 'WATCH'
+          : 'OPTIMAL';
+      return { ...c, controlStatus };
+    });
+
+    const avgCompleteness =
+      countryScorecards.reduce((acc, c) => acc + c.reportingCompletenessPct, 0) / countryScorecards.length;
+    const avgTimeliness =
+      countryScorecards.reduce((acc, c) => acc + c.timelinessPct, 0) / countryScorecards.length;
+    const avgTracer =
+      countryScorecards.reduce((acc, c) => acc + c.tracerAvailabilityPct, 0) / countryScorecards.length;
+    const avgStockout =
+      countryScorecards.reduce((acc, c) => acc + c.stockoutRatePct, 0) / countryScorecards.length;
+    const avgAmr =
+      countryScorecards.reduce((acc, c) => acc + c.amrStewardshipScorePct, 0) / countryScorecards.length;
+
+    const now = new Date();
+    const startOfYear = new Date(now.getUTCFullYear(), 0, 1);
+    const weekNum = Math.ceil(((now.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getUTCDay() + 1) / 7);
+
+    return {
+      networkAlertLevel: criticalAlerts.length >= 2 ? 'HIGH_ALERT' : activeAlerts.length > 0 ? 'ELEVATED' : 'ROUTINE',
+      epiWeek: `${now.getUTCFullYear()}-W${String(weekNum).padStart(2, '0')}`,
+      lastUpdated: now.toISOString(),
+      reportingCompletenessPct: Number(avgCompleteness.toFixed(1)),
+      timelinessPct: Number(avgTimeliness.toFixed(1)),
+      activeAlertsCount: activeAlerts.length,
+      criticalAlertsCount: criticalAlerts.length,
+      tracerAvailabilityPct: Number(avgTracer.toFixed(1)),
+      stockoutRatePct: Number(avgStockout.toFixed(1)),
+      amrCompliancePct: Number(avgAmr.toFixed(1)),
+      alerts: this.state.surveillanceAlerts,
+      countryScorecards
+    };
   }
 
   public getStories(): Story[] {

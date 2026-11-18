@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
+import { epnClient } from '@/lib/api';
 import {
   Database,
   Building,
@@ -81,20 +82,54 @@ export default function DataEntryPage() {
     }
   ]);
 
-  const handleCellChange = (index: number, val: string) => {
+  useEffect(() => {
+    let active = true;
+    epnClient
+      .getDataValues(selectedFacility, currentPeriod.iso)
+      .then(values => {
+        if (!active || !Array.isArray(values) || values.length === 0) return;
+        setFormRows(prev =>
+          prev.map(row => {
+            const match = values.find(v => v.data_element_id === row.code);
+            return match ? { ...row, value: match.value, status: 'saved' } : row;
+          })
+        );
+      })
+      .catch(() => {
+        // Fallback to defaults if offline
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedFacility, currentPeriod.iso]);
+
+  const handleCellChange = async (index: number, val: string) => {
     const updated = [...formRows];
-    updated[index].value = val;
-    updated[index].status = 'dirty';
+    const row = updated[index];
+    row.value = val;
+    row.status = 'saving';
     setFormRows(updated);
 
-    // Simulate instant auto-save on change / blur
-    setTimeout(() => {
+    try {
+      await epnClient.saveDataValue({
+        data_element_id: row.code,
+        org_unit_id: selectedFacility,
+        period_iso: currentPeriod.iso,
+        period_type: 'MONTHLY',
+        value: val
+      });
       setFormRows(prev => {
         const next = [...prev];
         if (next[index]) next[index].status = 'saved';
         return next;
       });
-    }, 600);
+    } catch {
+      setFormRows(prev => {
+        const next = [...prev];
+        if (next[index]) next[index].status = 'error';
+        return next;
+      });
+    }
   };
 
   const handleRunValidation = () => {

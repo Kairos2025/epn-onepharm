@@ -194,7 +194,30 @@ apiRouter.post('/stock/transactions', (req, res) => {
   res.status(201).json(txn);
 });
 
-// 10. Stories
+// 10. Surveillance & CDC-Style Control Center
+apiRouter.get('/surveillance/summary', (req, res) => {
+  res.json(db.getSurveillanceSummary());
+});
+
+apiRouter.get('/surveillance/alerts', (req, res) => {
+  const severity = req.query.severity ? String(req.query.severity) : undefined;
+  const status = req.query.status ? String(req.query.status) : undefined;
+  res.json(db.getSurveillanceAlerts(severity, status));
+});
+
+apiRouter.post('/surveillance/alerts/:id/acknowledge', (req, res) => {
+  const updated = db.acknowledgeAlert(req.params.id);
+  if (!updated) return res.status(404).json({ error: 'Alert not found' });
+  res.json(updated);
+});
+
+apiRouter.post('/surveillance/alerts/:id/resolve', (req, res) => {
+  const updated = db.resolveAlert(req.params.id);
+  if (!updated) return res.status(404).json({ error: 'Alert not found' });
+  res.json(updated);
+});
+
+// 11. Stories
 apiRouter.get('/stories', (req, res) => {
   res.json(db.getStories());
 });

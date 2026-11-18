@@ -9,7 +9,10 @@ import {
   DataValue,
   StockItem,
   StockTransaction,
-  Story
+  Story,
+  SurveillanceAlert,
+  SurveillanceSummary,
+  MpesaStkPushResponse
 } from '@epn/domain';
 
 export interface SdkOptions {
@@ -135,6 +138,39 @@ export class EpnClient {
     return this.request<StockTransaction>('/stock/transactions', {
       method: 'POST',
       body: JSON.stringify(txn)
+    });
+  }
+
+  // Surveillance & CDC-Style Control
+  async getSurveillanceSummary() {
+    return this.request<SurveillanceSummary>('/surveillance/summary');
+  }
+
+  async getSurveillanceAlerts(severity?: string, status?: string) {
+    const query = new URLSearchParams();
+    if (severity) query.append('severity', severity);
+    if (status) query.append('status', status);
+    const qs = query.toString();
+    return this.request<SurveillanceAlert[]>(`/surveillance/alerts${qs ? `?${qs}` : ''}`);
+  }
+
+  async acknowledgeAlert(id: string) {
+    return this.request<SurveillanceAlert>(`/surveillance/alerts/${id}/acknowledge`, {
+      method: 'POST'
+    });
+  }
+
+  async resolveAlert(id: string) {
+    return this.request<SurveillanceAlert>(`/surveillance/alerts/${id}/resolve`, {
+      method: 'POST'
+    });
+  }
+
+  // Payments
+  async initiateMpesaStkPush(payload: { phone: string; amount: string | number; plan: string }) {
+    return this.request<MpesaStkPushResponse>('/payments/mpesa/stkpush', {
+      method: 'POST',
+      body: JSON.stringify(payload)
     });
   }
 

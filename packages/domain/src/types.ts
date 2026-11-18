@@ -259,3 +259,66 @@ export interface Story {
   member_id?: string;
   project_id?: string;
 }
+
+export type SurveillanceAlertSeverity = 'CRITICAL' | 'WARNING' | 'WATCH' | 'NORMAL';
+export type SurveillanceAlertCategory =
+  | 'STOCK_OUT'
+  | 'AMR_SIGNAL'
+  | 'REPORTING_GAP'
+  | 'COLD_CHAIN'
+  | 'NEAR_EXPIRY'
+  | 'OUTBREAK_PREPAREDNESS';
+export type SurveillanceAlertStatus = 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED';
+
+export interface SurveillanceAlert {
+  id: string;
+  code: string;
+  title: string;
+  category: SurveillanceAlertCategory;
+  severity: SurveillanceAlertSeverity;
+  country: string;
+  countryName: string;
+  memberCode: string;
+  facilityName: string;
+  indicatorCode: string;
+  currentValue: string;
+  threshold: string;
+  recommendedAction: string;
+  detectedAt: string;
+  status: SurveillanceAlertStatus;
+}
+
+export interface CountryControlScorecard {
+  country: string;
+  countryName: string;
+  memberCount: number;
+  facilitiesReporting: number;
+  totalFacilities: number;
+  reportingCompletenessPct: number;
+  timelinessPct: number;
+  tracerAvailabilityPct: number;
+  stockoutRatePct: number;
+  amrStewardshipScorePct: number;
+  controlStatus: 'OPTIMAL' | 'WATCH' | 'ALERT';
+}
+
+export interface SurveillanceSummary {
+  networkAlertLevel: 'ROUTINE' | 'ELEVATED' | 'HIGH_ALERT';
+  epiWeek: string;
+  lastUpdated: string;
+  reportingCompletenessPct: number;
+  timelinessPct: number;
+  activeAlertsCount: number;
+  criticalAlertsCount: number;
+  tracerAvailabilityPct: number;
+  stockoutRatePct: number;
+  amrCompliancePct: number;
+  alerts: SurveillanceAlert[];
+  countryScorecards: CountryControlScorecard[];
+}
+
+export interface MpesaStkPushResponse {
+  status: string;
+  checkoutRequestId: string;
+  customerMessage: string;
+}

@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/Navbar';
 import { HeroBackground } from '@/components/HeroBackground';
+import { epnClient } from '@/lib/api';
+import type { SurveillanceSummary } from '@epn/domain';
 
 const AfricaMap = dynamic(
   () => import('@/components/AfricaMap').then(m => m.AfricaMap),
@@ -57,6 +59,16 @@ export default function PublicPortalPage() {
   const [openProgram, setOpenProgram] = useState<string | null>(null);
   const [openCountry, setOpenCountry] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
+  const [surveillance, setSurveillance] = useState<SurveillanceSummary | null>(null);
+
+  useEffect(() => {
+    epnClient
+      .getSurveillanceSummary()
+      .then(setSurveillance)
+      .catch(() => {
+        // Silent fallback if API unavailable
+      });
+  }, []);
 
   const priorityData = HEALTH_PRIORITIES.find(p => p.code === selectedPriority);
 
@@ -151,10 +163,42 @@ export default function PublicPortalPage() {
               <div className="text-[11px] text-slate-500">Across Sub-Saharan Africa</div>
             </div>
             <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
-              <div className="text-3xl font-extrabold text-emerald-600 tabular-nums">84.2%</div>
+              <div className="text-3xl font-extrabold text-emerald-600 tabular-nums">
+                {surveillance ? `${surveillance.tracerAvailabilityPct}%` : '84.2%'}
+              </div>
               <div className="text-xs font-semibold text-slate-900 mt-1">Tracer Availability</div>
               <div className="text-[11px] text-emerald-600 font-medium">Up from 65.0% Baseline</div>
             </div>
+          </div>
+
+          {/* CDC-Style Live Surveillance & Control Strip */}
+          <div className="mt-6 bg-slate-900 text-white rounded-xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white">
+                  {surveillance?.networkAlertLevel?.replace('_', ' ') || 'SURVEILLANCE ACTIVE'}
+                </span>
+                <span className="text-xs font-mono text-slate-300">
+                  EPI-WEEK {surveillance?.epiWeek || '2026-W47'}
+                </span>
+                <span className="text-xs text-slate-400">
+                  • Completeness: {surveillance ? `${surveillance.reportingCompletenessPct}%` : '86.1%'}
+                </span>
+                <span className="text-xs text-slate-400">
+                  • Active Sentinel Alerts: {surveillance?.activeAlertsCount ?? 5} ({surveillance?.criticalAlertsCount ?? 2} Critical)
+                </span>
+              </div>
+              <p className="text-xs text-slate-300">
+                Real-time early warning surveillance for tracer medicine stock-outs, WHO AWaRe AMR signals, and cold-chain readiness across Africa.
+              </p>
+            </div>
+            <Link
+              href="/dashboard"
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition-colors"
+            >
+              <Activity className="w-4 h-4" />
+              <span>{locale === 'en' ? 'Open Control Center' : 'Centre de Contrôle'}</span>
+            </Link>
           </div>
         </div>
       </section>

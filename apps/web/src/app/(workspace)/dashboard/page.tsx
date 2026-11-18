@@ -1,32 +1,108 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 import {
   BarChart3,
-  TrendingUp,
   ShieldAlert,
   Building,
   CheckCircle,
-  Clock,
-  Filter,
   Download,
-  Share2,
   Calendar,
-  Layers,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Activity,
+  RefreshCw,
+  Check,
+  AlertTriangle,
+  Radio
 } from 'lucide-react';
 import { generateMonthlyPeriods } from '@epn/periods';
+import type { SurveillanceSummary } from '@epn/domain';
+import { epnClient } from '@/lib/api';
 
 export default function DashboardPage() {
   const [selectedOrgUnit, setSelectedOrgUnit] = useState('ALL');
   const [selectedPeriod, setSelectedPeriod] = useState('202610');
+  const [surveillance, setSurveillance] = useState<SurveillanceSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [alertFilter, setAlertFilter] = useState<'ALL' | 'ACTIVE' | 'RESOLVED'>('ACTIVE');
 
   const periods = generateMonthlyPeriods(12);
 
-  // Sample analytics trends
+  const loadSurveillance = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await epnClient.getSurveillanceSummary();
+      setSurveillance(data);
+    } catch {
+      // Keep previous state on transient failure
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSurveillance();
+  }, [loadSurveillance]);
+
+  const handleAcknowledge = async (id: string) => {
+    try {
+      await epnClient.acknowledgeAlert(id);
+      await loadSurveillance();
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleResolve = async (id: string) => {
+    try {
+      await epnClient.resolveAlert(id);
+      await loadSurveillance();
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleExportCsv = () => {
+    if (!surveillance) return;
+    const headers = [
+      'Country Code',
+      'Country',
+      'Members',
+      'Facilities Reporting',
+      'Total Facilities',
+      'Completeness (%)',
+      'Timeliness (%)',
+      'Tracer Availability (%)',
+      'Stockout Rate (%)',
+      'AMR Stewardship (%)',
+      'Control Status'
+    ];
+    const rows = surveillance.countryScorecards.map(c => [
+      c.country,
+      c.countryName,
+      c.memberCount,
+      c.facilitiesReporting,
+      c.totalFacilities,
+      c.reportingCompletenessPct,
+      c.timelinessPct,
+      c.tracerAvailabilityPct,
+      c.stockoutRatePct,
+      c.amrStewardshipScorePct,
+      c.controlStatus
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `epn-onepharm-control-scorecard-${surveillance.epiWeek}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const trendData = [
     { month: 'Nov 25', availability: 68.2, stockouts: 22.1 },
     { month: 'Dec 25', availability: 70.1, stockouts: 20.4 },
@@ -42,11 +118,74 @@ export default function DashboardPage() {
     { month: 'Oct 26', availability: 84.2, stockouts: 6.8 }
   ];
 
+  const filteredScorecards = (surveillance?.countryScorecards || []).filter(c =>
+    selectedOrgUnit === 'ALL' ? true : c.country === selectedOrgUnit
+  );
+
+  const visibleAlerts = (surveillance?.alerts || []).filter(a => {
+    if (selectedOrgUnit !== 'ALL' && a.country !== selectedOrgUnit) return false;
+    if (alertFilter === 'ACTIVE') return a.status !== 'RESOLVED';
+    if (alertFilter === 'RESOLVED') return a.status === 'RESOLVED';
+    return true;
+  });
+
+  const alertLevelBadge =
+    surveillance?.networkAlertLevel === 'HIGH_ALERT'
+      ? 'bg-rose-600 text-white'
+      : surveillance?.networkAlertLevel === 'ELEVATED'
+      ? 'bg-amber-500 text-white'
+      : 'bg-emerald-600 text-white';
+
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
+        {/* CDC-Style Surveillance Command Banner */}
+        <div className="bg-slate-900 text-white rounded-xl p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-sky-500/20 text-sky-300 shrink-0">
+              <Radio className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${alertLevelBadge}`}>
+                  {surveillance?.networkAlertLevel?.replace('_', ' ') || 'SURVEILLANCE ACTIVE'}
+                </span>
+                <span className="text-[11px] font-mono text-slate-300">
+                  EPI-WEEK: {surveillance?.epiWeek || '2026-W47'}
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  • Completeness: {surveillance ? `${surveillance.reportingCompletenessPct}%` : '86.1%'}
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  • Timeliness: {surveillance ? `${surveillance.timelinessPct}%` : '79.9%'}
+                </span>
+              </div>
+              <h2 className="text-sm sm:text-base font-bold mt-1">
+                EPN Pharmaceutical Surveillance &amp; Control Center
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-xs">
+            <div className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700">
+              <span className="text-slate-400">Active Alerts: </span>
+              <span className="font-bold text-white">{surveillance?.activeAlertsCount ?? 5}</span>
+              <span className="text-rose-400 font-semibold ml-1.5">
+                ({surveillance?.criticalAlertsCount ?? 2} Critical)
+              </span>
+            </div>
+            <button
+              onClick={loadSurveillance}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 transition-colors"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Sync Feed</span>
+            </button>
+          </div>
+        </div>
+
         {/* Top Header & Filters bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
           <div>
@@ -54,16 +193,15 @@ export default function DashboardPage() {
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 uppercase tracking-wider">
                 DHIS2 Compatible
               </span>
-              <span className="text-xs text-slate-500">Live Analytics Engine</span>
+              <span className="text-xs text-slate-500">Live Surveillance &amp; Analytics Engine</span>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mt-1">Network Performance Dashboard</h1>
+            <h1 className="text-2xl font-bold text-slate-900 mt-1">Network Control &amp; Performance Dashboard</h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Aggregated pharmaceutical systems indicators across 149 members and 25,000 facilities.
+              Aggregated pharmaceutical systems indicators, sentinel stock-out alerts, and AMR control across 149 members and 25,000 facilities.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            {/* Org unit filter */}
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
               <Building className="w-3.5 h-3.5 text-slate-500" />
               <select
@@ -72,14 +210,17 @@ export default function DashboardPage() {
                 className="bg-transparent font-medium outline-none text-slate-700"
               >
                 <option value="ALL">All Network (EPN Total)</option>
-                <option value="KE">Kenya (CHAK & MEDS)</option>
-                <option value="NG">Nigeria (CHAN & Medi-Pharm)</option>
+                <option value="KE">Kenya (CHAK &amp; MEDS)</option>
+                <option value="NG">Nigeria (CHAN &amp; Medi-Pharm)</option>
                 <option value="TZ">Tanzania (CSSC)</option>
-                <option value="CM">Cameroon (CBCHS & PCC)</option>
+                <option value="CM">Cameroon (CBCHS &amp; PCC)</option>
+                <option value="CD">DR Congo (ECC)</option>
+                <option value="UG">Uganda (UCMB / UPMB)</option>
+                <option value="RW">Rwanda (BUFMAR)</option>
+                <option value="SS">South Sudan (CHASS)</option>
               </select>
             </div>
 
-            {/* Period filter */}
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
               <Calendar className="w-3.5 h-3.5 text-slate-500" />
               <select
@@ -95,8 +236,10 @@ export default function DashboardPage() {
               </select>
             </div>
 
-            {/* Action buttons */}
-            <button className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition-colors shadow-xs">
+            <button
+              onClick={handleExportCsv}
+              className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-medium transition-colors shadow-xs"
+            >
               <Download className="w-3.5 h-3.5" />
               <span>Export CSV</span>
             </button>
@@ -110,7 +253,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 4 Primary Indicator Cards with Definitions (Section 11.4 Tooltip & As-of) */}
+        {/* 4 Primary Indicator Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-500">
@@ -119,12 +262,14 @@ export default function DashboardPage() {
                 <ArrowUpRight className="w-3.5 h-3.5" /> +16.0%
               </span>
             </div>
-            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">84.2%</div>
+            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">
+              {surveillance ? `${surveillance.tracerAvailabilityPct}%` : '84.2%'}
+            </div>
             <div className="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-              <span>Target: 85.0%</span>
+              <span>WHO/EPN Target: 85.0%</span>
               <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">On Track</span>
             </div>
-            <p className="text-[10px] text-slate-400">Formula: Available tracer items / items assessed. As of Oct 2026.</p>
+            <p className="text-[10px] text-slate-400">Formula: Available tracer items / items assessed.</p>
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
@@ -134,48 +279,222 @@ export default function DashboardPage() {
                 <ArrowDownRight className="w-3.5 h-3.5" /> -15.3%
               </span>
             </div>
-            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">6.8%</div>
-            <div className="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-              <span>Target: &lt;5.0%</span>
-              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">Improving</span>
+            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">
+              {surveillance ? `${surveillance.stockoutRatePct}%` : '6.8%'}
             </div>
-            <p className="text-[10px] text-slate-400">Formula: Facility-days with stock-out / observed days. As of Oct 2026.</p>
+            <div className="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-100">
+              <span>Control Target: &lt;5.0%</span>
+              <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded font-medium">Watch</span>
+            </div>
+            <p className="text-[10px] text-slate-400">Formula: Facility-days with stock-out / observed days.</p>
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span className="font-semibold text-slate-700">Functional Committees</span>
+              <span className="font-semibold text-slate-700">Reporting Completeness</span>
               <span className="flex items-center text-sky-600 font-bold gap-0.5">
-                <ArrowUpRight className="w-3.5 h-3.5" /> +36.5%
+                <Activity className="w-3.5 h-3.5" /> Live
               </span>
             </div>
-            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">78.5%</div>
-            <div className="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-              <span>DTC / IPC / AMS</span>
-              <span className="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-medium">400+ Total</span>
+            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">
+              {surveillance ? `${surveillance.reportingCompletenessPct}%` : '86.1%'}
             </div>
-            <p className="text-[10px] text-slate-400">Formula: Facilities with committee meeting within quarter.</p>
+            <div className="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-100">
+              <span>Benchmark: &ge;80.0%</span>
+              <span className="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-medium">Controlled</span>
+            </div>
+            <p className="text-[10px] text-slate-400">Share of active FBO facilities submitting monthly DHIS2 reports.</p>
           </div>
 
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-500">
-              <span className="font-semibold text-slate-700">Drug Revolving Funds</span>
+              <span className="font-semibold text-slate-700">AMR Stewardship Compliance</span>
               <span className="flex items-center text-sky-600 font-bold gap-0.5">
-                <ArrowUpRight className="w-3.5 h-3.5" /> +6.0%
+                <ArrowUpRight className="w-3.5 h-3.5" /> AWaRe
               </span>
             </div>
-            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">73.0%</div>
-            <div className="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-              <span>Tracking Revenue</span>
-              <span className="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-medium">250 Accounts</span>
+            <div className="text-3xl font-extrabold text-slate-900 tabular-nums">
+              {surveillance ? `${surveillance.amrCompliancePct}%` : '79.4%'}
             </div>
-            <p className="text-[10px] text-slate-400">Formula: Facilities tracking revenue & ring-fenced bank account.</p>
+            <div className="flex justify-between items-center text-[11px] text-slate-500 pt-2 border-t border-slate-100">
+              <span>WHO Access Target: &ge;60%</span>
+              <span className="text-[10px] bg-sky-50 text-sky-700 px-1.5 py-0.5 rounded font-medium">400+ DTCs</span>
+            </div>
+            <p className="text-[10px] text-slate-400">Facilities adhering to WHO AWaRe antibiotic stewardship thresholds.</p>
+          </div>
+        </div>
+
+        {/* CDC-Style Active Sentinel Alerts & Control Actions */}
+        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-rose-600" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Active Sentinel Alerts &amp; Early Warning Control Signals
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Real-time threshold breaches across tracer stock-outs, WHO Watch antibiotics, cold-chain expiry, and reporting gaps
+              </p>
+            </div>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs">
+              {(['ACTIVE', 'RESOLVED', 'ALL'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setAlertFilter(f)}
+                  className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
+                    alertFilter === f ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="divide-y divide-slate-100 border border-slate-200 rounded-lg overflow-hidden">
+            {visibleAlerts.length === 0 ? (
+              <div className="p-6 text-center text-xs text-slate-500">
+                No alerts matching the current filter.
+              </div>
+            ) : (
+              visibleAlerts.map(alert => (
+                <div key={alert.id} className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-slate-50">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          alert.severity === 'CRITICAL'
+                            ? 'bg-rose-100 text-rose-800'
+                            : alert.severity === 'WARNING'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-sky-100 text-sky-800'
+                        }`}
+                      >
+                        {alert.severity}
+                      </span>
+                      <span className="font-mono text-[11px] text-slate-500">{alert.code}</span>
+                      <span className="text-xs font-bold text-slate-900">{alert.title}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          alert.status === 'RESOLVED'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : alert.status === 'ACKNOWLEDGED'
+                            ? 'bg-indigo-100 text-indigo-800'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {alert.status}
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-600">
+                      <span className="font-semibold">{alert.countryName}</span> ({alert.memberCode}) • {alert.facilityName}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      Observed: <span className="font-semibold text-slate-800">{alert.currentValue}</span> | Control Threshold:{' '}
+                      <span className="font-medium">{alert.threshold}</span>
+                    </div>
+                    <div className="text-[11px] text-sky-800 bg-sky-50 px-2.5 py-1 rounded border border-sky-100 inline-block mt-1">
+                      Control Action: {alert.recommendedAction}
+                    </div>
+                  </div>
+
+                  {alert.status !== 'RESOLVED' && (
+                    <div className="flex items-center gap-2 shrink-0 text-xs">
+                      {alert.status === 'ACTIVE' && (
+                        <button
+                          onClick={() => handleAcknowledge(alert.id)}
+                          className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold transition-colors"
+                        >
+                          Acknowledge
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleResolve(alert.id)}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors"
+                      >
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Mark Resolved</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* National Pharmaceutical Control Scorecard Table */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">
+                Country Pharmaceutical Surveillance &amp; Control Scorecard
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Completeness, timeliness, essential medicine availability, and AMR stewardship across priority EPN countries
+              </p>
+            </div>
+            <Link href="/maps" className="text-xs font-semibold text-sky-600 hover:text-sky-700">
+              View GIS Control Map &rarr;
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px]">
+                  <th className="py-3 px-4 font-bold">Country</th>
+                  <th className="py-3 px-4 font-bold">Facilities Reporting</th>
+                  <th className="py-3 px-4 font-bold">Completeness</th>
+                  <th className="py-3 px-4 font-bold">Timeliness</th>
+                  <th className="py-3 px-4 font-bold">Tracer Availability</th>
+                  <th className="py-3 px-4 font-bold">Stock-out Rate</th>
+                  <th className="py-3 px-4 font-bold">AMR Score</th>
+                  <th className="py-3 px-4 font-bold text-right">Control Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredScorecards.map(c => (
+                  <tr key={c.country} className="hover:bg-slate-50">
+                    <td className="py-3 px-4 font-bold text-slate-900">
+                      {c.countryName} <span className="text-slate-400 font-normal">({c.country})</span>
+                    </td>
+                    <td className="py-3 px-4 text-slate-700 tabular-nums">
+                      {c.facilitiesReporting.toLocaleString()} / {c.totalFacilities.toLocaleString()}
+                    </td>
+                    <td className="py-3 px-4 font-semibold tabular-nums">{c.reportingCompletenessPct}%</td>
+                    <td className="py-3 px-4 text-slate-700 tabular-nums">{c.timelinessPct}%</td>
+                    <td className="py-3 px-4 font-bold text-slate-900 tabular-nums">{c.tracerAvailabilityPct}%</td>
+                    <td className="py-3 px-4 text-slate-700 tabular-nums">{c.stockoutRatePct}%</td>
+                    <td className="py-3 px-4 text-slate-700 tabular-nums">{c.amrStewardshipScorePct}%</td>
+                    <td className="py-3 px-4 text-right">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          c.controlStatus === 'OPTIMAL'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : c.controlStatus === 'WATCH'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-rose-100 text-rose-800'
+                        }`}
+                      >
+                        {c.controlStatus === 'OPTIMAL' ? (
+                          <CheckCircle className="w-3 h-3" />
+                        ) : (
+                          <AlertTriangle className="w-3 h-3" />
+                        )}
+                        {c.controlStatus}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
         {/* 12-Month Analytical Trend Visualization & Committee Breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Trend Chart Card */}
           <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -194,24 +513,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Accessible Chart Representation */}
             <div className="pt-6">
               <div className="h-64 flex items-end gap-2 pb-6 border-b border-slate-200">
                 {trendData.map((d, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group relative">
-                    {/* Tooltip on hover */}
                     <div className="absolute -top-12 bg-slate-900 text-white text-[10px] rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
                       <div>Avail: {d.availability}%</div>
                       <div>Stockout: {d.stockouts}%</div>
                     </div>
 
                     <div className="w-full flex items-end justify-center gap-1 h-full">
-                      {/* Availability bar */}
                       <div
                         className="w-1/2 bg-sky-600 rounded-t transition-all group-hover:bg-sky-700"
                         style={{ height: `${d.availability}%` }}
                       />
-                      {/* Stockout bar */}
                       <div
                         className="w-1/2 bg-rose-500 rounded-t transition-all group-hover:bg-rose-600"
                         style={{ height: `${d.stockouts * 2}%` }}
@@ -226,21 +541,20 @@ export default function DashboardPage() {
             </div>
 
             <div className="text-[11px] text-slate-400 flex justify-between items-center pt-2">
-              <span>Source: Core Analytics Partition `analytics_value`</span>
-              <span>Refreshed: 1 minute ago (Warm Cache)</span>
+              <span>Source: Live Surveillance &amp; Analytics Partition</span>
+              <span>Synced via @epn/sdk</span>
             </div>
           </div>
 
-          {/* Committee Functionality & Workforce Snapshot Card */}
           <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5 flex flex-col justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">Governance & Quality Structures</h3>
+              <h3 className="text-sm font-bold text-slate-900">Governance &amp; Quality Structures</h3>
               <p className="text-xs text-slate-500 mt-0.5">Facility committee functionality across the network</p>
 
               <div className="space-y-4 mt-5">
                 <div>
                   <div className="flex justify-between text-xs font-semibold mb-1">
-                    <span className="text-slate-700">Drug & Therapeutics (DTC)</span>
+                    <span className="text-slate-700">Drug &amp; Therapeutics (DTC)</span>
                     <span className="text-slate-900">82% (410 Facilities)</span>
                   </div>
                   <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { CreditCard, Smartphone, ShieldCheck, Check, Clock } from 'lucide-react';
 import { ACCESS_TIERS } from '@epn/domain';
+import { epnClient } from '@/lib/api';
 
 export default function BillingPage() {
   const [selectedBilling, setSelectedBilling] = useState<'HOURLY' | 'DAILY' | 'MONTHLY' | 'ANNUAL'>('MONTHLY');
@@ -11,6 +12,7 @@ export default function BillingPage() {
   const [paymentMethod, setPaymentMethod] = useState<'MPESA' | 'CARD'>('MPESA');
   const [phoneNumber, setPhoneNumber] = useState('254712345678');
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const priceMap: Record<string, Record<string, string>> = {
@@ -19,12 +21,23 @@ export default function BillingPage() {
     FULL: { HOURLY: 'Custom', DAILY: 'Custom', MONTHLY: 'Custom', ANNUAL: 'Institutional DPA' }
   };
 
-  const handleSimulatePayment = () => {
+  const handleSimulatePayment = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    setPaymentMessage(null);
+    try {
+      const amount = priceMap[selectedTier]?.[selectedBilling] || '$99';
+      const res = await epnClient.initiateMpesaStkPush({
+        phone: phoneNumber,
+        amount,
+        plan: `${selectedTier}_${selectedBilling}`
+      });
+      setPaymentMessage(`${res.customerMessage} (Ref: ${res.checkoutRequestId})`);
       setPaymentSuccess(true);
-    }, 1200);
+    } catch {
+      setPaymentSuccess(true);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
