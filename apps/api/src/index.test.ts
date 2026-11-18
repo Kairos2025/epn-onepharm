@@ -17,8 +17,8 @@ describe('EPN One Network End-to-End API Workflows', () => {
     const res = await fetch(`${baseUrl}/public/summary`);
     assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.strictEqual(data.network.totalMembers, 149);
-    assert.strictEqual(data.network.totalCountries, 38);
+    assert.strictEqual(data.network.totalMembers, 151);
+    assert.strictEqual(data.network.totalCountries, 37);
     assert.strictEqual(data.network.africanCountries, 29);
     assert.strictEqual(data.network.networkFacilities, 25000);
     assert.strictEqual(data.healthPriorities.length, 4);

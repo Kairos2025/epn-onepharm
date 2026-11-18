@@ -151,7 +151,7 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
             {/* M3 Tonal Network pill */}
             <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50/80 border border-cyan-200/70 text-[11px] font-medium text-cyan-950">
               <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-              <span>149 Members • 29 African Nations • 25k Facilities</span>
+              <span>151 Members • 29 African Nations • 25k Facilities</span>
             </div>
           </div>
 

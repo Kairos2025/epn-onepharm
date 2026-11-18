@@ -243,7 +243,7 @@ export default function ReportsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
               <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <span className="text-slate-500 uppercase font-semibold text-[10px]">Total Network Members</span>
-                <div className="text-2xl font-bold text-slate-900 mt-1">149 Members</div>
+                <div className="text-2xl font-bold text-slate-900 mt-1">151 Members</div>
                 <span className="text-slate-400">38 Countries (29 in Africa)</span>
               </div>
               <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">

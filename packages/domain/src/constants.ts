@@ -1,19 +1,18 @@
 export const NETWORK_STATISTICS = {
-  totalMembers: 149,
-  totalCountries: 38,
+  totalMembers: 151,
+  totalCountries: 37,
   africanCountries: 29,
   populationServed: 300_000_000,
   networkFacilities: 25_000,
-  asOf: 'December 2025'
+  asOf: 'October 2026 (AGM 2026)'
 } as const;
 
 export const MEMBER_CATEGORIES = [
-  { code: 'CHA', name: 'Christian Health Association', count: 35 },
+  { code: 'CHA', name: 'Christian Health Association', count: 36 },
   { code: 'HSS', name: 'Health Systems Strengthening', count: 26 },
   { code: 'DSO', name: 'Drug Supply Organisation', count: 19 },
-  { code: 'CHI', name: 'Church Health Institution', count: 18 },
-  { code: 'INDIVIDUAL', name: 'Individual Member', count: 49 },
-  { code: 'OTHER', name: 'Other Partner', count: 2 }
+  { code: 'CHI', name: 'Church Health Institution', count: 19 },
+  { code: 'INDIVIDUAL', name: 'Individual Member', count: 51 }
 ] as const;
 
 export const HEALTH_PRIORITIES = [
@@ -95,7 +94,9 @@ export const IMPLEMENTING_MEMBERS_SEED = [
   { name: 'Département des Œuvres Médicales de l’ECC', abbreviation: 'DOM-ECC', country: 'CD', type: 'HSS' },
   { name: 'Uganda Protestant Medical Bureau', abbreviation: 'UPMB', country: 'UG', type: 'CHA' },
   { name: 'Uganda Catholic Medical Bureau', abbreviation: 'UCMB', country: 'UG', type: 'CHA' },
-  { name: 'Mutuelle Islamique et Chrétienne de Santé de Niger', abbreviation: 'MUSH', country: 'NE', type: 'HSS' }
+  { name: 'Mutuelle Islamique et Chrétienne de Santé de Niger', abbreviation: 'MUSH', country: 'NE', type: 'HSS' },
+  { name: 'Communauté Evangélique au Centre de l’Afrique', abbreviation: 'CECA 20', country: 'CD', type: 'CHA' },
+  { name: 'Catholic Medical Mission Board', abbreviation: 'CMMB', country: 'US', type: 'HSS' }
 ] as const;
 
 export const FUNDERS_SEED = [

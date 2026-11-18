@@ -378,6 +378,51 @@ export default function MembershipPage() {
                     </div>
                   </div>
 
+                  {/* 3 · Who paid, by category (2024 vs 2025) */}
+                  <div className="m3-glass-card p-5 sm:p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <h3 className="text-sm font-bold text-slate-900">3 · Who paid, by category</h3>
+                      <div className="flex items-center gap-4 text-xs">
+                        <span className="flex items-center gap-1.5 text-slate-700">
+                          <span className="w-2.5 h-2.5 rounded-xs bg-cyan-800" /> 2024
+                        </span>
+                        <span className="flex items-center gap-1.5 text-slate-700">
+                          <span className="w-2.5 h-2.5 rounded-xs bg-amber-600" /> 2025
+                        </span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs">
+                      {[
+                        ...data.categories.map(c => ({
+                          code: c.code === 'INDIVIDUAL' ? 'Individuals' : c.code,
+                          p24: c.paid2024,
+                          p25: c.paid2025,
+                          sub: `${Math.round((c.paid2024 / c.total) * 100)}% paid in 2024 · ${Math.round((c.paid2025 / c.total) * 100)}% in 2025`
+                        })),
+                        { code: 'No category', p24: 7, p25: 4, sub: 'to be classified' }
+                      ].map(item => (
+                        <div key={item.code} className="p-3 rounded-xl bg-white border border-slate-200 space-y-2">
+                          <div className="font-bold text-slate-900">{item.code}</div>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div className="bg-cyan-800 h-full rounded-full" style={{ width: `${(item.p24 / 15) * 100}%` }} />
+                              </div>
+                              <span className="font-bold tabular-nums">{item.p24}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div className="bg-amber-600 h-full rounded-full" style={{ width: `${(item.p25 / 15) * 100}%` }} />
+                              </div>
+                              <span className="font-bold tabular-nums">{item.p25}</span>
+                            </div>
+                          </div>
+                          <div className="text-[10px] text-slate-500">{item.sub}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* 4 · 2027 Fee Cycle Pipeline */}
                   <div className="m3-glass-card p-5 sm:p-6 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -507,6 +552,37 @@ export default function MembershipPage() {
                           <div className="text-slate-600">USA · HSS · Ordinary · Supply chain partnership for under-resourced facilities</div>
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Member ownership & engagement (Strategic Plan Pillar 2) */}
+                  <div className="m3-glass-card p-5 sm:p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Member ownership &amp; engagement (Strategic Plan Pillar 2)
+                      </h3>
+                      <span className="text-[11px] text-slate-500">What the 2027 membership function will track</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                      {[
+                        { title: 'Paying fees', val: '9%', sub: '14 of 151 members paid in 2025 · payment tracker' },
+                        { title: 'Sharing data', val: '—', sub: 'Data sharing agreements · EDMS, from Q2 2027' },
+                        { title: 'Joining initiatives', val: '—', sub: 'Members in TWGs and projects · project register' },
+                        { title: 'Webinar participation', val: '—', sub: 'Webinar attendance lists' },
+                        { title: 'LMS active users', val: '—', sub: 'Learning Management System' },
+                        { title: 'Quarterly member calls', val: '—', sub: 'Attendance, from March 2027' },
+                        { title: 'Satisfaction survey', val: '—', sub: 'Annual survey, Aug–Sep 2027' },
+                        { title: 'Onboarded within 2 weeks', val: '—', sub: 'Welcome pack sent to new members' },
+                        { title: 'Records complete & current', val: '—', sub: 'Database clean-up, Nov 2026 – Jan 2027' }
+                      ].map(card => (
+                        <div key={card.title} className="p-3.5 rounded-xl bg-white border border-slate-200 space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-slate-900">{card.title}</span>
+                            <span className="font-extrabold text-cyan-800 tabular-nums">{card.val}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500">{card.sub}</div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 

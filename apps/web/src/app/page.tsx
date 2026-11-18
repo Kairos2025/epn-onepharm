@@ -128,8 +128,8 @@ export default function PublicPortalPage() {
 
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
               {locale === 'en'
-                ? 'Connecting 149 members, 25,000 health facilities and 300 million people. EPN One Network tracks medicine availability, rational use, supply chain resilience, and capacity building in near real time.'
-                : 'Reliant 149 membres, 25 000 formations sanitaires et 300 millions de personnes. EPN One Network assure le suivi en temps réel de la disponibilité des médicaments et du renforcement des capacités.'}
+                ? 'Connecting 151 members, 25,000 health facilities and 300 million people. EPN One Network tracks medicine availability, rational use, supply chain resilience, and capacity building in near real time.'
+                : 'Reliant 151 membres, 25 000 formations sanitaires et 300 millions de personnes. EPN One Network assure le suivi en temps réel de la disponibilité des médicaments et du renforcement des capacités.'}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -152,9 +152,9 @@ export default function PublicPortalPage() {
           {/* Headline Live Badges (M3 Glass Cards) */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 pt-8 border-t border-slate-200/60">
             <div className="m3-glass-card p-5 text-center">
-              <div className="text-3xl font-extrabold text-cyan-700 tabular-nums">149</div>
+              <div className="text-3xl font-extrabold text-cyan-700 tabular-nums">151</div>
               <div className="text-xs font-semibold text-slate-900 mt-1">Network Members</div>
-              <div className="text-[11px] text-slate-500">38 Countries (29 in Africa)</div>
+              <div className="text-[11px] text-slate-500">76 Ordinary · 75 Associate</div>
             </div>
             <div className="m3-glass-card p-5 text-center">
               <div className="text-3xl font-extrabold text-cyan-700 tabular-nums">25,000+</div>
