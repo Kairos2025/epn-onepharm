@@ -25,7 +25,7 @@ import type {
 } from '@epn/domain';
 import { epnClient } from '@/lib/api';
 
-type MainTab = 'FEES' | 'REACH' | 'RECORD';
+type MainTab = 'FEES' | 'REACH' | 'RECORD' | 'FUNCTION';
 type RecordSubTab = 'PROFILE' | 'FACILITIES' | 'CONTACTS' | 'SUBSCRIPTION' | 'ENGAGEMENT';
 
 export default function MembershipPage() {
@@ -201,7 +201,8 @@ export default function MembershipPage() {
                 [
                   { id: 'FEES', label: 'Membership & fees' },
                   { id: 'REACH', label: 'Reach & engagement' },
-                  { id: 'RECORD', label: 'Member record (data entry)' }
+                  { id: 'RECORD', label: 'Member record (data entry)' },
+                  { id: 'FUNCTION', label: 'Membership Function (ToR & JD)' }
                 ] as const
               ).map(tab => (
                 <button
@@ -1139,6 +1140,239 @@ export default function MembershipPage() {
                             <span className="font-bold text-slate-900">{h.date}</span> · {h.note}
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: MEMBERSHIP FUNCTION (Intern ToR, Officer JD & 2027 Fee Calendar) */}
+              {activeTab === 'FUNCTION' && (
+                <div className="space-y-6">
+                  {/* Document Header */}
+                  <div className="m3-glass-card p-5 sm:p-6 space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <img src="/epn-logo.svg" alt="EPN" className="w-10 h-10 rounded-xl shadow-xs shrink-0" />
+                        <div>
+                          <div className="text-[11px] font-bold uppercase tracking-wider text-cyan-800">
+                            Office of the Executive Director · 11 November 2026 · Draft for team review
+                          </div>
+                          <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                            Membership Function: Intern Terms of Reference, Officer Job Description &amp; 2027 Fee Calendar
+                          </h2>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-900 text-xs font-semibold shrink-0">
+                        Strategic Plan 2026–2030 · Pillar 2
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      From January 2027, a <b>Membership Intern</b> runs day-to-day membership work, the <b>Membership, Communications and ICT Officer</b> stays accountable for results, and the <b>Executive Director</b> remains the senior contact for member leaders. Both posts sit in the Executive Director&apos;s office, under the Executive Support Units. The aim is to raise membership fee payment from USD 3,869 in 2025 (~12%) toward the USD 33,000 annual expectation, starting with a <b>30% target (~USD 10,000) in 2027</b>.
+                    </p>
+                  </div>
+
+                  {/* Role Accountability Matrix + 3 Safeguards */}
+                  <div className="m3-glass-card p-5 sm:p-6 space-y-4">
+                    <h3 className="text-sm font-bold text-slate-900">How the Membership Function is Organised</h3>
+                    <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                          <tr>
+                            <th className="py-2.5 px-3">Role</th>
+                            <th className="py-2.5 px-3">Membership</th>
+                            <th className="py-2.5 px-3">Communications</th>
+                            <th className="py-2.5 px-3">ICT</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700">
+                          <tr>
+                            <td className="py-2.5 px-3 font-bold text-slate-900">Executive Director</td>
+                            <td className="py-2.5 px-3">Signs the annual fee letter; calls or writes to members over 90 days in arrears; reports good-standing status to the Board, AGM and EGM</td>
+                            <td className="py-2.5 px-3">Spokesperson; approves key messages</td>
+                            <td className="py-2.5 px-3">Sets priorities</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2.5 px-3 font-bold text-slate-900">Membership, Communications &amp; ICT Officer (accountable)</td>
+                            <td className="py-2.5 px-3">About 25% of time: membership strategy, KPIs, database design; supervises and coaches the intern; reviews the monthly dashboard</td>
+                            <td className="py-2.5 px-3">About 40% of time</td>
+                            <td className="py-2.5 px-3">About 35% of time</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2.5 px-3 font-bold text-slate-900">Membership Intern (operational lead)</td>
+                            <td className="py-2.5 px-3">About 80% of time: database, invoicing with Finance, reminders, onboarding, member calls and surveys</td>
+                            <td className="py-2.5 px-3">About 20% of time: member stories for NetLink and social media</td>
+                            <td className="py-2.5 px-3">Data entry in the membership database</td>
+                          </tr>
+                          <tr>
+                            <td className="py-2.5 px-3 font-bold text-slate-900">Finance and Grants Officer</td>
+                            <td className="py-2.5 px-3">Issues invoices, records payments, reconciles with the intern every month</td>
+                            <td className="py-2.5 px-3">—</td>
+                            <td className="py-2.5 px-3">—</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950">
+                      <b>Three safeguards apply to all roles:</b> (1) the intern never handles cash (all payments go to EPN bank or mobile-money accounts and are confirmed by Finance); (2) all member data stays in an EPN system, not personal files or email; and (3) each intern hands over to the next before leaving.
+                    </div>
+                  </div>
+
+                  {/* Two-Column: Intern ToR + Officer Revised JD */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Terms of Reference: Membership Intern */}
+                    <div className="m3-glass-card p-5 sm:p-6 space-y-4 text-xs">
+                      <div className="border-b border-slate-100 pb-3">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-800">Terms of Reference</span>
+                        <h3 className="text-base font-bold text-slate-900">Membership Intern</h3>
+                        <p className="text-slate-600 mt-1">
+                          Runs EPN&apos;s day-to-day membership operations so that every member is invoiced, followed up, engaged and shown the value of the network.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <div><b>Unit:</b> Executive Support Units, Office of the ED</div>
+                        <div><b>Reports to:</b> Membership, Comms &amp; ICT Officer</div>
+                        <div><b>Location:</b> EPN Secretariat, Nairobi</div>
+                        <div><b>Duration:</b> 6–12 months, from Jan 2027</div>
+                        <div className="col-span-2"><b>Works closely with:</b> Executive Director; Finance &amp; Grants Officer; Senior Officer Programs · <b>Terms:</b> Monthly stipend under EPN&apos;s internship policy</div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="font-bold text-slate-900 uppercase text-[11px]">Main Responsibilities</h4>
+                        <ul className="space-y-1 text-slate-700 list-disc pl-4">
+                          <li><b>Membership database:</b> clean and keep up to date all 151 member records (organization, contact person, country, category, voting status, fee amount, payment history, arrears).</li>
+                          <li><b>Fee cycle:</b> prepare fee letters &amp; personalised benefit statements; work with Finance to issue invoices; send reminders at 30 &amp; 60 days; prepare 90-day escalation list for the ED.</li>
+                          <li><b>Payment tracking &amp; monthly dashboard:</b> reconcile monthly with Finance; maintain good-standing list; deliver one-page monthly report (payment rate, collected, arrears by region, engagement).</li>
+                          <li><b>Onboarding &amp; engagement:</b> send welcome pack within 2 weeks of approval; organise quarterly member calls; run annual satisfaction survey; track TWG, webinar, LMS &amp; project participation.</li>
+                          <li><b>Member stories &amp; governance:</b> collect stories for E-Pharmalink, NetLink &amp; social media (~20% time); prepare AGM/EGM voting-rights lists; support 2027 member award; maintain handover file.</li>
+                        </ul>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="font-bold text-slate-900 uppercase text-[11px]">First 90 Days Deliverables</h4>
+                        <ul className="space-y-1 text-slate-700 list-disc pl-4">
+                          <li>Clean membership database verified with the Officer (end of Jan 2027)</li>
+                          <li>2027 fee letters, benefit statements &amp; invoices sent to all members (end of Jan 2027)</li>
+                          <li>First monthly dashboard &amp; welcome pack template approved (Feb 2027)</li>
+                          <li>Escalation list for members not paid after 90 days (Apr 2027)</li>
+                        </ul>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div className="p-3 rounded-xl bg-cyan-50/70 border border-cyan-100 space-y-1">
+                          <div className="font-bold text-cyan-950">Performance Indicators</div>
+                          <div className="text-slate-700">Expected fees collected (30% 2027 target); complete/up-to-date records; timely reminders &amp; dashboards; onboarding &le;2 weeks; survey response rate.</div>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                          <div className="font-bold text-slate-900">Qualifications &amp; Learning</div>
+                          <div className="text-slate-700">Graduate in business, comms, public health or pharmacy; strong Excel/CRM; clear English (French an advantage); monthly coaching + mid-term &amp; final review.</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Revised Job Description: Membership, Communications and ICT Officer */}
+                    <div className="m3-glass-card p-5 sm:p-6 space-y-4 text-xs">
+                      <div className="border-b border-slate-100 pb-3">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-800">Revised Job Description</span>
+                        <h3 className="text-base font-bold text-slate-900">Membership, Communications &amp; ICT Officer</h3>
+                        <p className="text-slate-600 mt-1">
+                          Leads EPN&apos;s membership, communications and ICT functions, stays accountable for membership results, and supervises the Membership Intern (freeing capacity for 2027 ICT deadlines).
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="p-2.5 rounded-xl bg-cyan-50 border border-cyan-100 text-center">
+                          <div className="text-lg font-extrabold text-cyan-900">~40%</div>
+                          <div className="font-bold text-slate-800">Comms &amp; Visibility</div>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-100 text-center">
+                          <div className="text-lg font-extrabold text-sky-900">~35%</div>
+                          <div className="font-bold text-slate-800">ICT &amp; Digital</div>
+                        </div>
+                        <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-center">
+                          <div className="text-lg font-extrabold text-emerald-900">~25%</div>
+                          <div className="font-bold text-slate-800">Membership Lead</div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <h4 className="font-bold text-slate-900 uppercase text-[11px]">Key Responsibilities</h4>
+                        <ul className="space-y-1 text-slate-700 list-disc pl-4">
+                          <li><b>Membership (accountable lead):</b> own annual membership plan &amp; 2027 fee calendar; design/protect database linked to EDMS; supervise &amp; coach intern (weekly check-ins, monthly dashboard); embed Value Proposition; quarterly reports to ED; lead survey analysis &amp; 2027 member award.</li>
+                          <li><b>Communications &amp; visibility:</b> produce E-Pharmalink &amp; NetLink; manage website, social media &amp; published good-standing list; organise webinars, EPN Forum comms &amp; ED advocacy/position papers.</li>
+                          <li><b>ICT &amp; digital systems:</b> lead ICT input to EDMS &amp; network dashboard (due Q2 2027); support Finance ERP (operational Q2 2027); administer LMS &amp; member access; manage IT equipment, security &amp; backups.</li>
+                        </ul>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        <div className="p-3 rounded-xl bg-cyan-50/70 border border-cyan-100 space-y-1">
+                          <div className="font-bold text-cyan-950">Performance Indicators</div>
+                          <div className="text-slate-700">Fees collected vs target; intern monthly dashboard on time; E-Pharmalink &amp; NetLink on schedule; monthly web/social updates; EDMS/dashboard live Q2 2027; LMS growth.</div>
+                        </div>
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                          <div className="font-bold text-slate-900">Qualifications</div>
+                          <div className="text-slate-700">Degree in comms, IT or business; 3+ years experience in comms/ICT/membership; database &amp; digital platform skills; coaching/supervision; English (French advantage).</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2027 Fee Calendar + Benefits + Open Questions + ED Sign-off */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 m3-glass-card p-5 sm:p-6 space-y-3">
+                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-cyan-700" /> Membership Fee Calendar 2027 (30% / ~USD 10,000 Target)
+                      </h3>
+                      <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                        <table className="w-full text-left border-collapse text-xs">
+                          <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
+                            <tr>
+                              <th className="py-2 px-3">When</th>
+                              <th className="py-2 px-3">Action</th>
+                              <th className="py-2 px-3">Owner</th>
+                              <th className="py-2 px-3">Output</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-700">
+                            {data.feeCalendar2027.map(item => (
+                              <tr key={item.when}>
+                                <td className="py-2 px-3 font-bold text-cyan-900 whitespace-nowrap">{item.when}</td>
+                                <td className="py-2 px-3">{item.action}</td>
+                                <td className="py-2 px-3 font-mono text-[11px] text-slate-500">{item.owner}</td>
+                                <td className="py-2 px-3 text-slate-600">{item.output}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="m3-glass-card p-5 space-y-2.5 text-xs">
+                        <h3 className="text-sm font-bold text-slate-900">Benefits Linked to Good Standing</h3>
+                        <ul className="space-y-1 text-slate-700 list-disc pl-4">
+                          <li>Voting rights at AGM &amp; EGMs (subject to constitution)</li>
+                          <li>Free LMS access with certificates</li>
+                          <li>Eligibility for EPN pool of experts &amp; multi-country projects</li>
+                          <li>Eligibility for the 2027 member award</li>
+                          <li>Discount on EPN Forum registration (next Forum in 2028)</li>
+                          <li>Recognition in NetLink and at the AGM</li>
+                        </ul>
+                      </div>
+
+                      <div className="m3-glass-card p-5 space-y-2.5 text-xs">
+                        <h3 className="text-sm font-bold text-slate-900">Questions to Settle Before January</h3>
+                        <ul className="space-y-1 text-slate-700 list-disc pl-4">
+                          <li>Does the constitution link voting rights to paid fees?</li>
+                          <li>Which payment channels can members use (bank, mobile money) and in which currencies?</li>
+                          <li>Does the Board agree the 30% target for 2027?</li>
+                        </ul>
+                        <div className="pt-3 mt-3 border-t border-slate-200 text-slate-800">
+                          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Approved by</div>
+                          <div className="font-bold mt-0.5">Richard Neci Cizungu</div>
+                          <div className="text-[11px] text-slate-600">Executive Director · EPN</div>
+                        </div>
                       </div>
                     </div>
                   </div>

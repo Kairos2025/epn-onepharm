@@ -135,9 +135,11 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
           {/* Logo & Brand */}
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <Link href="/" className="flex items-center gap-2.5 cursor-pointer shrink-0">
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-600 to-teal-700 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                EPN
-              </div>
+              <img
+                src="/epn-logo.svg"
+                alt="EPN One Network"
+                className="w-9 h-9 rounded-2xl shadow-sm shrink-0"
+              />
               <div className="flex flex-col">
                 <span className="font-bold text-slate-900 leading-tight tracking-tight text-lg">
                   One Network

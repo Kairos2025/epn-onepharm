@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Ecumenical Pharmaceutical Network (EPN) Logo">
+  <defs>
+    <linearGradient id="epnBg" x1="4" y1="4" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0E7490" />
+      <stop offset="100%" stop-color="#0F766E" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#epnBg)" />
+  <circle cx="32" cy="27" r="16" stroke="#CCFBF1" stroke-width="2" stroke-opacity="0.65" />
+  <ellipse cx="32" cy="27" rx="8.5" ry="16" stroke="#CCFBF1" stroke-width="1.6" stroke-opacity="0.55" />
+  <line x1="16" y1="27" x2="48" y2="27" stroke="#CCFBF1" stroke-width="1.5" stroke-opacity="0.55" />
+  <path d="M29 19H35V24H40V30H35V35H29V30H24V24H29V19Z" fill="#FFFFFF" />
+  <circle cx="17" cy="18" r="2.5" fill="#FBBF24" />
+  <circle cx="47" cy="18" r="2.5" fill="#FBBF24" />
+  <circle cx="47" cy="36" r="2.5" fill="#34D399" />
+  <text x="32" y="54" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="800" letter-spacing="1.8" fill="#FFFFFF">EPN</text>
+</svg>
