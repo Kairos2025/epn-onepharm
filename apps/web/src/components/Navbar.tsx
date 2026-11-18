@@ -130,12 +130,12 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 w-full border-b border-white/70 bg-white/75 backdrop-blur-xl shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
           {/* Logo & Brand */}
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <Link href="/" className="flex items-center gap-2.5 cursor-pointer shrink-0">
-              <div className="w-9 h-9 rounded-lg bg-cyan-700 flex items-center justify-center text-white font-bold text-base shadow-sm">
+              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-cyan-600 to-teal-700 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                 EPN
               </div>
               <div className="flex flex-col">
@@ -148,26 +148,26 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
               </div>
             </Link>
 
-            {/* Network pill */}
-            <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-100 text-[11px] font-medium text-slate-700">
+            {/* M3 Tonal Network pill */}
+            <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-50/80 border border-cyan-200/70 text-[11px] font-medium text-cyan-950">
               <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
               <span>149 Members • 29 African Nations • 25k Facilities</span>
             </div>
           </div>
 
-          {/* Search bar */}
+          {/* M3 Search pill */}
           <div className="hidden lg:flex items-center flex-1 max-w-xs mx-4">
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Open global search (Ctrl+K)"
-              className="w-full flex items-center justify-between px-3 py-2 text-xs text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-3.5 py-2 text-xs text-slate-600 bg-slate-100/70 hover:bg-white/90 border border-slate-200/80 rounded-full transition-all cursor-pointer shadow-2xs"
             >
               <span className="flex items-center gap-2 truncate">
                 <Search className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                 <span className="truncate">Search control center, facilities...</span>
               </span>
-              <kbd className="px-1.5 py-0.5 text-[10px] bg-white border border-slate-200 rounded font-mono text-slate-500 shrink-0">
+              <kbd className="px-2 py-0.5 text-[10px] bg-white/90 border border-slate-200 rounded-full font-mono text-slate-500 shrink-0">
                 Ctrl K
               </kbd>
             </button>
@@ -180,19 +180,19 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
               type="button"
               onClick={() => setSearchOpen(true)}
               aria-label="Search platform"
-              className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
+              className="lg:hidden p-2 rounded-full hover:bg-slate-100/80 text-slate-600 transition-colors cursor-pointer"
             >
               <Search className="w-5 h-5" />
             </button>
 
-            {/* Bilingual toggle */}
+            {/* Bilingual M3 tonal pill */}
             <button
               type="button"
               onClick={() => onLocaleChange && onLocaleChange(locale === 'en' ? 'fr' : 'en')}
               aria-label="Switch language"
-              className="px-2.5 py-1.5 min-h-[36px] text-xs font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-1.5 min-h-[36px] text-xs font-semibold rounded-full border border-slate-200/80 bg-white/75 text-slate-700 hover:bg-white flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <Globe className="w-3.5 h-3.5 text-slate-500" />
+              <Globe className="w-3.5 h-3.5 text-cyan-700" />
               <span className="hidden sm:inline">{locale === 'en' ? 'Français' : 'English'}</span>
               <span className="sm:hidden uppercase">{locale === 'en' ? 'FR' : 'EN'}</span>
             </button>
@@ -204,8 +204,8 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
                 onClick={() => setLauncherOpen(!launcherOpen)}
                 aria-label="App Ecosystem Launcher"
                 aria-expanded={launcherOpen}
-                className={`p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer ${
-                  launcherOpen ? 'bg-slate-100 text-cyan-700' : 'text-slate-600'
+                className={`p-2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-full hover:bg-cyan-50 transition-colors cursor-pointer ${
+                  launcherOpen ? 'bg-cyan-100 text-cyan-800' : 'text-slate-600'
                 }`}
                 title="App Ecosystem Launcher"
               >
@@ -219,8 +219,8 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
                     onClick={() => setLauncherOpen(false)}
                     aria-hidden="true"
                   />
-                  <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-xl shadow-xl p-3 z-50">
-                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 px-1">
+                  <div className="absolute right-0 mt-2 w-80 m3-glass-card p-3.5 z-50">
+                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/60 px-1">
                       <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         EPN Applications
                       </span>
@@ -228,7 +228,7 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
                         type="button"
                         onClick={() => setLauncherOpen(false)}
                         aria-label="Close app launcher"
-                        className="text-slate-400 hover:text-slate-700 p-1 rounded cursor-pointer"
+                        className="text-slate-400 hover:text-slate-700 p-1 rounded-full cursor-pointer"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -241,9 +241,9 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
                             key={app.name}
                             href={app.href}
                             onClick={() => setLauncherOpen(false)}
-                            className="flex flex-col items-center justify-center p-2.5 rounded-lg hover:bg-cyan-50 text-slate-700 hover:text-cyan-800 text-center transition-colors group cursor-pointer"
+                            className="flex flex-col items-center justify-center p-2.5 rounded-2xl hover:bg-cyan-50/90 text-slate-700 hover:text-cyan-900 text-center transition-colors group cursor-pointer"
                           >
-                            <div className="w-9 h-9 rounded-md bg-slate-100 group-hover:bg-cyan-100 flex items-center justify-center mb-1.5 text-slate-600 group-hover:text-cyan-700 transition-colors">
+                            <div className="w-10 h-10 rounded-2xl bg-slate-100/80 group-hover:bg-cyan-100 flex items-center justify-center mb-1.5 text-slate-600 group-hover:text-cyan-700 transition-colors">
                               <Icon className="w-4 h-4" />
                             </div>
                             <span className="text-[11px] font-medium leading-tight line-clamp-2">
@@ -258,10 +258,10 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
               )}
             </div>
 
-            {/* Enter Workspace */}
+            {/* M3 Filled Pill CTA */}
             <Link
               href="/dashboard"
-              className="inline-flex items-center justify-center h-9 px-3.5 rounded-lg bg-cyan-700 hover:bg-cyan-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center h-9 px-4 rounded-full bg-cyan-700 hover:bg-cyan-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             >
               <span className="hidden sm:inline">Control Center</span>
               <span className="sm:hidden">Workspace</span>
@@ -270,17 +270,17 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
         </div>
       </header>
 
-      {/* Global Search Dialog Modal */}
+      {/* Global Search Dialog Modal (M3 + Glassmorphism) */}
       {searchOpen && (
         <div
-          className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-start justify-center pt-20 px-4"
+          className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-md flex items-start justify-center pt-20 px-4"
           onClick={() => setSearchOpen(false)}
           role="dialog"
           aria-modal="true"
           aria-label="Global search"
         >
           <div
-            className="w-full max-w-xl bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden"
+            className="w-full max-w-xl m3-glass-card overflow-hidden"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-3 border-b border-slate-100 flex items-center gap-2">

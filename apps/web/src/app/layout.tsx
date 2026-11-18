@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${firaSans.variable} ${firaCode.variable}`}>
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased flex flex-col font-sans">
+      <body className="min-h-screen m3-ambient-bg text-slate-900 antialiased flex flex-col font-sans">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-cyan-700 focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"

@@ -38,33 +38,33 @@ export function Sidebar() {
     setOpenCategories(prev => ({ ...prev, [code]: !prev[code] }));
 
   return (
-    <aside className="w-64 shrink-0 border-r border-slate-200 bg-white min-h-[calc(100vh-4rem)] sticky top-16 self-start max-h-[calc(100vh-4rem)] overflow-y-auto hidden lg:block">
+    <aside className="w-64 shrink-0 border-r border-white/70 bg-white/70 backdrop-blur-xl min-h-[calc(100vh-4rem)] sticky top-16 self-start max-h-[calc(100vh-4rem)] overflow-y-auto hidden lg:block">
       <div className="p-3">
-        <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
           Data Categories
         </p>
-        <nav className="space-y-0.5">
+        <nav className="space-y-1">
           {WORKSPACE_CATEGORIES.map(category => {
             const Icon = ICONS[category.icon] ?? BarChart3;
             const isOpen = openCategories[category.code];
             const categoryActive = pathname === category.href;
             return (
               <div key={category.code}>
-                <div className="flex items-stretch">
+                <div className="flex items-stretch gap-1">
                   <Link
                     href={category.href}
-                    className={`flex-1 flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex-1 flex items-center gap-2.5 px-3 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
                       categoryActive
-                        ? 'bg-sky-50 text-sky-700'
-                        : 'text-slate-700 hover:bg-slate-50'
+                        ? 'bg-cyan-100/90 text-cyan-950 font-semibold shadow-2xs'
+                        : 'text-slate-700 hover:bg-white/80'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${categoryActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                    <Icon className={`w-4 h-4 ${categoryActive ? 'text-cyan-800' : 'text-slate-400'}`} />
                     <span className="leading-tight">{category.name}</span>
                   </Link>
                   <button
                     onClick={() => toggle(category.code)}
-                    className="px-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+                    className="px-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-white/80 transition-colors cursor-pointer"
                     aria-label={`Toggle ${category.name} sub-categories`}
                   >
                     <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? '' : '-rotate-90'}`} />

@@ -148,24 +148,24 @@ export default function PublicPortalPage() {
             </div>
           </div>
 
-          {/* Headline Live Badges (Principle P1 & Section 2.1) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 pt-8 border-t border-slate-200/80">
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
-              <div className="text-3xl font-extrabold text-sky-600 tabular-nums">149</div>
+          {/* Headline Live Badges (M3 Glass Cards) */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 pt-8 border-t border-slate-200/60">
+            <div className="m3-glass-card p-5 text-center">
+              <div className="text-3xl font-extrabold text-cyan-700 tabular-nums">149</div>
               <div className="text-xs font-semibold text-slate-900 mt-1">Network Members</div>
               <div className="text-[11px] text-slate-500">38 Countries (29 in Africa)</div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
-              <div className="text-3xl font-extrabold text-sky-600 tabular-nums">25,000+</div>
+            <div className="m3-glass-card p-5 text-center">
+              <div className="text-3xl font-extrabold text-cyan-700 tabular-nums">25,000+</div>
               <div className="text-xs font-semibold text-slate-900 mt-1">Health Facilities (FOSA)</div>
               <div className="text-[11px] text-slate-500">Dispensaries to Referral Hospitals</div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
-              <div className="text-3xl font-extrabold text-sky-600 tabular-nums">300M+</div>
+            <div className="m3-glass-card p-5 text-center">
+              <div className="text-3xl font-extrabold text-cyan-700 tabular-nums">300M+</div>
               <div className="text-xs font-semibold text-slate-900 mt-1">Population Served</div>
               <div className="text-[11px] text-slate-500">Across Sub-Saharan Africa</div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm text-center">
+            <div className="m3-glass-card p-5 text-center">
               <div className="text-3xl font-extrabold text-emerald-600 tabular-nums">
                 {surveillance ? `${surveillance.tracerAvailabilityPct}%` : '84.2%'}
               </div>
@@ -174,20 +174,20 @@ export default function PublicPortalPage() {
             </div>
           </div>
 
-          {/* CDC-Style Live Surveillance & Control Strip */}
-          <div className="mt-6 bg-slate-900 text-white rounded-xl p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* CDC-Style Live Surveillance & Control Strip (M3 Dark Glass) */}
+          <div className="mt-6 m3-glass-dark text-white p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white">
                   {surveillance?.networkAlertLevel?.replace('_', ' ') || 'SURVEILLANCE ACTIVE'}
                 </span>
                 <span className="text-xs font-mono text-slate-300">
                   EPI-WEEK {surveillance?.epiWeek || '2026-W47'}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-300">
                   • Completeness: {surveillance ? `${surveillance.reportingCompletenessPct}%` : '86.1%'}
                 </span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-300">
                   • Active Sentinel Alerts: {surveillance?.activeAlertsCount ?? 5} ({surveillance?.criticalAlertsCount ?? 2} Critical)
                 </span>
               </div>
@@ -197,7 +197,7 @@ export default function PublicPortalPage() {
             </div>
             <Link
               href="/dashboard"
-              className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition-colors"
+              className="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm"
             >
               <Activity className="w-4 h-4" />
               <span>{locale === 'en' ? 'Open Control Center' : 'Centre de Contrôle'}</span>

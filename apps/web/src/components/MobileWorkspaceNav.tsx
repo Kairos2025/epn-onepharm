@@ -22,7 +22,7 @@ export function MobileWorkspaceNav() {
   return (
     <nav
       aria-label="Workspace sections"
-      className="lg:hidden border-b border-slate-200 bg-white px-4 py-2 overflow-x-auto flex items-center gap-1.5"
+      className="lg:hidden border-b border-white/70 bg-white/70 backdrop-blur-lg px-4 py-2.5 overflow-x-auto flex items-center gap-1.5"
     >
       {MOBILE_NAV.map(item => {
         const active = pathname === item.href;
@@ -30,10 +30,10 @@ export function MobileWorkspaceNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
               active
-                ? 'bg-cyan-700 text-white'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                ? 'bg-cyan-700 text-white shadow-xs'
+                : 'bg-white/80 border border-slate-200/70 text-slate-700 hover:bg-white'
             }`}
           >
             {item.label}
