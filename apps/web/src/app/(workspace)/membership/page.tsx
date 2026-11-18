@@ -402,10 +402,10 @@ export default function MembershipPage() {
             <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-full text-xs w-fit">
               {(
                 [
-                  { id: 'FEES', label: 'Membership & fees' },
-                  { id: 'REACH', label: 'Reach & engagement' },
-                  { id: 'RECORD', label: 'Member record (data entry)' },
-                  { id: 'FUNCTION', label: 'Membership Function (ToR & JD)' }
+                  { id: 'FEES', label: '1 · Overview & Fees' },
+                  { id: 'REACH', label: '2 · Composition, Reach & Data Quality' },
+                  { id: 'RECORD', label: '3 · Member Records, Invoices & Imports' },
+                  { id: 'FUNCTION', label: '4 · 2027 Plan, ToR & JD' }
                 ] as const
               ).map(tab => (
                 <button
@@ -459,10 +459,12 @@ export default function MembershipPage() {
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
               {activeTab === 'FEES'
-                ? 'Membership Health Dashboard'
+                ? 'Overview & Fee Collection'
                 : activeTab === 'REACH'
-                ? 'Reach, growth and engagement'
-                : 'Member Record & 2027 Fee Workflow'}
+                ? 'Composition, Reach & Data Quality'
+                : activeTab === 'RECORD'
+                ? 'Member Records, Invoices & CSV/PDF Imports'
+                : '2027 Membership Plan, Intern ToR & Officer JD'}
             </h1>
             <p className="text-xs text-slate-600 mt-0.5">
               EPN membership, voting rights, fee payment, and data quality. Membership year 1 January to 31 December.
@@ -524,51 +526,7 @@ export default function MembershipPage() {
                     </div>
                   </div>
 
-                  {/* Members by category & voting rights */}
-                  <div className="m3-glass-card p-5 sm:p-6 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <h2 className="text-sm font-bold text-slate-900">Members by category and voting rights</h2>
-                      <div className="flex items-center gap-4 text-xs">
-                        <span className="flex items-center gap-1.5 text-slate-700">
-                          <span className="w-3 h-3 rounded-xs bg-cyan-800" /> Ordinary (voting)
-                        </span>
-                        <span className="flex items-center gap-1.5 text-slate-700">
-                          <span className="w-3 h-3 rounded-xs bg-cyan-200" /> Associate (no vote)
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      {data.categories.map(cat => (
-                        <div key={cat.code} className="grid grid-cols-1 md:grid-cols-12 items-center gap-2 text-xs">
-                          <div className="md:col-span-4 font-semibold text-slate-800">{cat.name}</div>
-                          <div className="md:col-span-7 bg-slate-100 h-6 rounded-lg overflow-hidden flex">
-                            {cat.ordinary > 0 && (
-                              <div
-                                className="bg-cyan-800 text-white text-[10px] font-bold flex items-center px-2"
-                                style={{ width: `${(cat.ordinary / 55) * 100}%` }}
-                              >
-                                {cat.ordinary}
-                              </div>
-                            )}
-                            {cat.associate > 0 && (
-                              <div
-                                className="bg-cyan-200 text-cyan-950 text-[10px] font-bold flex items-center px-2"
-                                style={{ width: `${(cat.associate / 55) * 100}%` }}
-                              >
-                                {cat.associate}
-                              </div>
-                            )}
-                          </div>
-                          <div className="md:col-span-1 text-right font-bold text-slate-900 tabular-nums">
-                            {cat.total} <span className="text-slate-400 font-normal">{cat.sharePct}%</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Fees collected vs expected + Members paying 2019-2025 */}
+                  {/* 1 · Fees collected vs expected + 2 · Members paying 2019-2025 */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="m3-glass-card p-5 sm:p-6 space-y-4">
                       <h3 className="text-sm font-bold text-slate-900">1 · Fees collected vs expected</h3>
@@ -610,7 +568,7 @@ export default function MembershipPage() {
                         </div>
                       </div>
 
-                      {/* Unpaid invoice aging from JPEG */}
+                      {/* Unpaid invoice aging */}
                       <div className="pt-2 border-t border-slate-100">
                         <div className="text-[11px] font-semibold text-slate-600 mb-2">Unpaid invoices by age</div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
@@ -628,7 +586,7 @@ export default function MembershipPage() {
                       <div>
                         <h3 className="text-sm font-bold text-slate-900">2 · Members paying each year, 2019–2025</h3>
                         <p className="text-xs text-slate-500">Forum years marked ★</p>
-                        <div className="h-52 flex items-end gap-3 pt-6 pb-2 border-b border-slate-200">
+                        <div className="h-60 flex items-end gap-3 pt-6 pb-2 border-b border-slate-200">
                           {data.yearlyPayments.map(y => (
                             <div key={y.year} className="flex-1 flex flex-col items-center justify-end h-full gap-1">
                               <span className="text-[11px] font-bold text-slate-800 tabular-nums">{y.membersPaid}</span>
@@ -649,21 +607,15 @@ export default function MembershipPage() {
                           ))}
                         </div>
                       </div>
-
-                      {/* Member Size Bands from JPEG */}
-                      <div className="pt-2 space-y-2">
-                        <div className="text-xs font-bold text-slate-900">Member size by health facilities</div>
-                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-                          {data.sizeBands.map(b => (
-                            <div key={b.band} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                              <div className="font-bold text-slate-900">{b.band}</div>
-                              <div className="text-[10px] text-slate-500">{b.range}</div>
-                              <div className="font-extrabold text-cyan-800 mt-1 tabular-nums">
-                                {b.count} <span className="font-normal text-slate-400">({b.sharePct}%)</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                      <div className="pt-2 flex items-center justify-between text-xs text-slate-600">
+                        <span>Need to classify categories or check facility size?</span>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('REACH')}
+                          className="font-semibold text-cyan-800 hover:underline cursor-pointer"
+                        >
+                          Open Composition &amp; Data Quality &rarr;
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -740,52 +692,85 @@ export default function MembershipPage() {
                           <div className="text-[11px] text-slate-500">{step.desc}</div>
                         </div>
                       ))}
-                    </div>
-                  </div>
-
-                  {/* 5 · Contacts on file & Clean-up Queue */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="m3-glass-card p-5 sm:p-6 space-y-3">
-                      <h3 className="text-sm font-bold text-slate-900">5 · Member contacts on file</h3>
-                      <div className="space-y-3 text-xs">
-                        {data.contactsOnFile.map(c => (
-                          <div key={c.field}>
-                            <div className="flex justify-between font-semibold mb-1">
-                              <span>{c.field}</span>
-                              <span className="tabular-nums">{c.pct}% ({c.count})</span>
-                            </div>
-                            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${c.pct >= 70 ? 'bg-sky-700' : 'bg-amber-600'}`}
-                                style={{ width: `${c.pct}%` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="m3-glass-card p-5 sm:p-6 space-y-3">
-                      <h3 className="text-sm font-bold text-slate-900">Records to clean before January 2027</h3>
-                      <div className="space-y-2 text-xs">
-                        {data.cleanUpQueue.map(q => (
-                          <div
-                            key={q.label}
-                            className="p-3 rounded-xl bg-amber-50/90 border border-amber-200 flex items-center justify-between gap-2"
-                          >
-                            <span className="font-medium text-amber-950">{q.label}</span>
-                            <span className="font-extrabold text-amber-900 font-mono text-sm tabular-nums">{q.count}</span>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('RECORD')}
+                        className="px-4 py-2 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white text-xs font-semibold cursor-pointer"
+                      >
+                        Manage Invoices, Contacts &amp; Imports &rarr;
+                      </button>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* TAB 2: REACH & ENGAGEMENT + ROLES & 2027 CALENDAR */}
+              {/* TAB 2: COMPOSITION, REACH & DATA QUALITY */}
               {activeTab === 'REACH' && (
                 <div className="space-y-6">
+                  {/* Section A: Composition & Size */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2 m3-glass-card p-5 sm:p-6 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h2 className="text-sm font-bold text-slate-900">A · Members by category and voting rights</h2>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className="flex items-center gap-1.5 text-slate-700">
+                            <span className="w-3 h-3 rounded-xs bg-cyan-800" /> Ordinary (voting)
+                          </span>
+                          <span className="flex items-center gap-1.5 text-slate-700">
+                            <span className="w-3 h-3 rounded-xs bg-cyan-200" /> Associate (no vote)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        {data.categories.map(cat => (
+                          <div key={cat.code} className="grid grid-cols-1 md:grid-cols-12 items-center gap-2 text-xs">
+                            <div className="md:col-span-4 font-semibold text-slate-800">{cat.name}</div>
+                            <div className="md:col-span-7 bg-slate-100 h-6 rounded-lg overflow-hidden flex">
+                              {cat.ordinary > 0 && (
+                                <div
+                                  className="bg-cyan-800 text-white text-[10px] font-bold flex items-center px-2"
+                                  style={{ width: `${(cat.ordinary / 55) * 100}%` }}
+                                >
+                                  {cat.ordinary}
+                                </div>
+                              )}
+                              {cat.associate > 0 && (
+                                <div
+                                  className="bg-cyan-200 text-cyan-950 text-[10px] font-bold flex items-center px-2"
+                                  style={{ width: `${(cat.associate / 55) * 100}%` }}
+                                >
+                                  {cat.associate}
+                                </div>
+                              )}
+                            </div>
+                            <div className="md:col-span-1 text-right font-bold text-slate-900 tabular-nums">
+                              {cat.total} <span className="text-slate-400 font-normal">{cat.sharePct}%</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="m3-glass-card p-5 sm:p-6 space-y-3">
+                      <h3 className="text-sm font-bold text-slate-900">Member size by health facilities</h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 text-xs">
+                        {data.sizeBands.map(b => (
+                          <div key={b.band} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                            <div>
+                              <span className="font-bold text-slate-900">{b.band}</span>
+                              <span className="text-[10px] text-slate-500 ml-1.5">{b.range}</span>
+                            </div>
+                            <div className="font-extrabold text-cyan-800 tabular-nums">
+                              {b.count} <span className="font-normal text-slate-400">({b.sharePct}%)</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section B: Geographic & Language Reach */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="m3-glass-card p-5 sm:p-6 space-y-3">
                       <div className="flex items-center justify-between">
@@ -890,42 +875,51 @@ export default function MembershipPage() {
                     </div>
                   </div>
 
-                  {/* Role Accountability Matrix & 2027 Fee Calendar from DOCX */}
+                  {/* Section C: Contact Quality & Pre-2027 Clean-Up Queue */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="m3-glass-card p-5 sm:p-6 space-y-3">
-                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <Users className="w-4 h-4 text-cyan-700" /> Membership Function Roles &amp; Safeguards
-                      </h3>
-                      <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white">
-                        {data.roleMatrix.map(r => (
-                          <div key={r.role} className="p-3 text-xs space-y-1">
-                            <div className="font-bold text-slate-900">{r.role}</div>
-                            <div className="text-slate-600"><b>Membership:</b> {r.membership}</div>
-                            {r.communications !== '—' && <div className="text-slate-500"><b>Comms:</b> {r.communications}</div>}
-                            {r.ict !== '—' && <div className="text-slate-500"><b>ICT:</b> {r.ict}</div>}
+                      <h3 className="text-sm font-bold text-slate-900">C · Member contacts on file</h3>
+                      <div className="space-y-3 text-xs">
+                        {data.contactsOnFile.map(c => (
+                          <div key={c.field}>
+                            <div className="flex justify-between font-semibold mb-1">
+                              <span>{c.field}</span>
+                              <span className="tabular-nums">{c.pct}% ({c.count})</span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${c.pct >= 70 ? 'bg-sky-700' : 'bg-amber-600'}`}
+                                style={{ width: `${c.pct}%` }}
+                              />
+                            </div>
                           </div>
                         ))}
-                      </div>
-                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-950">
-                        <b>Safeguards:</b> Intern never handles cash; all member data stays in EPN systems (never personal email/files); formal handover before departure.
                       </div>
                     </div>
 
-                    <div className="m3-glass-card p-5 sm:p-6 space-y-3">
-                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-cyan-700" /> 2027 Membership Fee Calendar (30% Target)
-                      </h3>
-                      <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-xl bg-white">
-                        {data.feeCalendar2027.map(item => (
-                          <div key={item.when} className="p-3 text-xs space-y-0.5">
-                            <div className="flex justify-between font-bold text-cyan-900">
-                              <span>{item.when}</span>
-                              <span className="text-[10px] font-mono text-slate-500">{item.owner}</span>
+                    <div className="m3-glass-card p-5 sm:p-6 space-y-3 flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-bold text-slate-900">Records to clean before January 2027</h3>
+                        <div className="space-y-2 text-xs">
+                          {data.cleanUpQueue.map(q => (
+                            <div
+                              key={q.label}
+                              className="p-3 rounded-xl bg-amber-50/90 border border-amber-200 flex items-center justify-between gap-2"
+                            >
+                              <span className="font-medium text-amber-950">{q.label}</span>
+                              <span className="font-extrabold text-amber-900 font-mono text-sm tabular-nums">{q.count}</span>
                             </div>
-                            <div className="text-slate-800">{item.action}</div>
-                            <div className="text-[11px] text-slate-500">Output: {item.output}</div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
+                      </div>
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('RECORD')}
+                          className="px-4 py-2 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white text-xs font-semibold cursor-pointer"
+                        >
+                          Open Data Entry &amp; CSV/PDF Import &rarr;
+                        </button>
                       </div>
                     </div>
                   </div>
