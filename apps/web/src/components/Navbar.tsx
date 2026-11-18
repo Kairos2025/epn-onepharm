@@ -219,7 +219,7 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
                     onClick={() => setLauncherOpen(false)}
                     aria-hidden="true"
                   />
-                  <div className="absolute right-0 mt-2 w-80 m3-glass-card p-3.5 z-50">
+                  <div className="absolute right-0 mt-2 w-[min(20rem,calc(100vw-2rem))] m3-glass-card p-3.5 z-50">
                     <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/60 px-1">
                       <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         EPN Applications

@@ -211,7 +211,7 @@ export function AfricaMap({
 
       {/* Hover Tooltip */}
       {hovered && (
-        <div className="absolute top-3 left-3 m3-glass px-3.5 py-2 rounded-xl text-xs pointer-events-none">
+        <div className="sm:absolute sm:top-3 sm:left-3 m3-glass px-3.5 py-2 sm:rounded-xl text-xs pointer-events-none border-t sm:border border-slate-200/80">
           <div className="font-bold text-slate-900">
             {hovered.name} <span className="font-mono text-slate-500">({hovered.code})</span>
           </div>
@@ -219,8 +219,8 @@ export function AfricaMap({
         </div>
       )}
 
-      {/* Mandatory Dynamic Cartographic Legend */}
-      <div className="absolute bottom-3 left-3 m3-glass rounded-xl px-3.5 py-2.5 text-[10px] space-y-1.5 max-w-xs">
+      {/* Mandatory Dynamic Cartographic Legend (stacks below map on mobile) */}
+      <div className="sm:absolute sm:bottom-3 sm:left-3 bg-white/95 sm:bg-white/75 sm:backdrop-blur-md border-t sm:border border-slate-200/80 sm:rounded-xl px-3.5 py-2.5 text-[10px] space-y-1.5 sm:max-w-xs">
         <div className="font-bold text-slate-800 uppercase tracking-wider">
           {layer === 'CONTROL_STATUS'
             ? 'Control Status (CVD-Safe)'

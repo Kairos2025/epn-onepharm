@@ -114,7 +114,48 @@ export default function DataQualityPage() {
             <span className="text-xs text-slate-500">Calculated over rolling 12 months</span>
           </div>
 
-          <div className="overflow-x-auto text-xs">
+          {/* Mobile Quality Cards */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {facilityQualityScores.map(fac => (
+              <div key={fac.name} className="p-4 space-y-2 text-xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-bold text-slate-900">{fac.name}</div>
+                    <div className="text-[11px] text-slate-500">
+                      {fac.member} ({fac.country})
+                    </div>
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                      fac.status === 'EXCELLENT'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : fac.status === 'GOOD'
+                        ? 'bg-sky-100 text-sky-800'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {fac.status === 'EXCELLENT' ? 'Grade A' : fac.status === 'GOOD' ? 'Grade B' : 'Follow Up'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-1 text-[11px]">
+                  <div>
+                    <span className="text-slate-400 block">Completeness</span>
+                    <span className="font-mono font-semibold">{fac.completeness}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Timeliness</span>
+                    <span className="font-mono font-semibold">{fac.timeliness}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block">Overall</span>
+                    <span className="font-extrabold text-slate-900">{fac.overallScore}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto text-xs">
             <table className="w-full text-left">
               <thead className="bg-slate-100 text-slate-700 font-semibold border-b">
                 <tr>

@@ -280,8 +280,44 @@ export default function DataEntryPage() {
             </div>
           )}
 
-          {/* Form Table */}
-          <div className="overflow-x-auto">
+          {/* Mobile Form Cards */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {formRows.map((row, idx) => (
+              <div key={row.code} className="p-4 space-y-2.5 text-xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-semibold text-slate-900 block">
+                      {idx + 1}. {row.name}
+                    </span>
+                    <span className="font-mono text-[10px] text-slate-400">
+                      {row.code} • Prev: {row.previousValue}
+                    </span>
+                  </div>
+                  <span
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                      row.status === 'saved'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : row.status === 'saving'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {row.status}
+                  </span>
+                </div>
+                <input
+                  type="number"
+                  aria-label={row.name}
+                  value={row.value}
+                  onChange={e => handleCellChange(idx, e.target.value)}
+                  className="w-full min-h-[44px] px-3 py-2 border border-slate-300 rounded-xl font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-600 tabular-nums"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Form Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
                 <tr>
