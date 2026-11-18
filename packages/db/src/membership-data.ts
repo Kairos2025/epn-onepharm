@@ -120,7 +120,8 @@ const REGION_SCALE: Record<MembershipRegionFilter, number> = {
 
 export function buildMembershipDashboard(
   region: MembershipRegionFilter,
-  records: MemberRecordDetail[]
+  records: MemberRecordDetail[],
+  calendarActivations: Record<string, { activatedAt: string; remindersDispatched: number }> = {}
 ): MembershipDashboardData {
   const scale = REGION_SCALE[region] || 1;
   const issuedCount = records.filter(r => r.invoice2027.status !== 'PENDING').length;
@@ -222,7 +223,15 @@ export function buildMembershipDashboard(
       { when: 'Before AGM', action: 'Final notice linking fees to voting rights; good-standing list', owner: 'ED, Intern', output: 'AGM voting list' },
       { when: 'Oct–Nov 2027', action: 'Member award nominations; prepare 2028 fee letters', owner: 'Officer, Intern', output: 'Award shortlist; 2028 letters ready' },
       { when: 'Dec 2027', action: 'Year-end reconciliation with Finance; annual membership report', owner: 'Intern, Finance, Officer', output: 'Report to ED and Board' }
-    ],
+    ].map(item => {
+      const act = calendarActivations[item.when];
+      return {
+        ...item,
+        status: act ? ('ACTIVATED' as const) : ('PENDING' as const),
+        activatedAt: act?.activatedAt,
+        remindersDispatched: act?.remindersDispatched
+      };
+    }),
     roleMatrix: [
       {
         role: 'Executive Director',

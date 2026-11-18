@@ -16,7 +16,10 @@ import {
   Send,
   UserCheck,
   Plus,
-  Trash2
+  Trash2,
+  Upload,
+  Zap,
+  Download
 } from 'lucide-react';
 import type {
   MembershipDashboardData,
@@ -51,6 +54,30 @@ export default function MembershipPage() {
   const [reminderBody, setReminderBody] = useState('');
   const [savingContacts, setSavingContacts] = useState(false);
   const [sendingReminder, setSendingReminder] = useState(false);
+  const [activatingWhen, setActivatingWhen] = useState<string | null>(null);
+  const [lastActivationResult, setLastActivationResult] = useState<{
+    when: string;
+    remindersDispatched: number;
+    recipients: Array<{ code: string; name: string; email: string }>;
+  } | null>(null);
+  const [importFileName, setImportFileName] = useState('');
+  const [importPreviewRows, setImportPreviewRows] = useState<
+    Array<{
+      code: string;
+      name: string;
+      category?: MemberRecordDetail['category'];
+      votingStatus?: MemberRecordDetail['votingStatus'];
+      country?: string;
+      city?: string;
+      facilitiesCount?: number;
+      primaryEmail?: string;
+      financeEmail?: string;
+      phone?: string;
+      referencePerson?: string;
+      referenceRole?: string;
+    }>
+  >([]);
+  const [importingRows, setImportingRows] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
@@ -159,6 +186,182 @@ export default function MembershipPage() {
     } finally {
       setSendingReminder(false);
     }
+  };
+
+  const handleActivateCalendarStep = async (when: string, action: string) => {
+    setActivatingWhen(when);
+    setError(null);
+    try {
+      const res = await epnClient.activateFeeCalendarStep({
+        when,
+        message: action
+      });
+      setLastActivationResult({
+        when: res.when,
+        remindersDispatched: res.remindersDispatched,
+        recipients: res.recipients
+      });
+      await loadData();
+      setToast(
+        `Activated "${when}" immediately — ${res.remindersDispatched} member reminder message(s) & email(s) dispatched.`
+      );
+      setTimeout(() => setToast(null), 4500);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to activate calendar milestone.');
+    } finally {
+      setActivatingWhen(null);
+    }
+  };
+
+  const parseCsvLine = (line: string) => {
+    const out: string[] = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        out.push(cur.trim());
+        cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur.trim());
+    return out;
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(null);
+    setImportFileName(file.name);
+
+    try {
+      if (file.name.toLowerCase().endsWith('.csv') || file.type.includes('csv') || file.type === 'text/plain') {
+        const text = await file.text();
+        const lines = text
+          .split(/\r?\n/)
+          .map(l => l.trim())
+          .filter(Boolean);
+        if (lines.length < 2) {
+          setError('CSV must contain a header row and at least one association row.');
+          return;
+        }
+        const headers = parseCsvLine(lines[0]).map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
+        const rows = lines.slice(1).map(line => {
+          const cols = parseCsvLine(line);
+          const get = (keys: string[]) => {
+            const idx = headers.findIndex(h => keys.some(k => h.includes(k)));
+            return idx >= 0 ? cols[idx] || '' : '';
+          };
+          const catRaw = get(['category', 'type']).toUpperCase();
+          const category = (['CHA', 'HSS', 'DSO', 'CHI', 'INDIVIDUAL'].includes(catRaw)
+            ? catRaw
+            : 'CHA') as MemberRecordDetail['category'];
+          const voteRaw = get(['voting', 'status']).toUpperCase();
+          const votingStatus = (voteRaw === 'ASSOCIATE' ? 'ASSOCIATE' : 'ORDINARY') as MemberRecordDetail['votingStatus'];
+          const facNum = Number.parseInt(get(['facilit', 'fosa']), 10);
+          return {
+            code: get(['code', 'abbr']) || `MEM${Math.floor(Math.random() * 900 + 100)}`,
+            name: get(['name', 'organization', 'association']) || 'Unnamed Association',
+            category,
+            votingStatus,
+            country: get(['country']) || 'Kenya',
+            city: get(['city', 'town']) || undefined,
+            facilitiesCount: Number.isNaN(facNum) ? 1 : facNum,
+            primaryEmail: get(['primaryemail', 'email']) || undefined,
+            financeEmail: get(['financeemail', 'finance']) || undefined,
+            phone: get(['phone', 'tel']) || undefined,
+            referencePerson: get(['referenceperson', 'focal', 'contactperson']) || undefined,
+            referenceRole: get(['referencerole', 'role']) || 'Focal Point'
+          };
+        });
+        setImportPreviewRows(rows);
+      } else if (file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf') {
+        const buf = await file.arrayBuffer();
+        const raw = new TextDecoder('latin1').decode(buf);
+        const textChunks = (raw.match(/\(([^()]{3,160})\)/g) || [])
+          .map(s => s.slice(1, -1).replace(/\\[rn]/g, ' ').trim())
+          .filter(s => /[A-Za-z0-9]/.test(s) && !s.startsWith('PDF'));
+        const joined = textChunks.join('\n');
+        const emailMatches = joined.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || [];
+        const lines = joined
+          .split(/\n+/)
+          .map(l => l.trim())
+          .filter(l => l.length > 3);
+
+        // Extract structured rows if lines contain comma/pipe/tab or email-anchored records
+        const parsedRows: typeof importPreviewRows = [];
+        const delimLines = lines.filter(l => l.includes(',') || l.includes('|') || l.includes('\t'));
+        for (const dl of delimLines) {
+          const parts = dl.split(/[,|\t]/).map(p => p.trim()).filter(Boolean);
+          if (parts.length >= 2) {
+            parsedRows.push({
+              code: parts[0].slice(0, 12).toUpperCase(),
+              name: parts[1],
+              country: parts[2] || 'Kenya',
+              primaryEmail: parts.find(p => p.includes('@')) || emailMatches[0],
+              referencePerson: parts.find(p => !p.includes('@') && parts.indexOf(p) >= 3) || undefined
+            });
+          }
+        }
+        if (parsedRows.length === 0 && (emailMatches.length > 0 || lines.length > 0)) {
+          parsedRows.push({
+            code: file.name.replace(/\.pdf$/i, '').slice(0, 8).toUpperCase(),
+            name: lines[0]?.slice(0, 80) || file.name.replace(/\.pdf$/i, ''),
+            country: 'Kenya',
+            primaryEmail: emailMatches[0] || '',
+            financeEmail: emailMatches[1] || emailMatches[0] || '',
+            referencePerson: lines.find(l => /Dr\.|Mr\.|Ms\.|Sr\.|Pharm\./i.test(l)) || ''
+          });
+        }
+        setImportPreviewRows(parsedRows);
+      } else {
+        setError('Unsupported file format. Please upload a .csv or .pdf file.');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Unable to parse uploaded file.');
+    }
+  };
+
+  const handleImportNow = async () => {
+    if (importPreviewRows.length === 0) return;
+    setImportingRows(true);
+    setError(null);
+    try {
+      const res = await epnClient.importMemberRecords({
+        sourceFile: importFileName || 'upload',
+        rows: importPreviewRows
+      });
+      await loadData();
+      setToast(
+        `System updated immediately from ${importFileName}: ${res.created} created, ${res.updated} updated (${res.totalRecords} total records).`
+      );
+      setImportPreviewRows([]);
+      setImportFileName('');
+      setTimeout(() => setToast(null), 5000);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to import health association data.');
+    } finally {
+      setImportingRows(false);
+    }
+  };
+
+  const downloadSampleCsv = () => {
+    const csv = [
+      'code,name,category,votingStatus,country,city,facilitiesCount,primaryEmail,financeEmail,phone,referencePerson,referenceRole',
+      'C20,CECA 20 — Communauté Evangélique au Centre de l’Afrique,CHA,ORDINARY,DR Congo,Bunia,93,coordination@ceca20-sante.org,finance@ceca20-sante.org,+243 81 000 2020,Dr. Jean-Luc Mugisha,Health Coordinator',
+      'CHAK,Christian Health Association of Kenya (CHAK),CHA,ORDINARY,Kenya,Nairobi,584,secretariat@chak.or.ke,finance@chak.or.ke,+254 20 444 1920,Dr. Samuel Mwenda,General Secretary'
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'epn-health-associations-template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -976,6 +1179,98 @@ export default function MembershipPage() {
                     </div>
                   )}
 
+                  {/* Bulk Upload Health Association Data (CSV / PDF) */}
+                  <div className="m3-glass-card p-5 sm:p-6 space-y-4 text-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          <Upload className="w-4 h-4 text-cyan-700" /> Upload Health Association Data (CSV or PDF)
+                        </h3>
+                        <p className="text-slate-600 mt-0.5">
+                          Upload a <b>.csv</b> or <b>.pdf</b> file of health associations, contact emails, and reference people to update the system immediately.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={downloadSampleCsv}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Sample CSV</span>
+                        </button>
+                        <label className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white font-semibold cursor-pointer">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Choose CSV / PDF</span>
+                          <input
+                            type="file"
+                            accept=".csv,.pdf,text/csv,application/pdf"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {importPreviewRows.length > 0 && (
+                      <div className="space-y-3 pt-2 border-t border-slate-100">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <span className="font-semibold text-slate-800">
+                            Ready to import <b>{importPreviewRows.length}</b> record(s) from <span className="font-mono">{importFileName}</span>
+                          </span>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setImportPreviewRows([]);
+                                setImportFileName('');
+                              }}
+                              className="px-3 py-1.5 rounded-full border border-slate-300 bg-white text-slate-700 font-semibold cursor-pointer"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              type="button"
+                              disabled={importingRows}
+                              onClick={handleImportNow}
+                              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold cursor-pointer"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
+                              <span>{importingRows ? 'Updating...' : 'Update System Immediately'}</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                          <table className="w-full text-left border-collapse text-xs">
+                            <thead className="bg-slate-50 text-slate-500 uppercase text-[10px]">
+                              <tr>
+                                <th className="py-2 px-3">Code</th>
+                                <th className="py-2 px-3">Association Name</th>
+                                <th className="py-2 px-3">Country</th>
+                                <th className="py-2 px-3">Primary Email</th>
+                                <th className="py-2 px-3">Finance Email</th>
+                                <th className="py-2 px-3">Reference Person</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                              {importPreviewRows.map((row, idx) => (
+                                <tr key={idx}>
+                                  <td className="py-2 px-3 font-bold text-slate-900">{row.code}</td>
+                                  <td className="py-2 px-3 text-slate-800">{row.name}</td>
+                                  <td className="py-2 px-3 text-slate-600">{row.country || '—'}</td>
+                                  <td className="py-2 px-3 text-slate-600">{row.primaryEmail || '—'}</td>
+                                  <td className="py-2 px-3 text-slate-600">{row.financeEmail || '—'}</td>
+                                  <td className="py-2 px-3 text-slate-600">{row.referencePerson || '—'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   {/* 2027 Subscription Invoice Workflow */}
                   <div className="m3-glass-card p-5 sm:p-6 space-y-5">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1321,9 +1616,30 @@ export default function MembershipPage() {
                   {/* 2027 Fee Calendar + Benefits + Open Questions + ED Sign-off */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 m3-glass-card p-5 sm:p-6 space-y-3">
-                      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-cyan-700" /> Membership Fee Calendar 2027 (30% / ~USD 10,000 Target)
-                      </h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-cyan-700" /> Membership Fee Calendar 2027 (30% / ~USD 10,000 Target)
+                        </h3>
+                        <span className="text-[11px] text-slate-600">Click <b>Activate Now</b> to trigger reminders &amp; email dispatch</span>
+                      </div>
+
+                      {lastActivationResult && (
+                        <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="text-emerald-950">
+                            <b>{lastActivationResult.when}</b> activated — <b>{lastActivationResult.remindersDispatched}</b> reminder message(s) &amp; email(s) logged.
+                          </div>
+                          {lastActivationResult.recipients.length > 0 && (
+                            <a
+                              href={`mailto:${encodeURIComponent(lastActivationResult.recipients.map(r => r.email).join(','))}?subject=${encodeURIComponent(`EPN One Network — ${lastActivationResult.when} Action & Data Update Reminder`)}&body=${encodeURIComponent(`Dear EPN Member Association,\n\nThis is an automated reminder for the ${lastActivationResult.when} milestone in the EPN 2027 Membership Calendar. Please review and update your association's contact email, finance contact, and designated reference people in EPN One Network.\n\nWarm regards,\nEPN Secretariat`)}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shrink-0"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              <span>Email All Recipients ({lastActivationResult.recipients.length})</span>
+                            </a>
+                          )}
+                        </div>
+                      )}
+
                       <div className="overflow-x-auto border border-slate-200 rounded-xl bg-white">
                         <table className="w-full text-left border-collapse text-xs">
                           <thead className="bg-slate-50 text-slate-600 uppercase text-[10px] tracking-wider border-b border-slate-200">
@@ -1332,15 +1648,33 @@ export default function MembershipPage() {
                               <th className="py-2 px-3">Action</th>
                               <th className="py-2 px-3">Owner</th>
                               <th className="py-2 px-3">Output</th>
+                              <th className="py-2 px-3 text-right">Activate</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 text-slate-700">
                             {data.feeCalendar2027.map(item => (
-                              <tr key={item.when}>
+                              <tr key={item.when} className={item.status === 'ACTIVATED' ? 'bg-emerald-50/40' : ''}>
                                 <td className="py-2 px-3 font-bold text-cyan-900 whitespace-nowrap">{item.when}</td>
                                 <td className="py-2 px-3">{item.action}</td>
                                 <td className="py-2 px-3 font-mono text-[11px] text-slate-500">{item.owner}</td>
                                 <td className="py-2 px-3 text-slate-600">{item.output}</td>
+                                <td className="py-2 px-3 text-right whitespace-nowrap">
+                                  {item.status === 'ACTIVATED' ? (
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                                      <CheckCircle className="w-3 h-3" /> Active ({item.remindersDispatched ?? 0} sent)
+                                    </span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      disabled={activatingWhen === item.when}
+                                      onClick={() => handleActivateCalendarStep(item.when, item.action)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white font-semibold text-[11px] cursor-pointer"
+                                    >
+                                      <Zap className="w-3 h-3" />
+                                      <span>{activatingWhen === item.when ? 'Running...' : 'Activate Now'}</span>
+                                    </button>
+                                  )}
+                                </td>
                               </tr>
                             ))}
                           </tbody>

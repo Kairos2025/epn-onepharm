@@ -224,6 +224,42 @@ describe('EPN One Network End-to-End API Workflows', () => {
     assert.strictEqual(remindRes.status, 200);
     const remindedRec = await remindRes.json();
     assert.ok(remindedRec.contacts.lastReminderSentDate);
+
+    const calRes = await fetch(`${baseUrl}/membership/calendar/activate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-epn-role': 'EPN_COORDINATOR' },
+      body: JSON.stringify({
+        when: 'Nov–Dec 2026',
+        message: 'Clean database and verify 151 member contacts'
+      })
+    });
+    assert.strictEqual(calRes.status, 200);
+    const calJson = await calRes.json();
+    assert.strictEqual(calJson.when, 'Nov–Dec 2026');
+    assert.ok(calJson.remindersDispatched >= 1);
+
+    const importRes = await fetch(`${baseUrl}/membership/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-epn-role': 'EPN_COORDINATOR' },
+      body: JSON.stringify({
+        sourceFile: 'associations.csv',
+        rows: [
+          {
+            code: 'MEDS',
+            name: 'Mission for Essential Drugs and Supplies (MEDS)',
+            category: 'DSO',
+            votingStatus: 'ORDINARY',
+            country: 'Kenya',
+            primaryEmail: 'info@meds.or.ke',
+            financeEmail: 'finance@meds.or.ke',
+            referencePerson: 'Dr. Wycliffe Nandama'
+          }
+        ]
+      })
+    });
+    assert.strictEqual(importRes.status, 200);
+    const importJson = await importRes.json();
+    assert.strictEqual(importJson.created, 1);
   });
 
   it('closes test server', async () => {

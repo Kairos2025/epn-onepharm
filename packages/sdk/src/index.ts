@@ -259,6 +259,43 @@ export class EpnClient {
     });
   }
 
+  async activateFeeCalendarStep(payload: { when: string; message?: string }) {
+    return this.request<{
+      when: string;
+      activatedAt: string;
+      remindersDispatched: number;
+      recipients: Array<{ code: string; name: string; email: string }>;
+    }>('/membership/calendar/activate', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  async importMemberRecords(payload: {
+    sourceFile: string;
+    rows: Array<{
+      code: string;
+      name: string;
+      category?: MemberRecordDetail['category'];
+      votingStatus?: MemberRecordDetail['votingStatus'];
+      country?: string;
+      city?: string;
+      language?: MemberRecordDetail['language'];
+      region?: MemberRecordDetail['region'];
+      facilitiesCount?: number;
+      primaryEmail?: string;
+      financeEmail?: string;
+      phone?: string;
+      referencePerson?: string;
+      referenceRole?: string;
+    }>;
+  }) {
+    return this.request<{ created: number; updated: number; totalRecords: number }>('/membership/import', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
   // Payments
   async initiateMpesaStkPush(payload: { phone: string; amount: string | number; plan: string }) {
     return this.request<MpesaStkPushResponse>('/payments/mpesa/stkpush', {

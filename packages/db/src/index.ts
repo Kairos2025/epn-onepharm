@@ -58,6 +58,7 @@ export interface DatabaseState {
   sharingPolicies: MemberSharingPolicy[];
   dhis2SyncedConnections: string[];
   memberRecords: MemberRecordDetail[];
+  calendarActivations?: Record<string, { activatedAt: string; remindersDispatched: number }>;
 }
 
 class EpnDatabase {
@@ -1001,7 +1002,7 @@ class EpnDatabase {
   }
 
   public getMembershipDashboard(region: MembershipRegionFilter = 'ALL'): MembershipDashboardData {
-    return buildMembershipDashboard(region, this.state.memberRecords);
+    return buildMembershipDashboard(region, this.state.memberRecords, this.state.calendarActivations || {});
   }
 
   public issueMemberInvoice(
@@ -1092,6 +1093,202 @@ class EpnDatabase {
     this.appendAudit(actorId, actorRole, 'SEND_MEMBER_REMINDER', 'SHARING_POLICY', rec.code, payload.toEmail);
     this.saveToDisk();
     return rec;
+  }
+
+  public activateFeeCalendarStep(
+    when: string,
+    customMessage?: string,
+    actorId = 'membership_intern',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): {
+    when: string;
+    activatedAt: string;
+    remindersDispatched: number;
+    recipients: Array<{ code: string; name: string; email: string }>;
+  } {
+    const today = new Date().toISOString().slice(0, 10);
+    const dateLabel = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const recipients: Array<{ code: string; name: string; email: string }> = [];
+
+    for (const rec of this.state.memberRecords) {
+      const email = rec.contacts?.financeEmail || rec.contacts?.primaryEmail || '';
+      rec.contacts = {
+        primaryEmail: rec.contacts?.primaryEmail ?? '',
+        financeEmail: rec.contacts?.financeEmail ?? '',
+        phone: rec.contacts?.phone ?? '',
+        referencePeople: rec.contacts?.referencePeople ?? [],
+        lastVerifiedDate: rec.contacts?.lastVerifiedDate,
+        lastReminderSentDate: today
+      };
+
+      if (when === 'Early Jan 2027' && rec.invoice2027.status === 'PENDING') {
+        rec.invoice2027 = {
+          ...rec.invoice2027,
+          status: 'ISSUED',
+          invoiceNo: rec.invoice2027.invoiceNo || `INV-2027-${rec.code}`,
+          issuedDate: today,
+          ...(email ? { sentToEmail: email, sentAt: today } : {})
+        };
+      }
+
+      const noteDetail = customMessage ? `: ${customMessage}` : '';
+      rec.changeHistory.unshift({
+        date: dateLabel,
+        note: `[${when}] Activated by ${actorId} — reminder message & email dispatched${email ? ` to ${email}` : ''}${noteDetail}`
+      });
+      if (email) {
+        recipients.push({ code: rec.code, name: rec.name, email });
+      }
+    }
+
+    if (!this.state.calendarActivations) {
+      this.state.calendarActivations = {};
+    }
+    this.state.calendarActivations[when] = {
+      activatedAt: today,
+      remindersDispatched: recipients.length || this.state.memberRecords.length
+    };
+    this.appendAudit(
+      actorId,
+      actorRole,
+      'ACTIVATE_FEE_CALENDAR_STEP',
+      'SHARING_POLICY',
+      when,
+      `${recipients.length} email(s) queued`
+    );
+    this.saveToDisk();
+
+    return {
+      when,
+      activatedAt: today,
+      remindersDispatched: this.state.calendarActivations[when].remindersDispatched,
+      recipients
+    };
+  }
+
+  public importMemberRecords(
+    rows: Array<{
+      code: string;
+      name: string;
+      category?: MemberRecordDetail['category'];
+      votingStatus?: MemberRecordDetail['votingStatus'];
+      country?: string;
+      city?: string;
+      language?: MemberRecordDetail['language'];
+      region?: MemberRecordDetail['region'];
+      facilitiesCount?: number;
+      primaryEmail?: string;
+      financeEmail?: string;
+      phone?: string;
+      referencePerson?: string;
+      referenceRole?: string;
+    }>,
+    sourceFile = 'upload',
+    actorId = 'membership_intern',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): { created: number; updated: number; totalRecords: number } {
+    let created = 0;
+    let updated = 0;
+    const today = new Date().toISOString().slice(0, 10);
+    const dateLabel = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    for (const row of rows) {
+      const code = (row.code || '').trim().toUpperCase();
+      const name = (row.name || '').trim();
+      if (!code || !name) continue;
+
+      const existing = this.state.memberRecords.find(
+        r => r.code.toUpperCase() === code || r.name.toLowerCase() === name.toLowerCase()
+      );
+
+      const refPeople =
+        row.referencePerson && row.referencePerson.trim()
+          ? [
+              {
+                name: row.referencePerson.trim(),
+                role: row.referenceRole?.trim() || 'Focal Point',
+                email: row.primaryEmail?.trim() || undefined,
+                phone: row.phone?.trim() || undefined
+              }
+            ]
+          : undefined;
+
+      if (existing) {
+        existing.name = name;
+        if (row.category) existing.category = row.category;
+        if (row.votingStatus) existing.votingStatus = row.votingStatus;
+        if (row.country) existing.country = row.country;
+        if (row.city !== undefined) existing.city = row.city;
+        if (row.language) existing.language = row.language;
+        if (row.region) existing.region = row.region;
+        if (typeof row.facilitiesCount === 'number' && !Number.isNaN(row.facilitiesCount)) {
+          existing.facilitiesCount = row.facilitiesCount;
+        }
+        existing.contacts = {
+          primaryEmail: row.primaryEmail?.trim() || existing.contacts?.primaryEmail || '',
+          financeEmail: row.financeEmail?.trim() || existing.contacts?.financeEmail || '',
+          phone: row.phone?.trim() || existing.contacts?.phone || '',
+          referencePeople: refPeople || existing.contacts?.referencePeople || [],
+          lastVerifiedDate: today,
+          lastReminderSentDate: existing.contacts?.lastReminderSentDate
+        };
+        existing.completenessPct = Math.min(
+          100,
+          Math.max(existing.completenessPct, existing.contacts.financeEmail ? 96 : 88)
+        );
+        existing.missingFields = existing.missingFields.filter(
+          f => !f.toLowerCase().includes('contact') && !f.toLowerCase().includes('finance')
+        );
+        existing.changeHistory.unshift({
+          date: dateLabel,
+          note: `Updated immediately from ${sourceFile} import by ${actorId}`
+        });
+        updated++;
+      } else {
+        const newRec: MemberRecordDetail = {
+          id: `mem_${code.toLowerCase().replace(/[^a-z0-9]/g, '')}_${Date.now().toString(36)}`,
+          code,
+          name,
+          category: row.category || 'CHA',
+          votingStatus: row.votingStatus || 'ORDINARY',
+          country: row.country || 'Kenya',
+          city: row.city || undefined,
+          language: row.language || 'EN',
+          region: row.region || 'EAST',
+          facilitiesCount: typeof row.facilitiesCount === 'number' && !Number.isNaN(row.facilitiesCount) ? row.facilitiesCount : 1,
+          approvedDate: dateLabel,
+          completenessPct: row.financeEmail ? 95 : 82,
+          missingFields: row.financeEmail ? [] : ['Finance contact email'],
+          invoice2027: {
+            status: 'PENDING',
+            amountUsd: 350
+          },
+          contacts: {
+            primaryEmail: row.primaryEmail?.trim() || '',
+            financeEmail: row.financeEmail?.trim() || '',
+            phone: row.phone?.trim() || '',
+            referencePeople: refPeople || [],
+            lastVerifiedDate: today
+          },
+          changeHistory: [
+            { date: dateLabel, note: `Imported via ${sourceFile} by ${actorId}` }
+          ]
+        };
+        this.state.memberRecords.unshift(newRec);
+        created++;
+      }
+    }
+
+    this.appendAudit(
+      actorId,
+      actorRole,
+      'IMPORT_MEMBER_RECORDS',
+      'SHARING_POLICY',
+      sourceFile,
+      `created=${created}, updated=${updated}`
+    );
+    this.saveToDisk();
+    return { created, updated, totalRecords: this.state.memberRecords.length };
   }
 
   public getJurisdictions(): JurisdictionPartitionSummary[] {

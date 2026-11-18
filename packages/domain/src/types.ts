@@ -355,7 +355,15 @@ export interface MembershipDashboardData {
   cleanUpQueue: Array<{ label: string; count: number }>;
   countriesTop12: Array<{ country: string; count: number }>;
   languages: Array<{ label: string; count: number; color: string }>;
-  feeCalendar2027: Array<{ when: string; action: string; owner: string; output: string }>;
+  feeCalendar2027: Array<{
+    when: string;
+    action: string;
+    owner: string;
+    output: string;
+    status?: 'PENDING' | 'ACTIVATED';
+    activatedAt?: string;
+    remindersDispatched?: number;
+  }>;
   roleMatrix: Array<{ role: string; membership: string; communications: string; ict: string }>;
   records: MemberRecordDetail[];
 }

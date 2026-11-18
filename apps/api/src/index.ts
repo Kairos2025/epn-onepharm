@@ -318,6 +318,32 @@ apiRouter.post('/membership/records/:id/remind', (req, res) => {
   res.json(updated);
 });
 
+apiRouter.post('/membership/calendar/activate', (req, res) => {
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority' });
+  }
+  const actor = req.header('x-epn-actor') || 'membership_intern';
+  const { when, message } = req.body || {};
+  if (!when) {
+    return res.status(400).json({ error: 'when is required' });
+  }
+  res.json(db.activateFeeCalendarStep(String(when), message ? String(message) : undefined, actor, role));
+});
+
+apiRouter.post('/membership/import', (req, res) => {
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority' });
+  }
+  const actor = req.header('x-epn-actor') || 'membership_intern';
+  const { rows, sourceFile } = req.body || {};
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return res.status(400).json({ error: 'rows array is required and cannot be empty' });
+  }
+  res.json(db.importMemberRecords(rows, sourceFile ? String(sourceFile) : 'CSV/PDF upload', actor, role));
+});
+
 // 11. Stories
 apiRouter.get('/stories', (req, res) => {
   res.json(db.getStories());
