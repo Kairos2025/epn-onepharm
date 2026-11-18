@@ -275,6 +275,81 @@ export interface JurisdictionPartitionSummary {
   regulatoryFramework: string;
 }
 
+export type MembershipRegionFilter = 'ALL' | 'EAST' | 'WEST' | 'CENTRAL' | 'SOUTHERN';
+
+export interface MemberRecordDetail {
+  id: string;
+  code: string;
+  name: string;
+  category: 'CHA' | 'HSS' | 'DSO' | 'CHI' | 'INDIVIDUAL';
+  votingStatus: 'ORDINARY' | 'ASSOCIATE';
+  country: string;
+  city?: string;
+  language: 'EN' | 'FR' | 'BILINGUAL' | 'ES';
+  region: 'EAST' | 'WEST' | 'CENTRAL' | 'SOUTHERN';
+  facilitiesCount: number;
+  approvedDate: string;
+  isNew2026?: boolean;
+  completenessPct: number;
+  missingFields: string[];
+  invoice2027: {
+    status: 'PENDING' | 'ISSUED' | 'SUBMITTED' | 'ACKNOWLEDGED' | 'PAID';
+    invoiceNo?: string;
+    issuedDate?: string;
+    amountUsd: number;
+  };
+  changeHistory: Array<{ date: string; note: string }>;
+}
+
+export interface MembershipDashboardData {
+  region: MembershipRegionFilter;
+  summary: {
+    totalMembers: number;
+    newOrdinary2026: string;
+    ordinaryVoting: number;
+    associateNoVote: number;
+    feesCollected2025Usd: number;
+    feesExpectedUsd: number;
+    feesCollected2025Pct: number;
+    membersPaid2025: number;
+    membersPaid2024: number;
+    financeContactOnFile: number;
+    financeContactPct: number;
+  };
+  categories: Array<{
+    code: string;
+    name: string;
+    ordinary: number;
+    associate: number;
+    total: number;
+    sharePct: number;
+    paid2024: number;
+    paid2025: number;
+  }>;
+  yearlyPayments: Array<{
+    year: number;
+    isForumYear: boolean;
+    membersPaid: number;
+    amountUsd: number;
+  }>;
+  feeCycle2027: {
+    invoiceIssued: number;
+    submitted: number;
+    acknowledged: number;
+    paymentReceived: number;
+    goodStandingList: number;
+  };
+  invoiceAging: Array<{ label: string; count: number; tone: string }>;
+  sizeBands: Array<{ band: string; range: string; count: number; sharePct: number }>;
+  contactsOnFile: Array<{ field: string; pct: number; count: number }>;
+  cleanUpQueue: Array<{ label: string; count: number }>;
+  countriesTop12: Array<{ country: string; count: number }>;
+  languages: Array<{ label: string; count: number; color: string }>;
+  feeCalendar2027: Array<{ when: string; action: string; owner: string; output: string }>;
+  roleMatrix: Array<{ role: string; membership: string; communications: string; ict: string }>;
+  records: MemberRecordDetail[];
+}
+
 export type SurveillanceAlertSeverity = 'CRITICAL' | 'WARNING' | 'WATCH' | 'NORMAL';
 export type SurveillanceAlertCategory =
   | 'STOCK_OUT'

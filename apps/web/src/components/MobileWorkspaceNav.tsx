@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 
 const MOBILE_NAV = [
   { label: 'Control Center', href: '/dashboard' },
+  { label: 'Membership', href: '/membership' },
   { label: 'Data Entry', href: '/data-entry' },
   { label: 'Medstock', href: '/medstock' },
   { label: 'GIS Maps', href: '/maps' },

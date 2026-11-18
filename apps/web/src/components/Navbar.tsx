@@ -27,7 +27,7 @@ interface NavbarProps {
 export const APPS_LIST = [
   { name: 'Public Portal', href: '/', icon: Globe, authority: 'None' },
   { name: 'Control Center', href: '/dashboard', icon: BarChart3, authority: 'APP_INSIGHTS' },
-  { name: 'Membership', href: '/explorer', icon: Network, authority: 'APP_MEMBERSHIP' },
+  { name: 'Membership Health', href: '/membership', icon: Network, authority: 'APP_MEMBERSHIP' },
   { name: 'Projects', href: '/programs', icon: Layers, authority: 'APP_PROJECTS' },
   { name: 'Health Facilities', href: '/explorer?tab=FACILITIES', icon: Building, authority: 'APP_FACILITIES' },
   { name: 'Medicines & Supply', href: '/medstock', icon: Package, authority: 'APP_MEDICINES' },

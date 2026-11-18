@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, executeDhis2Pull } from '@epn/db';
-import { ACCESS_TIERS, DataValueWriteSchema, EpnActorRole, StockTransactionSchema } from '@epn/domain';
+import { ACCESS_TIERS, DataValueWriteSchema, EpnActorRole, MembershipRegionFilter, StockTransactionSchema } from '@epn/domain';
 
 export const dynamic = 'force-dynamic';
 
@@ -169,6 +169,11 @@ export async function GET(req: NextRequest, context: RouteContext) {
     return NextResponse.json(partition);
   }
 
+  if (route === '/membership/dashboard') {
+    const region = ((sp.get('region') || 'ALL').toUpperCase() as MembershipRegionFilter) || 'ALL';
+    return NextResponse.json(db.getMembershipDashboard(region));
+  }
+
   return NextResponse.json({ error: `Not found: ${route}` }, { status: 404 });
 }
 
@@ -241,6 +246,22 @@ export async function POST(req: NextRequest, context: RouteContext) {
     }
     const updated = db.updateSharingPolicy(path[2], body, actor, role);
     if (!updated) return NextResponse.json({ error: 'Member sharing policy not found' }, { status: 404 });
+    return NextResponse.json(updated);
+  }
+
+  if (path[0] === 'membership' && path[1] === 'records' && path[2] && path[3] === 'invoice') {
+    if (role === 'PUBLIC_VIEWER') {
+      return NextResponse.json({ error: 'Insufficient authority' }, { status: 403 });
+    }
+    const updated = db.issueMemberInvoice(
+      path[2],
+      body.invoiceNo,
+      body.issuedDate,
+      body.status || 'ISSUED',
+      actor,
+      role
+    );
+    if (!updated) return NextResponse.json({ error: 'Member record not found' }, { status: 404 });
     return NextResponse.json(updated);
   }
 

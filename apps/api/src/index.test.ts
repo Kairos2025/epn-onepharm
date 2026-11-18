@@ -176,6 +176,24 @@ describe('EPN One Network End-to-End API Workflows', () => {
     assert.strictEqual(ke.residencyMode, 'IN_COUNTRY_PARTITION');
   });
 
+  it('GET /membership/dashboard and POST /membership/records/:id/invoice manage 151-member 2027 cycle', async () => {
+    const dashRes = await fetch(`${baseUrl}/membership/dashboard?region=ALL`);
+    assert.strictEqual(dashRes.status, 200);
+    const dash = await dashRes.json();
+    assert.strictEqual(dash.summary.totalMembers, 151);
+    assert.strictEqual(dash.summary.ordinaryVoting, 76);
+
+    const invRes = await fetch(`${baseUrl}/membership/records/mem_ceca20/invoice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-epn-role': 'EPN_COORDINATOR' },
+      body: JSON.stringify({ invoiceNo: 'INV-2027-014', issuedDate: '2027-01-05', status: 'ISSUED' })
+    });
+    assert.strictEqual(invRes.status, 200);
+    const rec = await invRes.json();
+    assert.strictEqual(rec.invoice2027.status, 'ISSUED');
+    assert.strictEqual(rec.invoice2027.invoiceNo, 'INV-2027-014');
+  });
+
   it('closes test server', async () => {
     await new Promise<void>(resolve => {
       server.close(() => resolve());

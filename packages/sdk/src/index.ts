@@ -17,7 +17,10 @@ import {
   MemberSharingPolicy,
   Dhis2PullResult,
   EpnActorRole,
-  JurisdictionPartitionSummary
+  JurisdictionPartitionSummary,
+  MembershipDashboardData,
+  MembershipRegionFilter,
+  MemberRecordDetail
 } from '@epn/domain';
 
 export interface SdkOptions {
@@ -210,6 +213,20 @@ export class EpnClient {
 
   async getJurisdictions() {
     return this.request<JurisdictionPartitionSummary[]>('/jurisdictions');
+  }
+
+  async getMembershipDashboard(region: MembershipRegionFilter = 'ALL') {
+    return this.request<MembershipDashboardData>(`/membership/dashboard?region=${region}`);
+  }
+
+  async issueMemberInvoice(
+    memberId: string,
+    payload: { invoiceNo: string; issuedDate: string; status?: MemberRecordDetail['invoice2027']['status'] }
+  ) {
+    return this.request<MemberRecordDetail>(`/membership/records/${memberId}/invoice`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
   }
 
   // Payments

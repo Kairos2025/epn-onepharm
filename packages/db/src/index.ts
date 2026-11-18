@@ -18,8 +18,12 @@ import {
   EpnActorRole,
   DataProvenance,
   JurisdictionPartitionSummary,
+  MemberRecordDetail,
+  MembershipDashboardData,
+  MembershipRegionFilter,
   generateUid
 } from '@epn/domain';
+import { SEED_MEMBER_RECORDS, buildMembershipDashboard } from './membership-data.js';
 import {
   SEED_COUNTRIES,
   SEED_PROJECTS,
@@ -53,6 +57,7 @@ export interface DatabaseState {
   auditLogs: AuditLogEntry[];
   sharingPolicies: MemberSharingPolicy[];
   dhis2SyncedConnections: string[];
+  memberRecords: MemberRecordDetail[];
 }
 
 class EpnDatabase {
@@ -71,7 +76,8 @@ class EpnDatabase {
     surveillanceAlerts: [],
     auditLogs: [],
     sharingPolicies: [],
-    dhis2SyncedConnections: []
+    dhis2SyncedConnections: [],
+    memberRecords: []
   };
 
   private initialized = false;
@@ -117,6 +123,7 @@ class EpnDatabase {
         if (Array.isArray(parsed.auditLogs)) this.state.auditLogs = parsed.auditLogs;
         if (Array.isArray(parsed.sharingPolicies)) this.state.sharingPolicies = parsed.sharingPolicies;
         if (Array.isArray(parsed.dhis2SyncedConnections)) this.state.dhis2SyncedConnections = parsed.dhis2SyncedConnections;
+        if (Array.isArray(parsed.memberRecords)) this.state.memberRecords = parsed.memberRecords;
       }
     } catch {
       // Graceful fallback to seeded in-memory state
@@ -142,7 +149,8 @@ class EpnDatabase {
           surveillanceAlerts: this.state.surveillanceAlerts,
           auditLogs: this.state.auditLogs,
           sharingPolicies: this.state.sharingPolicies,
-          dhis2SyncedConnections: this.state.dhis2SyncedConnections
+          dhis2SyncedConnections: this.state.dhis2SyncedConnections,
+          memberRecords: this.state.memberRecords
         }),
         'utf8'
       );
@@ -737,7 +745,12 @@ class EpnDatabase {
       surveillanceAlerts,
       auditLogs,
       sharingPolicies,
-      dhis2SyncedConnections: []
+      dhis2SyncedConnections: [],
+      memberRecords: SEED_MEMBER_RECORDS.map(r => ({
+        ...r,
+        invoice2027: { ...r.invoice2027 },
+        changeHistory: [...r.changeHistory]
+      }))
     };
 
     this.initialized = true;
@@ -985,6 +998,36 @@ class EpnDatabase {
       `INGESTED_${ingestedCount}_RECORDS`
     );
     this.saveToDisk();
+  }
+
+  public getMembershipDashboard(region: MembershipRegionFilter = 'ALL'): MembershipDashboardData {
+    return buildMembershipDashboard(region, this.state.memberRecords);
+  }
+
+  public issueMemberInvoice(
+    memberId: string,
+    invoiceNo: string,
+    issuedDate: string,
+    nextStatus: MemberRecordDetail['invoice2027']['status'] = 'ISSUED',
+    actorId = 'membership_intern',
+    actorRole: EpnActorRole = 'EPN_COORDINATOR'
+  ): MemberRecordDetail | undefined {
+    const rec = this.state.memberRecords.find(r => r.id === memberId || r.code === memberId);
+    if (!rec) return undefined;
+    const prev = rec.invoice2027.status;
+    rec.invoice2027 = {
+      ...rec.invoice2027,
+      status: nextStatus,
+      invoiceNo: invoiceNo || rec.invoice2027.invoiceNo || `INV-2027-${rec.code}`,
+      issuedDate: issuedDate || rec.invoice2027.issuedDate || new Date().toISOString().slice(0, 10)
+    };
+    rec.changeHistory.unshift({
+      date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      note: `2027 invoice ${rec.invoice2027.invoiceNo} marked ${nextStatus} by ${actorId}`
+    });
+    this.appendAudit(actorId, actorRole, 'UPDATE_MEMBER_INVOICE_2027', 'SHARING_POLICY', rec.code, nextStatus, prev);
+    this.saveToDisk();
+    return rec;
   }
 
   public getJurisdictions(): JurisdictionPartitionSummary[] {

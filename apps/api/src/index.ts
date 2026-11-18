@@ -2,7 +2,7 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import { db, executeDhis2Pull } from '@epn/db';
 import { parsePeriod, generateMonthlyPeriods } from '@epn/periods';
-import { ACCESS_TIERS, DataValueWriteSchema, EpnActorRole, StockTransactionSchema } from '@epn/domain';
+import { ACCESS_TIERS, DataValueWriteSchema, EpnActorRole, MembershipRegionFilter, StockTransactionSchema } from '@epn/domain';
 
 const app: Express = express();
 const port = process.env.PORT || 4000;
@@ -264,6 +264,23 @@ apiRouter.get('/jurisdictions/:country', (req, res) => {
   const partition = db.getJurisdictionPartition(req.params.country);
   if (!partition) return res.status(404).json({ error: 'Jurisdiction not found' });
   res.json(partition);
+});
+
+apiRouter.get('/membership/dashboard', (req, res) => {
+  const region = (String(req.query.region || 'ALL').toUpperCase() as MembershipRegionFilter) || 'ALL';
+  res.json(db.getMembershipDashboard(region));
+});
+
+apiRouter.post('/membership/records/:id/invoice', (req, res) => {
+  const role = (req.header('x-epn-role') as EpnActorRole) || 'EPN_COORDINATOR';
+  if (role === 'PUBLIC_VIEWER') {
+    return res.status(403).json({ error: 'Insufficient authority' });
+  }
+  const actor = req.header('x-epn-actor') || 'membership_intern';
+  const { invoiceNo, issuedDate, status } = req.body || {};
+  const updated = db.issueMemberInvoice(req.params.id, invoiceNo, issuedDate, status || 'ISSUED', actor, role);
+  if (!updated) return res.status(404).json({ error: 'Member record not found' });
+  res.json(updated);
 });
 
 // 11. Stories
