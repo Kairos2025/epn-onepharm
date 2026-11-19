@@ -13,11 +13,12 @@ export interface VerifiedMemberWebProfile {
  */
 export const VERIFIED_MEMBER_PROFILES: Record<string, VerifiedMemberWebProfile> = {
   CHAK: {
+    logo: '/members/chak.svg',
     website: 'https://www.chak.or.ke/',
     publicEmail: 'secretariat@chak.or.ke',
-    tagline: 'Promoting Access to Quality Health Care in Kenya',
+    tagline: 'Promoting Access to Quality Health Care in Kenya (Lavington, Nairobi)',
     overview:
-      'Christian Health Association of Kenya (CHAK) is a national faith-based health network of Protestant churches health facilities and programmes across Kenya, working with MEDS and EPN on Drug Revolving Funds (DRF), essential medicine availability, and supply chain strengthening.'
+      'Christian Health Association of Kenya (CHAK), headquartered on Musa Gitau Road, Lavington, Nairobi, is Kenya’s national Protestant faith-based health network coordinating hospitals, health centers, and dispensaries with MEDS and EPN on Drug Revolving Funds (DRF) and essential medicine availability.'
   },
   MEDS: {
     logo: '/members/meds.png',
@@ -137,11 +138,45 @@ export const VERIFIED_MEMBER_PROFILES: Record<string, VerifiedMemberWebProfile> 
     scrapedFromOfficialSite: true
   },
   UPMB: {
+    logo: '/members/upmb.svg',
     website: 'https://upmb.co.ug/',
     publicEmail: 'info@upmb.co.ug',
     tagline: 'Uganda Protestant Medical Bureau',
     overview:
-      'Uganda Protestant Medical Bureau (UPMB) is a national faith-based umbrella organization coordinating Protestant church-owned hospitals and health centers across Uganda to strengthen clinical governance and essential medicine access.'
+      'Uganda Protestant Medical Bureau (UPMB) is a national faith-based umbrella organization coordinating Protestant church-owned hospitals and health centers across Uganda to strengthen clinical governance, supply chains, and essential medicine access.'
+  },
+  'CHAL-LR': {
+    logo: '/members/chal-lr.svg',
+    website: 'https://chaliberia.org.lr/',
+    tagline: 'Christian Health Association of Liberia',
+    overview:
+      'Christian Health Association of Liberia (CHAL) coordinates faith-based hospitals, clinics, and community health programs across Liberia, working with EPN to strengthen essential medicine supply chains and primary healthcare delivery.'
+  },
+  'RECOSAC-G': {
+    logo: '/members/recosac-g.svg',
+    website: 'https://www.renospacguinee.com/',
+    tagline: 'Réseau Confessionnel des Organisations Sanitaires Chrétiennes de Guinée',
+    overview:
+      'RECOSAC-G unites Christian faith-based health organizations and clinics across Guinea (affiliated with RENOSPAC Guinée), established with Difaem support to strengthen maternal/child care, pharmaceutical services, and community health resilience.'
+  },
+  'CECA 20': {
+    logo: '/members/ceca-20.svg',
+    publicEmail: 'coordination@ceca20-sante.org',
+    tagline: 'Communauté Évangélique au Centre de l’Afrique (Ituri & North Kivu, DR Congo)',
+    overview:
+      'CECA 20 operates a vital network of faith-based hospitals, health centers, and rural dispensaries across Ituri and North Kivu in DR Congo. Welcomed as a new EPN Ordinary voting member at AGM 2026.'
+  },
+  CHASS: {
+    logo: '/members/chass.svg',
+    tagline: 'Christian Health Association of South Sudan (ACHAP & EPN Network)',
+    overview:
+      'Christian Health Association of South Sudan (CHASS) is the ecumenical umbrella body coordinating church-owned health facilities across South Sudan, serving as an interface between faith-based health networks, the Ministry of Health, and humanitarian supply partners.'
+  },
+  MUSH: {
+    logo: '/members/mush.svg',
+    tagline: 'Mutuelle Islamique et Chrétienne de Santé de Niger',
+    overview:
+      'Mutuelle Islamique et Chrétienne de Santé de Niger (MUSH) is an interfaith mutual health organization in Niger strengthening community health protection, equitable access to essential medicines, and collaborative faith-based health systems.'
   },
   JMS: {
     logo: '/members/jms.webp',
