@@ -117,34 +117,45 @@ export default function PublicPortalPage() {
           <div className="text-center max-w-3xl mx-auto space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 text-sky-800 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{locale === 'en' ? 'Evidence-Based Pharmaceutical Strengthening' : 'Renforcement Pharmaceutique Fondé sur les Données'}</span>
+              <span>
+                {locale === 'en'
+                  ? 'Ecumenical Pharmaceutical Network · Official Member & Donor Portal'
+                  : 'Réseau Pharmaceutique Œcuménique · Portail Officiel Membres & Bailleurs'}
+              </span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
               {locale === 'en'
-                ? 'One Trusted Platform for Faith-Based Pharmaceutical Systems Across Africa'
-                : 'Une Plateforme Unique pour les Systèmes Pharmaceutiques Confessionnels en Afrique'}
+                ? 'Connecting EPN’s 151 Member Associations & Global Donors'
+                : 'Relier les 151 Associations Membres d’EPN et les Bailleurs Mondiaux'}
             </h1>
 
             <p className="text-base sm:text-lg text-slate-600 leading-relaxed">
               {locale === 'en'
-                ? 'Connecting 151 members, 25,000 health facilities and 300 million people. EPN One Network tracks medicine availability, rational use, supply chain resilience, and capacity building in near real time.'
-                : 'Reliant 151 membres, 25 000 formations sanitaires et 300 millions de personnes. EPN One Network assure le suivi en temps réel de la disponibilité des médicaments et du renforcement des capacités.'}
+                ? 'Built for EPN Secretariat, our 151 member associations across 37 countries, and donors or funding partners investing in pharmaceutical systems strengthening across Africa.'
+                : 'Conçu pour le Secrétariat d’EPN, nos 151 associations membres dans 37 pays et les bailleurs investissant dans le renforcement des systèmes pharmaceutiques en Afrique.'}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
-                href="/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-semibold text-sm shadow-sm transition-all"
+                href="/licensing"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-cyan-800 hover:bg-cyan-900 text-white font-semibold text-sm shadow-sm transition-all"
               >
-                <span>{locale === 'en' ? 'Explore Aggregate Data' : 'Explorer les Données'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <Handshake className="w-4 h-4" />
+                <span>{locale === 'en' ? 'Become a Donor / Partner' : 'Devenir Bailleur / Partenaire'}</span>
               </Link>
               <Link
-                href="/explorer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-sm shadow-sm transition-all"
+                href="/membership"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-sm shadow-sm transition-all"
               >
-                <span>{locale === 'en' ? 'Network & Facility Directory' : 'Annuaire du Réseau & FOSA'}</span>
+                <span>{locale === 'en' ? 'EPN Membership & Governance' : 'Adhésion & Gouvernance EPN'}</span>
+              </Link>
+              <Link
+                href="/explorer?tab=FUNDERS"
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-white/90 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm shadow-sm transition-all"
+              >
+                <span>{locale === 'en' ? 'View Donors & Projects' : 'Voir Bailleurs & Projets'}</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>

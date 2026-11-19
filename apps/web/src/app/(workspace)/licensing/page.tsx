@@ -50,12 +50,12 @@ export default function LicensingPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-100 text-cyan-900 uppercase tracking-wider">
-                Institutional DPA &amp; DFI Co-Financing
+                Donors, Co-Financing &amp; Institutional DPAs
               </span>
-              <h1 className="text-xl font-bold text-slate-900">Institutional Licensing &amp; Settlement</h1>
+              <h1 className="text-xl font-bold text-slate-900">Donor Partnerships &amp; Institutional Access</h1>
             </div>
             <p className="text-xs text-slate-600 mt-1">
-              Annual institutional Data Processing Agreements (DPAs), member association licensing, and DFI blended-finance settlement. Separated from sovereign Ministry technical tracks.
+              For prospective donors, funding partners, and institutional collaborators supporting EPN&apos;s 151 member associations and multi-country programmes.
             </p>
           </div>
 

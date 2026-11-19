@@ -144,10 +144,10 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
               />
               <div className="flex flex-col">
                 <span className="font-bold text-slate-900 leading-tight tracking-tight text-lg">
-                  One Network
+                  EPN One Network
                 </span>
                 <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
-                  Surveillance &amp; Health Systems
+                  EPN &amp; Donor Network Portal
                 </span>
               </div>
             </Link>
@@ -273,11 +273,11 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
 
             {/* M3 Filled Pill CTA */}
             <Link
-              href="/dashboard"
+              href="/membership"
               className="inline-flex items-center justify-center h-9 px-4 rounded-full bg-cyan-700 hover:bg-cyan-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             >
-              <span className="hidden sm:inline">Control Center</span>
-              <span className="sm:hidden">Workspace</span>
+              <span className="hidden sm:inline">EPN &amp; Donor Hub</span>
+              <span className="sm:hidden">EPN Hub</span>
             </Link>
           </div>
         </div>
