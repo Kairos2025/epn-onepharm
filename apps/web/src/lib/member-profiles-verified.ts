@@ -28,6 +28,15 @@ export const VERIFIED_MEMBER_PROFILES: Record<string, VerifiedMemberWebProfile> 
       'MEDS is a Christian, not-for-profit Drug Supply Organization (DSO) based in Nairobi providing reliable, quality-assured medicines, medical supplies, WHO-prequalified quality control laboratory testing, and capacity building across Kenya and the East/Central Africa region since 1986.',
     scrapedFromOfficialSite: true
   },
+  CHAN: {
+    logo: '/members/chan.svg',
+    website: 'https://channigeria.org.ng/',
+    publicEmail: 'info@channigeria.org.ng',
+    tagline: 'Reaching the Unreached · Clinically Excellent at the Last Mile (Nigeria)',
+    overview:
+      'Christian Health Association of Nigeria (CHAN), founded in 1973 and headquartered in Jos, Plateau State, is the national faith-based umbrella organization coordinating mission hospitals and clinics across Nigeria alongside its supply arm CHAN Medi-Pharm.',
+    scrapedFromOfficialSite: true
+  },
   'CHAN Medi-Pharm': {
     logo: '/members/chan-medi-pharm.svg',
     website: 'https://www.chanmedi-pharm.org/',
@@ -35,6 +44,33 @@ export const VERIFIED_MEMBER_PROFILES: Record<string, VerifiedMemberWebProfile> 
     tagline: 'Reaching the Unreached with Quality Essential Medicines (Nigeria)',
     overview:
       'CHAN Medi-Pharm Ltd/Gte is a faith-based, non-profit Drug Supply Organization providing essential medicines, quality assurance, and supply chain management across Nigeria since 1979.',
+    scrapedFromOfficialSite: true
+  },
+  AEST: {
+    logo: '/members/aest.jpg',
+    website: 'https://www.aest-tchad.org/',
+    publicEmail: 'aest.bureau@gmail.com',
+    tagline: 'Association Évangélique pour la Santé au Tchad',
+    overview:
+      'Association Évangélique pour la Santé au Tchad (AEST) coordinates evangelical church health facilities across Chad, contributing to improved community health, maternal care, and access to quality essential medicines.',
+    scrapedFromOfficialSite: true
+  },
+  RCBIF: {
+    logo: '/members/rcbif.jpg',
+    website: 'https://rcbif.org/',
+    publicEmail: 'info@rcbif.org',
+    tagline: 'Réseau des Confessions Religieuses pour la Santé et le Bien-être au Burundi',
+    overview:
+      'RCBIF unites faith-based health structures across Burundi to promote accessible healthcare, family well-being, and stronger pharmaceutical supply chains in partnership with EPN.',
+    scrapedFromOfficialSite: true
+  },
+  'DOM-ECC': {
+    logo: '/members/dom-ecc.png',
+    website: 'https://eccdom.org/',
+    publicEmail: 'eccdom.pn@gmail.com',
+    tagline: 'Département des Œuvres Médicales de l’ECC (DR Congo)',
+    overview:
+      'Département des Œuvres Médicales de l’Église du Christ au Congo (DOM-ECC) coordinates the national Protestant church health network in DR Congo, strengthening hospital pharmacy systems, supply chains, and primary care.',
     scrapedFromOfficialSite: true
   },
   PCC: {
