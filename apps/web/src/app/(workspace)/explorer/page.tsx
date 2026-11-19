@@ -41,6 +41,8 @@ function ExplorerInner() {
   const [selectedFacility, setSelectedFacility] = useState<string>(searchParams.get('fosa') || 'Kilome Mission Hospital');
   const [directoryQuery, setDirectoryQuery] = useState('');
   const [directoryCategory, setDirectoryCategory] = useState<string>('ALL');
+  const [directoryPayFilter, setDirectoryPayFilter] = useState<'ALL' | 'PAID' | 'TIME' | 'OVERDUE'>('ALL');
+  const [directoryView, setDirectoryView] = useState<'CARDS' | 'TABLE'>('CARDS');
   const [fosaQuery, setFosaQuery] = useState('');
   const [fosaClass, setFosaClass] = useState<string>('ALL');
   const [fosaMemberFilter, setFosaMemberFilter] = useState<string>('ALL');
@@ -337,19 +339,33 @@ function ExplorerInner() {
     setActiveTab('FACILITIES');
   };
 
+  const getDirectoryPayStatus = (abbr: string) => {
+    const paidSet = new Set(['CHAK', 'MEDS', 'UPMB', 'UCMB', 'CBCHS']);
+    const timeSet = new Set(['CECA 20', 'CMMB', 'CSSC', 'BUFMAR', 'PCC', 'CHASL', 'RECOSAC-G', 'CHAN Medi-Pharm']);
+    if (paidSet.has(abbr)) {
+      return { key: 'PAID' as const, label: 'Paid on time', cls: 'bg-emerald-100 text-emerald-800 border-emerald-200', dot: 'bg-emerald-600' };
+    }
+    if (timeSet.has(abbr)) {
+      return { key: 'TIME' as const, label: 'Still has time', cls: 'bg-amber-100 text-amber-900 border-amber-200', dot: 'bg-amber-500' };
+    }
+    return { key: 'OVERDUE' as const, label: 'Unpaid / Overdue', cls: 'bg-rose-100 text-rose-800 border-rose-200', dot: 'bg-rose-600' };
+  };
+
   const filteredDirectoryMembers = useMemo(() => {
     const q = directoryQuery.trim().toLowerCase();
     return IMPLEMENTING_MEMBERS_SEED.filter(m => {
       const matchesCat = directoryCategory === 'ALL' || m.type === directoryCategory;
+      const pay = getDirectoryPayStatus(m.abbreviation);
+      const matchesPay = directoryPayFilter === 'ALL' || pay.key === directoryPayFilter;
       const matchesQuery =
         !q ||
         m.abbreviation.toLowerCase().includes(q) ||
         m.name.toLowerCase().includes(q) ||
         countryName(m.country).toLowerCase().includes(q) ||
         m.country.toLowerCase().includes(q);
-      return matchesCat && matchesQuery;
+      return matchesCat && matchesPay && matchesQuery;
     });
-  }, [directoryQuery, directoryCategory]);
+  }, [directoryQuery, directoryCategory, directoryPayFilter]);
 
   const openMemberProfile = (abbr: string) => {
     selectMember(abbr);
@@ -390,245 +406,270 @@ function ExplorerInner() {
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
-        {/* Explorer Hierarchy Header */}
-        <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-cyan-800">
-              EPN One Network · Circular Hierarchy
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-6">
+        {/* Clean Single Executive Header + Underline Tabs */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs px-5 sm:px-6 pt-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                {activeTab === 'DIRECTORY'
+                  ? 'Member Directory'
+                  : activeTab === 'MEMBERS'
+                  ? `Member Profile · ${selectedMember}`
+                  : activeTab === 'FACILITIES'
+                  ? 'Health Facilities (FOSAs)'
+                  : activeTab === 'PROJECTS'
+                  ? 'EPN Projects'
+                  : activeTab === 'FUNDERS'
+                  ? 'Funders & Donors'
+                  : 'Network Coverage'}
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {NETWORK_STATISTICS.totalMembers} members (76 Ordinary · 75 Associate) across {NETWORK_STATISTICS.totalCountries} countries · {NETWORK_STATISTICS.asOf}
+              </p>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 mt-0.5">
-              Network, Members, Health Facilities (FOSAs) &amp; Projects
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Navigate seamlessly: <b>1. Member Directory</b> &rarr; <b>2. Member Profile</b> &rarr; <b>3. Classified FOSAs</b> &rarr; <b>4. Projects, Funders &amp; Coverage</b>.
-            </p>
+            <Link
+              href="/membership"
+              className="px-4 py-2 rounded-lg bg-[#004a59] hover:bg-[#003440] text-white text-xs font-semibold shrink-0 self-start sm:self-center transition-colors"
+            >
+              Membership &amp; 2027 Fees &rarr;
+            </Link>
           </div>
-          <Link
-            href="/membership"
-            className="px-3.5 py-2 rounded-full bg-cyan-800 hover:bg-cyan-900 text-white text-xs font-semibold shrink-0 self-start sm:self-center"
-          >
-            Membership Health &amp; 2027 Fees &rarr;
-          </Link>
+
+          <nav aria-label="Explorer sections" className="flex items-center gap-6 overflow-x-auto border-t border-slate-100 text-xs">
+            {(
+              [
+                { id: 'DIRECTORY', label: `Member Directory (${NETWORK_STATISTICS.totalMembers})` },
+                { id: 'MEMBERS', label: `Member Profiles (${IMPLEMENTING_MEMBERS_SEED.length})` },
+                { id: 'FACILITIES', label: 'Facilities (FOSA)' },
+                { id: 'PROJECTS', label: `Projects (${SEED_PROJECTS.length})` },
+                { id: 'FUNDERS', label: `Funders (${FUNDERS_SEED.length})` },
+                { id: 'COVERAGE', label: 'Network Coverage' }
+              ] as const
+            ).map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-3 border-b-2 font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  activeTab === tab.id
+                    ? 'border-[#004a59] text-[#004a59]'
+                    : 'border-transparent text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
-        {/* Navigation Breadcrumb / Pivot rail */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs flex-wrap">
-            <span className="font-semibold text-slate-500 uppercase tracking-wider">Circular Navigation:</span>
-            <button
-              onClick={() => setActiveTab('MEMBERS')}
-              title="Open member view"
-              className="font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded hover:bg-sky-100 transition-colors"
-            >
-              Member: {selectedMember}
-            </button>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <button
-              onClick={() => setActiveTab('FACILITIES')}
-              title="Open facility brief"
-              className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded hover:bg-slate-200 transition-colors"
-            >
-              Facility: {activeFac.name}
-            </button>
-          </div>
-
-          {/* Top Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 text-xs">
-            <button
-              onClick={() => setActiveTab('DIRECTORY')}
-              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                activeTab === 'DIRECTORY' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>Member Directory ({NETWORK_STATISTICS.totalMembers})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('MEMBERS')}
-              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                activeTab === 'MEMBERS' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <Network className="w-3.5 h-3.5" />
-              <span>Member Profiles ({IMPLEMENTING_MEMBERS_SEED.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('FACILITIES')}
-              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                activeTab === 'FACILITIES' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <Building className="w-3.5 h-3.5" />
-              <span>Facilities (FOSA)</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('PROJECTS')}
-              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                activeTab === 'PROJECTS' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <FolderKanban className="w-3.5 h-3.5" />
-              <span>Projects ({SEED_PROJECTS.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('FUNDERS')}
-              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                activeTab === 'FUNDERS' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <Coins className="w-3.5 h-3.5" />
-              <span>Funders ({FUNDERS_SEED.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('COVERAGE')}
-              className={`px-3 py-1.5 rounded-lg font-semibold flex items-center gap-1.5 transition-colors ${
-                activeTab === 'COVERAGE' ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Network Coverage</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab 0: Member Directory (Master List & Category Breakdown) */}
+        {/* Tab 0: Member Directory (Modern Cards & Table View) */}
         {activeTab === 'DIRECTORY' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">
-                    Official Network Registry • {NETWORK_STATISTICS.asOf}
-                  </div>
-                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
-                    EPN One Network Member Directory ({NETWORK_STATISTICS.totalMembers} Members across {NETWORK_STATISTICS.totalCountries} Countries)
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-1">
-                    76 Ordinary voting members &bull; 75 Associate members &bull; Select any implementing member chapter below to open its full Member Profile.
-                  </p>
-                </div>
-                <Link
-                  href="/membership"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 shrink-0"
+          <div className="space-y-5">
+            {/* Single Unified Filter & Category Strip */}
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+              {/* Compact Category Bar */}
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setDirectoryCategory('ALL')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors cursor-pointer ${
+                    directoryCategory === 'ALL'
+                      ? 'bg-[#004a59] text-white border-[#004a59]'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
                 >
-                  <span>Open Membership Health &amp; 2027 Fees</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              {/* Category Summary Pills */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-2">
+                  All ({NETWORK_STATISTICS.totalMembers})
+                </button>
                 {MEMBER_CATEGORIES.map(cat => (
                   <button
                     key={cat.code}
+                    type="button"
                     onClick={() => setDirectoryCategory(prev => (prev === cat.code ? 'ALL' : cat.code))}
-                    className={`p-3 rounded-lg border text-left transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg font-semibold border transition-colors cursor-pointer ${
                       directoryCategory === cat.code
-                        ? 'border-sky-600 bg-sky-50'
-                        : 'border-slate-200 bg-slate-50 hover:bg-slate-100'
+                        ? 'bg-[#004a59] text-white border-[#004a59]'
+                        : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                     }`}
                   >
-                    <div className="text-[11px] font-bold text-slate-500 uppercase">{cat.code}</div>
-                    <div className="text-lg font-extrabold text-slate-900">{cat.count}</div>
-                    <div className="text-[11px] text-slate-600 truncate">{cat.name}</div>
+                    {cat.code} <span className={directoryCategory === cat.code ? 'text-cyan-200' : 'text-slate-400'}>({cat.count})</span>
                   </button>
                 ))}
               </div>
 
-              {/* Search & Filter Controls */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <div className="relative flex-1">
+              {/* Search + Payment Status Filter + View Toggle */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div className="relative flex-1 max-w-md">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={directoryQuery}
                     onChange={e => setDirectoryQuery(e.target.value)}
-                    placeholder="Search by abbreviation, organization name, or country..."
-                    className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    placeholder="Search member abbreviation, name, or country..."
+                    className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#004a59]"
                   />
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <Filter className="w-3.5 h-3.5 text-slate-400" />
-                  {(['ALL', 'CHA', 'HSS', 'DSO', 'CHI'] as const).map(cat => (
+
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  {(
+                    [
+                      { id: 'ALL', label: 'All statuses', dot: '' },
+                      { id: 'PAID', label: 'Paid on time', dot: 'bg-emerald-600' },
+                      { id: 'TIME', label: 'Still has time', dot: 'bg-amber-500' },
+                      { id: 'OVERDUE', label: 'Overdue', dot: 'bg-rose-600' }
+                    ] as const
+                  ).map(p => (
                     <button
-                      key={cat}
-                      onClick={() => setDirectoryCategory(cat)}
-                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                        directoryCategory === cat
-                          ? 'bg-sky-600 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      key={p.id}
+                      type="button"
+                      onClick={() => setDirectoryPayFilter(p.id)}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg font-semibold border transition-colors cursor-pointer ${
+                        directoryPayFilter === p.id
+                          ? 'bg-slate-900 text-white border-slate-900'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                       }`}
                     >
-                      {cat}
+                      {p.dot && <span className={`w-2 h-2 rounded-full ${p.dot}`} />}
+                      <span>{p.label}</span>
                     </button>
                   ))}
+
+                  <div className="flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 ml-1">
+                    <button
+                      type="button"
+                      onClick={() => setDirectoryView('CARDS')}
+                      className={`px-2.5 py-1 rounded-md font-semibold cursor-pointer ${
+                        directoryView === 'CARDS' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+                      }`}
+                    >
+                      Cards
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDirectoryView('TABLE')}
+                      className={`px-2.5 py-1 rounded-md font-semibold cursor-pointer ${
+                        directoryView === 'TABLE' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500'
+                      }`}
+                    >
+                      Table
+                    </button>
+                  </div>
                 </div>
               </div>
+            </div>
 
-              {/* Directory Table */}
-              <div className="overflow-x-auto border border-slate-200 rounded-xl">
+            {/* Cards View (Default — Visual & Scannable) */}
+            {directoryView === 'CARDS' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredDirectoryMembers.map(m => {
+                  const payBadge = getDirectoryPayStatus(m.abbreviation);
+                  return (
+                    <div
+                      key={m.abbreviation + m.country}
+                      className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-[#004a59] hover:shadow-md transition-all flex flex-col justify-between gap-4"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-10 h-10 rounded-xl bg-[#004a59] text-white font-bold text-xs flex items-center justify-center shrink-0">
+                              {m.abbreviation.slice(0, 4)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-bold text-sm text-slate-900 truncate">{m.abbreviation}</div>
+                              <div className="text-[11px] text-slate-500 truncate">
+                                {countryName(m.country)} ({m.country})
+                              </div>
+                            </div>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[10px] shrink-0">
+                            {m.type}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-700 leading-snug line-clamp-2">{m.name}</p>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${payBadge.cls}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${payBadge.dot}`} />
+                          {payBadge.label}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => openMemberProfile(m.abbreviation)}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#004a59] hover:underline cursor-pointer"
+                        >
+                          <span>View Profile</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+                {filteredDirectoryMembers.length === 0 && (
+                  <div className="col-span-full bg-white p-10 rounded-2xl border border-slate-200 text-center text-xs text-slate-400">
+                    No members match your current filters.
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Compact Table View */
+              <div className="bg-white overflow-x-auto border border-slate-200 rounded-2xl shadow-2xs">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
                     <tr>
-                      <th className="py-2.5 px-3">Abbreviation</th>
-                      <th className="py-2.5 px-3">Member Organization</th>
-                      <th className="py-2.5 px-3">Country</th>
-                      <th className="py-2.5 px-3">Category</th>
-                      <th className="py-2.5 px-3">Payment Status</th>
-                      <th className="py-2.5 px-3 text-right">Profile</th>
+                      <th className="py-3 px-4">Abbreviation</th>
+                      <th className="py-3 px-4">Member Organization</th>
+                      <th className="py-3 px-4">Country</th>
+                      <th className="py-3 px-4">Category</th>
+                      <th className="py-3 px-4">Payment Status</th>
+                      <th className="py-3 px-4 text-right">Profile</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {filteredDirectoryMembers.map(m => {
-                      const paidSet = new Set(['CHAK', 'MEDS', 'UPMB', 'UCMB', 'CBCHS']);
-                      const timeSet = new Set(['CECA 20', 'CMMB', 'CSSC', 'BUFMAR', 'PCC', 'CHASL', 'RECOSAC-G', 'CHAN Medi-Pharm']);
-                      const payBadge = paidSet.has(m.abbreviation)
-                        ? { label: 'Paid on time', cls: 'bg-emerald-100 text-emerald-800 border-emerald-200', dot: 'bg-emerald-600' }
-                        : timeSet.has(m.abbreviation)
-                        ? { label: 'Still has time', cls: 'bg-amber-100 text-amber-900 border-amber-200', dot: 'bg-amber-500' }
-                        : { label: 'Unpaid / Overdue', cls: 'bg-rose-100 text-rose-800 border-rose-200', dot: 'bg-rose-600' };
+                      const payBadge = getDirectoryPayStatus(m.abbreviation);
                       return (
-                      <tr key={m.abbreviation + m.country} className="hover:bg-slate-50/80">
-                        <td className="py-2.5 px-3 font-bold text-slate-900">{m.abbreviation}</td>
-                        <td className="py-2.5 px-3 text-slate-700">{m.name}</td>
-                        <td className="py-2.5 px-3 text-slate-600">
-                          {countryName(m.country)} ({m.country})
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[10px]">
-                            {m.type}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${payBadge.cls}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${payBadge.dot}`} />
-                            {payBadge.label}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-right">
-                          <button
-                            onClick={() => openMemberProfile(m.abbreviation)}
-                            className="inline-flex items-center gap-1 text-sky-700 hover:text-sky-900 font-semibold"
-                          >
-                            <span>View Profile</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </button>
-                        </td>
-                      </tr>
+                        <tr key={m.abbreviation + m.country} className="hover:bg-slate-50/80">
+                          <td className="py-3 px-4 font-bold text-slate-900">{m.abbreviation}</td>
+                          <td className="py-3 px-4 text-slate-700">{m.name}</td>
+                          <td className="py-3 px-4 text-slate-600">
+                            {countryName(m.country)} ({m.country})
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[10px]">
+                              {m.type}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${payBadge.cls}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${payBadge.dot}`} />
+                              {payBadge.label}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => openMemberProfile(m.abbreviation)}
+                              className="inline-flex items-center gap-1 text-[#004a59] hover:underline font-semibold cursor-pointer"
+                            >
+                              <span>View Profile</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                          </td>
+                        </tr>
                       );
                     })}
                     {filteredDirectoryMembers.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="py-6 text-center text-slate-400">
-                          No seeded member chapters match &ldquo;{directoryQuery}&rdquo;.
+                        <td colSpan={6} className="py-8 text-center text-slate-400">
+                          No members match your current filters.
                         </td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
-            </div>
+            )}
           </div>
         )}
 
