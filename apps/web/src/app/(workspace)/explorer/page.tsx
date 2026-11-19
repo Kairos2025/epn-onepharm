@@ -43,6 +43,12 @@ function ExplorerInner() {
   const [directoryCategory, setDirectoryCategory] = useState<string>('ALL');
   const [directoryPayFilter, setDirectoryPayFilter] = useState<'ALL' | 'PAID' | 'TIME' | 'OVERDUE'>('ALL');
   const [directoryView, setDirectoryView] = useState<'CARDS' | 'TABLE'>('CARDS');
+  const [memberSearch, setMemberSearch] = useState('');
+  const [fosaSubView, setFosaSubView] = useState<'ASSOCIATIONS' | 'REGISTRY'>('ASSOCIATIONS');
+  const [showEditAssoc, setShowEditAssoc] = useState(false);
+  const [projectStatusFilter, setProjectStatusFilter] = useState<'ALL' | 'ACTIVE' | 'COMPLETED'>('ALL');
+  const [coverageCountry, setCoverageCountry] = useState<'KE' | 'NG' | 'CM' | 'CD'>('KE');
+  const [coverageDisabled, setCoverageDisabled] = useState<Record<string, boolean>>({});
   const [fosaQuery, setFosaQuery] = useState('');
   const [fosaClass, setFosaClass] = useState<string>('ALL');
   const [fosaMemberFilter, setFosaMemberFilter] = useState<string>('ALL');
@@ -675,85 +681,162 @@ function ExplorerInner() {
 
         {/* Tab 1: Member Chapter Overview */}
         {activeTab === 'MEMBERS' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-1 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Select Member Chapter</h3>
-              <div className="space-y-1.5 max-h-[500px] overflow-y-auto pr-1">
-                {IMPLEMENTING_MEMBERS_SEED.map(m => (
-                  <button
-                    key={m.abbreviation + m.country}
-                    onClick={() => selectMember(m.abbreviation)}
-                    className={`w-full p-2.5 rounded-lg border text-left text-xs transition-colors flex items-center justify-between ${
-                      selectedMember === m.abbreviation
-                        ? 'border-sky-600 bg-sky-50 text-sky-900 font-bold'
-                        : 'border-slate-100 hover:bg-slate-50 text-slate-700'
-                    }`}
-                  >
-                    <div>
-                      <span className="font-bold">{m.abbreviation}</span>
-                      <span className="text-slate-400 block text-[11px] truncate max-w-[180px]">{m.name}</span>
-                    </div>
-                    <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">{m.country}</span>
-                  </button>
-                ))}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Searchable Left Rail */}
+            <div className="lg:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Member Chapters ({IMPLEMENTING_MEMBERS_SEED.length})</h3>
+              </div>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={memberSearch}
+                  onChange={e => setMemberSearch(e.target.value)}
+                  placeholder="Filter chapters..."
+                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#004a59]"
+                />
+              </div>
+              <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
+                {IMPLEMENTING_MEMBERS_SEED.filter(m => {
+                  const q = memberSearch.trim().toLowerCase();
+                  return !q || m.abbreviation.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.country.toLowerCase().includes(q);
+                }).map(m => {
+                  const pay = getDirectoryPayStatus(m.abbreviation);
+                  return (
+                    <button
+                      key={m.abbreviation + m.country}
+                      onClick={() => selectMember(m.abbreviation)}
+                      className={`w-full p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                        selectedMember === m.abbreviation
+                          ? 'border-[#004a59] bg-[#004a59]/5 text-[#004a59] font-bold shadow-2xs'
+                          : 'border-slate-100 hover:bg-slate-50 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                          selectedMember === m.abbreviation ? 'bg-[#004a59] text-white' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {m.abbreviation.slice(0, 4)}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-bold block truncate">{m.abbreviation}</span>
+                          <span className="text-slate-500 block text-[11px] truncate">{m.name}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className={`w-2 h-2 rounded-full ${pay.dot}`} title={pay.label} />
+                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-semibold text-slate-600">{m.country}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            <div className="md:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
-              <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-                <div>
-                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Member Details</div>
-                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
-                    {memberObj?.name ?? selectedMember} ({selectedMember})
-                  </h2>
-                  <span className="text-xs text-slate-500">
-                    {countryName(memberObj?.country ?? '')} • Category: {memberObj?.type ?? 'Member'}
-                  </span>
-                </div>
-                <span className="px-2.5 py-1 text-xs font-bold rounded bg-emerald-100 text-emerald-800">Active Member</span>
-              </div>
+            {/* Right Profile Card */}
+            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-6">
+              {(() => {
+                const pay = getDirectoryPayStatus(selectedMember);
+                return (
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-14 h-14 rounded-2xl bg-[#004a59] text-white font-extrabold text-sm flex items-center justify-center shadow-xs shrink-0">
+                        {selectedMember.slice(0, 4)}
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h2 className="text-xl font-bold text-slate-900">
+                            {memberObj?.name ?? selectedMember}
+                          </h2>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500">
+                          <span>{countryName(memberObj?.country ?? '')}</span>
+                          <span>&bull;</span>
+                          <span className="font-semibold text-slate-700">Category: {memberObj?.type ?? 'Member'}</span>
+                          <span>&bull;</span>
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${pay.cls}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${pay.dot}`} />
+                            {pay.label}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/membership?tab=RECORD"
+                      className="px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-800 shrink-0 self-start sm:self-center"
+                    >
+                      Manage Invoice &amp; Contacts &rarr;
+                    </Link>
+                  </div>
+                );
+              })()}
 
               {/* Strategic Plan Alignment & Gaps */}
-              <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-4 space-y-1.5 text-xs">
-                <span className="font-bold text-amber-900">Strategic Plan Alignment & Priorities:</span>
-                <p className="text-amber-800 leading-relaxed">
+              <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-1.5 text-xs">
+                <span className="font-bold text-amber-950">Strategic Plan Alignment &amp; Priorities</span>
+                <p className="text-amber-900 leading-relaxed">
                   {selectedMember === 'CHAK'
                     ? 'CHAK Strategic Plan 2024–2028 is aligned with EPN Core Pharmaceutical Systems strengthening. Dedicated Drug Revolving Fund (DRF) initiative scaled across 120 mission hospitals. Flagged gap: sub-county cold chain distribution in arid Northern Kenya.'
-                    : `${memberObj?.name ?? selectedMember} participates in the EPN pharmaceutical systems strengthening agenda across its affiliated facilities. Member-level strategic plan details, DRF initiatives and flagged gaps for this chapter are being ingested with the M1 metadata milestone.`}
+                    : `${memberObj?.name ?? selectedMember} participates in the EPN pharmaceutical systems strengthening agenda across its affiliated facilities. Member-level strategic plan details, DRF initiatives and flagged gaps for this chapter are tracked under Strategic Plan 2026–2030.`}
                 </p>
               </div>
 
               {/* Member facilities */}
-              <div>
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                  Key Member Facilities in EPN Network:
-                </h4>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Affiliated Health Facilities (FOSAs)
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFosaMemberFilter(selectedMember);
+                      setActiveTab('FACILITIES');
+                    }}
+                    className="text-xs font-semibold text-[#004a59] hover:underline cursor-pointer"
+                  >
+                    Inspect All Levels (1–6) &rarr;
+                  </button>
+                </div>
                 {memberFacilities.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {memberFacilities.map(f => (
-                      <div key={f.name} className="p-3 rounded-lg border border-slate-200 hover:border-sky-300 transition-colors">
-                        <div className="flex justify-between items-start">
-                          <span className="font-bold text-xs text-slate-900">{f.name}</span>
-                          <span className="text-[10px] bg-sky-100 text-sky-800 px-1.5 py-0.5 rounded font-semibold">{f.level}</span>
+                      <div key={f.name} className="p-4 rounded-xl border border-slate-200 hover:border-[#004a59] transition-all space-y-3">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="font-bold text-xs text-slate-900 leading-snug">{f.name}</span>
+                          <span className="text-[10px] bg-cyan-50 text-[#004a59] border border-cyan-200 px-2 py-0.5 rounded-full font-bold shrink-0">
+                            L{f.levelNum} · {f.level.replace('_', ' ')}
+                          </span>
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-2 flex justify-between">
-                          <span>Tracer: <b className="text-emerald-600">{f.tracerAvail}</b></span>
-                          <span>Capacity: {f.beds} Beds</span>
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[11px] text-slate-600">
+                            <span>Tracer Availability</span>
+                            <b className="text-emerald-700">{f.tracerAvail}</b>
+                          </div>
+                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full bg-emerald-600 rounded-full" style={{ width: f.tracerAvail }} />
+                          </div>
                         </div>
-                        <button
-                          onClick={() => openFosa(f.name)}
-                          className="text-xs font-semibold text-sky-600 hover:underline mt-2 flex items-center gap-1"
-                        >
-                          <span>Open FOSA Brief</span>
-                          <ChevronRight className="w-3 h-3" />
-                        </button>
+                        <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500 border-t border-slate-100">
+                          <span>Capacity: <b>{f.beds}</b> beds</span>
+                          <button
+                            onClick={() => {
+                              setFosaSubView('REGISTRY');
+                              openFosa(f.name);
+                            }}
+                            className="font-semibold text-[#004a59] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                          >
+                            <span>Open Brief</span>
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3 italic">
-                    Facility master list for {memberObj?.name ?? selectedMember} is being onboarded via the
-                    facility importer (CSV + KMFL mapping). Members currently showing briefs: CHAK, CHAN, CBCHS.
+                  <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    Facility master list for <b>{memberObj?.name ?? selectedMember}</b> is onboarded via the Membership CSV/PDF importer. Seeded facility briefs are currently live for CHAK, CHAN, CBCHS, and CECA 20.
                   </p>
                 )}
               </div>
@@ -763,7 +846,7 @@ function ExplorerInner() {
 
         {/* Tab 2: FOSA Classification & Facility Brief (Section 8.7) */}
         {activeTab === 'FACILITIES' && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {fosaUpdateToast && (
               <div
                 role="status"
@@ -775,8 +858,43 @@ function ExplorerInner() {
               </div>
             )}
 
+            {/* Clean Sub-View Switcher so Facilities never overwhelms */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="inline-flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 text-xs shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => setFosaSubView('ASSOCIATIONS')}
+                  className={`px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
+                    fosaSubView === 'ASSOCIATIONS' ? 'bg-[#004a59] text-white' : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  By Health Association (Levels 1–6 &amp; Mandate Watch)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFosaSubView('REGISTRY')}
+                  className={`px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
+                    fosaSubView === 'REGISTRY' ? 'bg-[#004a59] text-white' : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  FOSA Registry &amp; Facility Brief ({facilities.length})
+                </button>
+              </div>
+
+              {fosaSubView === 'ASSOCIATIONS' && (
+                <button
+                  type="button"
+                  onClick={() => setShowEditAssoc(prev => !prev)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 cursor-pointer"
+                >
+                  {showEditAssoc ? 'Close Contact & Mandate Editor' : `Edit ${activeAssoc.code} Contacts & Mandate`}
+                </button>
+              )}
+            </div>
+
             {/* Health Association FOSA Categorization & Mandate Watch */}
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+            {fosaSubView === 'ASSOCIATIONS' && (
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
                   <div className="text-xs font-bold text-[#004a59] uppercase tracking-wider">
@@ -935,7 +1053,8 @@ function ExplorerInner() {
                   </div>
                 </div>
 
-                {/* Inline Update Contact, Reference Member & Mandate End Date */}
+                {/* Inline Update Contact, Reference Member & Mandate End Date (Collapsible) */}
+                {showEditAssoc && (
                 <form onSubmit={handleSaveAssocUpdate} className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
                   <div className="font-bold text-slate-900">Update {activeAssoc.code} Contacts, Reference &amp; Mandate</div>
                   <div>
@@ -1002,10 +1121,14 @@ function ExplorerInner() {
                     <span>Save Contacts &amp; Mandate</span>
                   </button>
                 </form>
+                )}
               </div>
             </div>
+            )}
 
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            {fosaSubView === 'REGISTRY' && (
+            <>
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
                   <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">FOSA Classification Matrix</div>
@@ -1237,100 +1360,358 @@ function ExplorerInner() {
               </div>
             </div>
           </div>
+          </>
+          )}
           </div>
         )}
 
-        {/* Tab 3: Projects */}
+        {/* Tab 3: Projects (Visual Portfolio + Filter + Progress Bars) */}
         {activeTab === 'PROJECTS' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {SEED_PROJECTS.map(proj => (
-              <div key={proj.code} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
-                <div className="flex justify-between items-start">
-                  <span className="text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded">{proj.code}</span>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">{proj.status}</span>
-                </div>
-                <h3 className="text-base font-bold text-slate-900 leading-snug">{proj.name}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">{proj.description}</p>
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 space-y-1">
-                  <div><span className="font-semibold">Funder:</span> {proj.funder}</div>
-                  <div><span className="font-semibold">Countries:</span> {proj.countries.join(', ')}</div>
-                  <div><span className="font-semibold">Reach:</span> {proj.facilitiesCount} Facilities • {proj.healthWorkersTrained} Workers Trained</div>
+          <div className="space-y-5">
+            {/* Portfolio Summary Strip */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-[#004a59]">
+                <div className="text-[11px] font-bold uppercase text-slate-500">Total Projects</div>
+                <div className="text-2xl font-extrabold text-slate-900 mt-0.5 tabular-nums">{SEED_PROJECTS.length}</div>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-emerald-600">
+                <div className="text-[11px] font-bold uppercase text-slate-500">Active Projects</div>
+                <div className="text-2xl font-extrabold text-emerald-700 mt-0.5 tabular-nums">
+                  {SEED_PROJECTS.filter(p => p.status === 'ACTIVE').length}
                 </div>
               </div>
-            ))}
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-sky-600">
+                <div className="text-[11px] font-bold uppercase text-slate-500">Facilities Reached</div>
+                <div className="text-2xl font-extrabold text-slate-900 mt-0.5 tabular-nums">
+                  {SEED_PROJECTS.reduce((s, p) => s + p.facilitiesCount, 0).toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 border-t-4 border-t-[#f27f20]">
+                <div className="text-[11px] font-bold uppercase text-slate-500">Workers Trained</div>
+                <div className="text-2xl font-extrabold text-slate-900 mt-0.5 tabular-nums">
+                  {SEED_PROJECTS.reduce((s, p) => s + p.healthWorkersTrained, 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="flex items-center gap-2 text-xs">
+              {(['ALL', 'ACTIVE', 'COMPLETED'] as const).map(st => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setProjectStatusFilter(st)}
+                  className={`px-3.5 py-1.5 rounded-full font-semibold border transition-colors cursor-pointer ${
+                    projectStatusFilter === st
+                      ? 'bg-[#004a59] text-white border-[#004a59]'
+                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {st === 'ALL' ? 'All Projects' : st === 'ACTIVE' ? 'Active' : 'Completed'}
+                </button>
+              ))}
+            </div>
+
+            {/* Project Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {SEED_PROJECTS.filter(p => projectStatusFilter === 'ALL' || p.status === projectStatusFilter).map(proj => (
+                <div key={proj.code} className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#004a59] hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-mono font-bold text-[#004a59] bg-cyan-50 border border-cyan-200 px-2.5 py-0.5 rounded-full">
+                        {proj.code}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
+                        proj.status === 'ACTIVE'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : 'bg-slate-100 text-slate-700 border-slate-200'
+                      }`}>
+                        {proj.status}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900 leading-snug">{proj.name}</h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">{proj.description}</p>
+                  </div>
+
+                  <div className="space-y-3 pt-3 border-t border-slate-100 text-xs">
+                    <div className="text-slate-700">
+                      <span className="text-slate-400 font-semibold">Funder:</span> <b>{proj.funder}</b>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {proj.countries.map(c => (
+                        <span key={c} className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-[10px]">
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold">Facilities</div>
+                        <div className="text-base font-extrabold text-[#004a59] tabular-nums">{proj.facilitiesCount}</div>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold">Workers Trained</div>
+                        <div className="text-base font-extrabold text-emerald-700 tabular-nums">{proj.healthWorkersTrained}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Tab 4: Funders */}
+        {/* Tab 4: Funders (With Official Scraped Logos from epnetwork.org) */}
         {activeTab === 'FUNDERS' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FUNDERS_SEED.map(f => (
-              <div key={f.name} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded uppercase">
-                  {f.type} • {f.country}
-                </span>
-                <h4 className="text-sm font-bold text-slate-900">{f.name}</h4>
-                <div className="pt-2 text-xs text-sky-600 flex items-center gap-1">
-                  <a href={f.website} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1">
-                    <span>Partner Website</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </a>
+          <div className="space-y-6">
+            <div className="rounded-2xl bg-[#004a59] text-white p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#31cdcf]">
+                  Global Funding Partners &amp; Donors
                 </div>
+                <h2 className="text-xl font-bold mt-0.5">
+                  Investing in Pharmaceutical Systems Strengthening Across Africa
+                </h2>
+                <p className="text-xs text-cyan-100/90 mt-1">
+                  Transparent co-financing with bilateral faith-based agencies, foundations, procurement cooperatives, and NGOs.
+                </p>
               </div>
-            ))}
+              <Link
+                href="/licensing"
+                className="px-5 py-2.5 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white text-xs font-bold shrink-0 self-start sm:self-center transition-colors"
+              >
+                Become a Donor / Partner &rarr;
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {FUNDERS_SEED.map(f => {
+                const logoMap: Record<string, string> = {
+                  'Bread for the World (Brot für die Welt)': '/partners/brot.jpg',
+                  'German Federal Ministry for Economic Cooperation and Development (BMZ) via action medeor': '/partners/action-medeor.jpg',
+                  'Difaem (German Institute for Medical Mission)': '/partners/difaem.png',
+                  'Plan:g': '/partners/plang.jpg',
+                  'Apotheker Helfen e.V.': '/partners/apotheker.png'
+                };
+                const logoSrc = logoMap[f.name];
+                const fundedCount = SEED_PROJECTS.filter(p => p.funder.toLowerCase().includes(f.name.split(' ')[0].toLowerCase())).length;
+                return (
+                  <div key={f.name} className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-[#004a59] hover:shadow-md transition-all flex flex-col justify-between gap-4">
+                    <div className="space-y-3">
+                      <div className="h-14 flex items-center justify-between gap-3">
+                        {logoSrc ? (
+                          <img
+                            src={logoSrc}
+                            alt={f.name}
+                            className="h-12 max-w-[150px] object-contain"
+                          />
+                        ) : (
+                          <div className="h-11 px-3 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-extrabold text-xs text-[#004a59]">
+                            {f.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()} · {f.country}
+                          </div>
+                        )}
+                        <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full uppercase shrink-0">
+                          {f.type.replace('_', ' ')} · {f.country}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-900 leading-snug">{f.name}</h4>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-slate-500">
+                        {fundedCount > 0 ? <b>{fundedCount} active/past project{fundedCount > 1 ? 's' : ''}</b> : 'Strategic Network Partner'}
+                      </span>
+                      <a
+                        href={f.website}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[#004a59] font-semibold hover:underline inline-flex items-center gap-1"
+                      >
+                        <span>Website</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* Tab 5: Union Coverage Calculator (Meeting Requirement Section 8.7) */}
-        {activeTab === 'COVERAGE' && (
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
-            <div>
-              <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">Multi-Member Union Coverage</div>
-              <h2 className="text-xl font-bold text-slate-900 mt-1">Country Coverage Without Double-Counting</h2>
-              <p className="text-xs text-slate-500 mt-1">
-                Calculate the union coverage across selected faith-based health networks in a target nation.
-              </p>
+        {/* Tab 5: Interactive Multi-Member Union Coverage Calculator */}
+        {activeTab === 'COVERAGE' && (() => {
+          const COVERAGE_DATA: Record<
+            'KE' | 'NG' | 'CM' | 'CD',
+            {
+              country: string;
+              nationalTotal: number;
+              members: Array<{ code: string; label: string; count: number }>;
+              overlapRate: number;
+            }
+          > = {
+            KE: {
+              country: 'Kenya',
+              nationalTotal: 6200,
+              members: [
+                { code: 'CHAK', label: 'CHAK Affiliated Facilities', count: 584 },
+                { code: 'MEDS', label: 'MEDS Served Facilities', count: 1420 }
+              ],
+              overlapRate: 0.18
+            },
+            NG: {
+              country: 'Nigeria',
+              nationalTotal: 34000,
+              members: [
+                { code: 'CHAN', label: 'CHAN Affiliated Facilities', count: 4000 },
+                { code: 'CHAN_MP', label: 'CHAN Medi-Pharm Served', count: 3200 }
+              ],
+              overlapRate: 0.39
+            },
+            CM: {
+              country: 'Cameroon',
+              nationalTotal: 4100,
+              members: [
+                { code: 'CBCHS', label: 'CBCHS Affiliated Facilities', count: 110 },
+                { code: 'PCC', label: 'PCC Affiliated Facilities', count: 85 }
+              ],
+              overlapRate: 0.0
+            },
+            CD: {
+              country: 'DR Congo',
+              nationalTotal: 14500,
+              members: [
+                { code: 'CECA20', label: 'CECA 20 Facilities (Ituri/Bunia)', count: 93 },
+                { code: 'CBCA', label: 'CBCA Affiliated Facilities', count: 120 },
+                { code: 'DOMECC', label: 'DOM-ECC Network Facilities', count: 640 }
+              ],
+              overlapRate: 0.08
+            }
+          };
+
+          const activeData = COVERAGE_DATA[coverageCountry];
+          const enabledMembers = activeData.members.filter(m => !coverageDisabled[`${coverageCountry}_${m.code}`]);
+          const grossSum = enabledMembers.reduce((s, m) => s + m.count, 0);
+          const overlapCount = enabledMembers.length > 1 ? Math.round(grossSum * activeData.overlapRate) : 0;
+          const unionUnique = Math.max(0, grossSum - overlapCount);
+          const sharePct = ((unionUnique / activeData.nationalTotal) * 100).toFixed(1);
+
+          return (
+            <div className="space-y-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[11px] font-bold text-[#004a59] uppercase tracking-wider">
+                      Interactive Union Coverage Calculator
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+                      Country Coverage Without Double-Counting
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Select a country and toggle member networks on or off to calculate deduplicated national health-sector coverage.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 text-xs">
+                    {(['KE', 'NG', 'CM', 'CD'] as const).map(code => (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => setCoverageCountry(code)}
+                        className={`px-3.5 py-1.5 rounded-lg font-bold border transition-colors cursor-pointer ${
+                          coverageCountry === code
+                            ? 'bg-[#004a59] text-white border-[#004a59]'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {COVERAGE_DATA[code].country}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+                  {/* Interactive Network Checkboxes */}
+                  <div className="lg:col-span-5 space-y-3">
+                    <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      1. Toggle Member Networks in {activeData.country}
+                    </div>
+                    {activeData.members.map(m => {
+                      const key = `${coverageCountry}_${m.code}`;
+                      const checked = !coverageDisabled[key];
+                      return (
+                        <label
+                          key={key}
+                          className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${
+                            checked ? 'border-[#004a59] bg-cyan-50/50' : 'border-slate-200 bg-slate-50 opacity-65'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() =>
+                                setCoverageDisabled(prev => ({ ...prev, [key]: !prev[key] }))
+                              }
+                              className="w-4 h-4 accent-[#004a59]"
+                            />
+                            <div>
+                              <div className="text-xs font-bold text-slate-900">{m.code}</div>
+                              <div className="text-[11px] text-slate-600">{m.label}</div>
+                            </div>
+                          </div>
+                          <span className="font-mono font-bold text-sm text-slate-900 tabular-nums">
+                            {m.count.toLocaleString()}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  {/* Live Deduplication Result & Visual Bar */}
+                  <div className="lg:col-span-7 p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-5 flex flex-col justify-between">
+                    <div className="grid grid-cols-3 gap-3 text-xs">
+                      <div className="p-3.5 rounded-xl bg-white border border-slate-200">
+                        <div className="text-[10px] font-bold uppercase text-slate-500">Gross Sum</div>
+                        <div className="text-xl font-extrabold text-slate-900 mt-0.5 tabular-nums">
+                          {grossSum.toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-white border border-slate-200">
+                        <div className="text-[10px] font-bold uppercase text-amber-700">Overlap Removed</div>
+                        <div className="text-xl font-extrabold text-amber-700 mt-0.5 tabular-nums">
+                          −{overlapCount.toLocaleString()}
+                        </div>
+                      </div>
+                      <div className="p-3.5 rounded-xl bg-[#004a59] text-white">
+                        <div className="text-[10px] font-bold uppercase text-cyan-200">Unique Union FOSAs</div>
+                        <div className="text-xl font-extrabold mt-0.5 tabular-nums">
+                          {unionUnique.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-slate-700">
+                          Share of {activeData.country} National Health Sector ({activeData.nationalTotal.toLocaleString()} total FOSAs)
+                        </span>
+                        <span className="text-[#004a59] text-base tabular-nums">{sharePct}%</span>
+                      </div>
+                      <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[#004a59] rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, Number(sharePct))}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        Deduplicates facilities that are both affiliated to a national CHA (e.g., CHAK/CHAN) and supplied by a national DSO (e.g., MEDS/CHAN Medi-Pharm).
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-slate-800">Target Country: Kenya</span>
-                <div className="space-y-1.5 text-xs text-slate-600">
-                  <div>National FOSA Count: <b>6,200 Facilities</b></div>
-                  <div>CHAK Affiliated: <b>584 Facilities</b></div>
-                  <div>MEDS Served: <b>1,420 Facilities</b></div>
-                </div>
-                <div className="p-3 bg-sky-100/70 text-sky-900 rounded-lg text-xs font-bold">
-                  Union Coverage: 1,640 Facilities (26.4% of National Sector)
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-slate-800">Target Country: Nigeria</span>
-                <div className="space-y-1.5 text-xs text-slate-600">
-                  <div>National FOSA Count: <b>34,000 Facilities</b></div>
-                  <div>CHAN Affiliated: <b>4,000 Facilities</b></div>
-                  <div>CHAN Medi-Pharm: <b>3,200 Facilities</b></div>
-                </div>
-                <div className="p-3 bg-emerald-100/70 text-emerald-900 rounded-lg text-xs font-bold">
-                  Union Coverage: 4,400 Facilities (12.9% of National Sector)
-                </div>
-              </div>
-
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                <span className="text-xs font-bold text-slate-800">Target Country: Cameroon</span>
-                <div className="space-y-1.5 text-xs text-slate-600">
-                  <div>National FOSA Count: <b>4,100 Facilities</b></div>
-                  <div>CBCHS Affiliated: <b>110 Facilities</b></div>
-                  <div>PCC Affiliated: <b>85 Facilities</b></div>
-                </div>
-                <div className="p-3 bg-purple-100/70 text-purple-900 rounded-lg text-xs font-bold">
-                  Union Coverage: 195 Facilities (4.7% of National Sector)
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </main>
     </div>
   );
