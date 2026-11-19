@@ -497,32 +497,32 @@ export default function MembershipPage() {
                 <div className="space-y-6">
                   {/* 5 Headline KPIs */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                    <div className="m3-glass-card p-4 space-y-1">
-                      <span className="text-[11px] font-semibold text-slate-500">Members</span>
+                    <div className="m3-glass-card border-t-4 border-t-cyan-700 p-4 space-y-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Members</span>
                       <div className="text-3xl font-extrabold text-slate-900 tabular-nums">{data.summary.totalMembers}</div>
-                      <p className="text-[11px] text-slate-500">{data.summary.newOrdinary2026}</p>
+                      <p className="text-xs text-slate-600">{data.summary.newOrdinary2026}</p>
                     </div>
-                    <div className="m3-glass-card p-4 space-y-1">
-                      <span className="text-[11px] font-semibold text-slate-500">Ordinary · voting</span>
+                    <div className="m3-glass-card border-t-4 border-t-sky-600 p-4 space-y-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Ordinary · voting</span>
                       <div className="text-3xl font-extrabold text-slate-900 tabular-nums">{data.summary.ordinaryVoting}</div>
-                      <p className="text-[11px] text-slate-500">50% of members; {data.summary.associateNoVote} Associate</p>
+                      <p className="text-xs text-slate-600">50% of members; {data.summary.associateNoVote} Associate</p>
                     </div>
-                    <div className="m3-glass-card p-4 space-y-1">
-                      <span className="text-[11px] font-semibold text-slate-500">Fees collected 2025</span>
+                    <div className="m3-glass-card border-t-4 border-t-amber-600 p-4 space-y-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Fees collected 2025</span>
                       <div className="text-3xl font-extrabold text-amber-700 tabular-nums">{data.summary.feesCollected2025Pct}%</div>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-xs text-slate-600">
                         ${data.summary.feesCollected2025Usd.toLocaleString()} of ${data.summary.feesExpectedUsd.toLocaleString()}
                       </p>
                     </div>
-                    <div className="m3-glass-card p-4 space-y-1">
-                      <span className="text-[11px] font-semibold text-slate-500">Members who paid 2025</span>
+                    <div className="m3-glass-card border-t-4 border-t-emerald-600 p-4 space-y-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Members paid 2025</span>
                       <div className="text-3xl font-extrabold text-slate-900 tabular-nums">{data.summary.membersPaid2025}</div>
-                      <p className="text-[11px] text-slate-500">9% of members ({data.summary.membersPaid2024} in 2024)</p>
+                      <p className="text-xs text-slate-600">9% of members ({data.summary.membersPaid2024} in 2024)</p>
                     </div>
-                    <div className="m3-glass-card p-4 space-y-1 col-span-2 sm:col-span-1">
-                      <span className="text-[11px] font-semibold text-slate-500">Finance contact on file</span>
+                    <div className="m3-glass-card border-t-4 border-t-rose-600 p-4 space-y-1 col-span-2 sm:col-span-1">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Finance contact</span>
                       <div className="text-3xl font-extrabold text-rose-700 tabular-nums">{data.summary.financeContactPct}%</div>
-                      <p className="text-[11px] text-slate-500">{data.summary.financeContactOnFile} of 151 needed for invoicing</p>
+                      <p className="text-xs text-slate-600">{data.summary.financeContactOnFile} of 151 needed for invoicing</p>
                     </div>
                   </div>
 

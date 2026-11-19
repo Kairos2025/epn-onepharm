@@ -13,7 +13,7 @@ export default function WorkspaceLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
+    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)] bg-slate-50">
       <MobileWorkspaceNav />
       <Sidebar />
       <div id="main-content" className="flex-1 min-w-0">

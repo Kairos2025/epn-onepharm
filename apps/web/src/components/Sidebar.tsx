@@ -46,10 +46,10 @@ export function Sidebar() {
     setOpenCategories(prev => ({ ...prev, [code]: !prev[code] }));
 
   return (
-    <aside className="w-64 shrink-0 border-r border-white/70 bg-white/70 backdrop-blur-xl min-h-[calc(100vh-4rem)] sticky top-16 self-start max-h-[calc(100vh-4rem)] overflow-y-auto hidden lg:block">
-      <div className="p-3">
-        <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-          Data Categories
+    <aside className="w-64 shrink-0 border-r border-slate-200 bg-white min-h-[calc(100vh-4rem)] sticky top-16 self-start max-h-[calc(100vh-4rem)] overflow-y-auto hidden lg:block">
+      <div className="p-3.5">
+        <p className="px-3 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          Workspace Navigation
         </p>
         <nav className="space-y-1">
           {WORKSPACE_CATEGORIES.map(category => {
