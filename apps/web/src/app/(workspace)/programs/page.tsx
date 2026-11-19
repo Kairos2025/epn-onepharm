@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 import {
   Briefcase,
@@ -38,7 +37,6 @@ export default function ProgramsPage() {
 
   return (
     <>
-      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Programs &amp; Projects</h1>

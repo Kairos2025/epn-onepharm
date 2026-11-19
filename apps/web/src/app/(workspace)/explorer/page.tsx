@@ -2,7 +2,6 @@
 
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 import {
   Network,
@@ -234,7 +233,6 @@ function ExplorerInner() {
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
-      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
         {/* Explorer Hierarchy Header */}

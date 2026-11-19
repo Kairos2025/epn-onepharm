@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Navbar } from '@/components/Navbar';
 import { BookOpen, ShieldCheck, CheckCircle2, ArrowRight, Camera, FileCheck } from 'lucide-react';
 
 export default function StoriesPage() {
@@ -42,7 +41,6 @@ export default function StoriesPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
-      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
         <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">

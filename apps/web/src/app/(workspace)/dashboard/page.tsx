@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 import {
   BarChart3,
@@ -229,7 +228,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 w-full space-y-5">
         {actionToast && (

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Navbar } from '@/components/Navbar';
 import { epnClient } from '@/lib/api';
 import {
   Database,
@@ -161,7 +160,6 @@ export default function DataEntryPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
-      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
         {/* Top DHIS2 Selector Bar (Section 8.3) */}

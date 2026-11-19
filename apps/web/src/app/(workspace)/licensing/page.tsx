@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Navbar } from '@/components/Navbar';
 import { CreditCard, Smartphone, ShieldCheck, Check } from 'lucide-react';
 import { ACCESS_TIERS } from '@epn/domain';
 import { epnClient } from '@/lib/api';
@@ -43,7 +42,6 @@ export default function LicensingPage() {
 
   return (
     <div className="flex-1 flex flex-col min-h-screen">
-      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
         <div className="m3-glass-card p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">

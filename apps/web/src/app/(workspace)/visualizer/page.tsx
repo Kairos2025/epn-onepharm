@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Navbar } from '@/components/Navbar';
 import {
   BarChart3,
   LineChart,
@@ -31,7 +30,6 @@ export default function VisualizerPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
-      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-6">
         {/* Top visualizer control bar */}

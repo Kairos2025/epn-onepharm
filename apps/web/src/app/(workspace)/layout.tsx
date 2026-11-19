@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Navbar } from '@/components/Navbar';
 import { Sidebar } from '@/components/Sidebar';
 import { MobileWorkspaceNav } from '@/components/MobileWorkspaceNav';
 
@@ -13,11 +14,14 @@ export default function WorkspaceLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)] bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <Navbar />
       <MobileWorkspaceNav />
-      <Sidebar />
-      <div id="main-content" className="flex-1 min-w-0">
-        {children}
+      <div className="flex-1 flex flex-col lg:flex-row">
+        <Sidebar />
+        <div id="main-content" className="flex-1 min-w-0 flex flex-col">
+          {children}
+        </div>
       </div>
     </div>
   );
