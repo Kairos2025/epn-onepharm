@@ -679,170 +679,305 @@ function ExplorerInner() {
           </div>
         )}
 
-        {/* Tab 1: Member Chapter Overview */}
-        {activeTab === 'MEMBERS' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Searchable Left Rail */}
-            <div className="lg:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Member Chapters ({IMPLEMENTING_MEMBERS_SEED.length})</h3>
-              </div>
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={memberSearch}
-                  onChange={e => setMemberSearch(e.target.value)}
-                  placeholder="Filter chapters..."
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#004a59]"
-                />
-              </div>
-              <div className="space-y-1.5 max-h-[520px] overflow-y-auto pr-1">
-                {IMPLEMENTING_MEMBERS_SEED.filter(m => {
-                  const q = memberSearch.trim().toLowerCase();
-                  return !q || m.abbreviation.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.country.toLowerCase().includes(q);
-                }).map(m => {
-                  const pay = getDirectoryPayStatus(m.abbreviation);
-                  return (
-                    <button
-                      key={m.abbreviation + m.country}
-                      onClick={() => selectMember(m.abbreviation)}
-                      className={`w-full p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between gap-2 cursor-pointer ${
-                        selectedMember === m.abbreviation
-                          ? 'border-[#004a59] bg-[#004a59]/5 text-[#004a59] font-bold shadow-2xs'
-                          : 'border-slate-100 hover:bg-slate-50 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                          selectedMember === m.abbreviation ? 'bg-[#004a59] text-white' : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {m.abbreviation.slice(0, 4)}
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-bold block truncate">{m.abbreviation}</span>
-                          <span className="text-slate-500 block text-[11px] truncate">{m.name}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className={`w-2 h-2 rounded-full ${pay.dot}`} title={pay.label} />
-                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded font-semibold text-slate-600">{m.country}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+        {/* Tab 1: Member Profile Dossier */}
+        {activeTab === 'MEMBERS' && (() => {
+          const pay = getDirectoryPayStatus(selectedMember);
+          const assocMatch = assocRecords.find(a => a.code === selectedMember);
+          const countryCode = memberObj?.country ?? '';
+          const countryProjects = SEED_PROJECTS.filter(p => p.countries.includes(countryCode));
+          const activeCountryProjects = countryProjects.filter(p => p.status === 'ACTIVE');
+          const mandateInfo = assocMatch ? getMandateStatus(assocMatch.mandateEnd) : null;
+          const domainSlug = selectedMember.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const contactEmail = assocMatch?.contactEmail || `secretariat@${domainSlug}.org`;
+          const contactPhone = assocMatch?.contactPhone || 'On file with EPN Secretariat';
+          const refPerson = assocMatch?.referencePerson || `${selectedMember} Focal Point`;
+          const refRole = assocMatch?.referenceRole || 'Health & Pharmacy Coordinator';
 
-            {/* Right Profile Card */}
-            <div className="lg:col-span-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-6">
-              {(() => {
-                const pay = getDirectoryPayStatus(selectedMember);
-                return (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-14 h-14 rounded-2xl bg-[#004a59] text-white font-extrabold text-sm flex items-center justify-center shadow-xs shrink-0">
-                        {selectedMember.slice(0, 4)}
+          return (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Clean Left Chapter Directory Rail (No duplicate truncated badges) */}
+              <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                <div className="p-4 border-b border-slate-100 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      Member Chapters ({IMPLEMENTING_MEMBERS_SEED.length})
+                    </h3>
+                    <span className="text-[10px] text-slate-400 font-semibold">Click to open</span>
+                  </div>
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={memberSearch}
+                      onChange={e => setMemberSearch(e.target.value)}
+                      placeholder="Search chapter or country..."
+                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#004a59]"
+                    />
+                  </div>
+                </div>
+
+                <div className="divide-y divide-slate-100 max-h-[580px] overflow-y-auto">
+                  {IMPLEMENTING_MEMBERS_SEED.filter(m => {
+                    const q = memberSearch.trim().toLowerCase();
+                    return !q || m.abbreviation.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.country.toLowerCase().includes(q);
+                  }).map(m => {
+                    const rowPay = getDirectoryPayStatus(m.abbreviation);
+                    const isSelected = selectedMember === m.abbreviation;
+                    return (
+                      <button
+                        key={m.abbreviation + m.country}
+                        type="button"
+                        onClick={() => selectMember(m.abbreviation)}
+                        className={`w-full px-4 py-3 text-left transition-colors flex items-center justify-between gap-3 cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#004a59]/8 border-l-4 border-l-[#004a59]'
+                            : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                        }`}
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${rowPay.dot}`} title={rowPay.label} />
+                            <span className={`text-xs font-bold truncate ${isSelected ? 'text-[#004a59]' : 'text-slate-900'}`}>
+                              {m.abbreviation}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400">{m.type}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 truncate mt-0.5 pl-4">{m.name}</div>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 shrink-0">
+                          {m.country}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Executive Member Dossier */}
+              <div className="lg:col-span-8 space-y-5">
+                {/* Executive Hero Banner */}
+                <div className="rounded-2xl bg-gradient-to-r from-[#004a59] to-[#005a87] text-white p-6 shadow-sm space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                        <span className="px-2.5 py-0.5 rounded-full bg-white/15 font-bold uppercase tracking-wider">
+                          {memberObj?.type ?? 'CHA'} · {countryName(countryCode)}
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${pay.cls}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${pay.dot}`} />
+                          {pay.label}
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-xl font-bold text-slate-900">
-                            {memberObj?.name ?? selectedMember}
-                          </h2>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500">
-                          <span>{countryName(memberObj?.country ?? '')}</span>
-                          <span>&bull;</span>
-                          <span className="font-semibold text-slate-700">Category: {memberObj?.type ?? 'Member'}</span>
-                          <span>&bull;</span>
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${pay.cls}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${pay.dot}`} />
-                            {pay.label}
-                          </span>
-                        </div>
+                      <h2 className="text-xl sm:text-2xl font-extrabold leading-tight">
+                        {memberObj?.name ?? selectedMember}
+                      </h2>
+                      <p className="text-xs text-cyan-100/90">
+                        Chapter Code: <b className="text-white">{selectedMember}</b> · Ordinary Voting Member · Strategic Plan 2026–2030
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 shrink-0">
+                      <Link
+                        href="/membership?tab=RECORD"
+                        className="px-3.5 py-2 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white text-xs font-bold transition-colors"
+                      >
+                        Invoice &amp; Reminder &rarr;
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mandate End Alert if triggered */}
+                {mandateInfo && mandateInfo.tone !== 'emerald' && (
+                  <div
+                    role="alert"
+                    className={`p-4 rounded-2xl border text-xs flex items-start gap-2.5 ${
+                      mandateInfo.tone === 'rose'
+                        ? 'bg-rose-50 border-rose-200 text-rose-950'
+                        : 'bg-amber-50 border-amber-200 text-amber-950'
+                    }`}
+                  >
+                    <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${mandateInfo.tone === 'rose' ? 'text-rose-600' : 'text-amber-600'}`} />
+                    <div>
+                      <b>{mandateInfo.label}:</b> Reference leader <b>{refPerson}</b> ({refRole}) mandate ends{' '}
+                      <span className="font-mono font-bold">{assocMatch?.mandateEnd}</span>.{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedAssocCode(selectedMember);
+                          setFosaSubView('ASSOCIATIONS');
+                          setShowEditAssoc(true);
+                          setActiveTab('FACILITIES');
+                        }}
+                        className="underline font-bold cursor-pointer"
+                      >
+                        Update reference person &rarr;
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4 Executive KPI Tiles */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                    <div className="text-[10px] font-bold uppercase text-slate-500">Affiliated FOSAs</div>
+                    <div className="text-2xl font-extrabold text-[#004a59] mt-0.5 tabular-nums">
+                      {assocMatch ? assocMatch.totalFacilities.toLocaleString() : memberFacilities.length || '—'}
+                    </div>
+                    <div className="text-[11px] text-slate-500">Network facilities</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                    <div className="text-[10px] font-bold uppercase text-slate-500">Country Programs</div>
+                    <div className="text-2xl font-extrabold text-slate-900 mt-0.5 tabular-nums">
+                      {countryProjects.length}
+                    </div>
+                    <div className="text-[11px] text-emerald-700 font-semibold">{activeCountryProjects.length} active</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                    <div className="text-[10px] font-bold uppercase text-slate-500">2027 Fee Standing</div>
+                    <div className={`text-sm font-extrabold mt-1.5 ${
+                      pay.key === 'PAID' ? 'text-emerald-700' : pay.key === 'TIME' ? 'text-amber-700' : 'text-rose-700'
+                    }`}>
+                      {pay.label}
+                    </div>
+                    <div className="text-[11px] text-slate-500">2027 cycle</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                    <div className="text-[10px] font-bold uppercase text-slate-500">EPN Eligibility</div>
+                    <div className="text-sm font-extrabold text-emerald-700 mt-1.5">Verified ✓</div>
+                    <div className="text-[11px] text-slate-500">AGM 2026 roster</div>
+                  </div>
+                </div>
+
+                {/* 2-Column Details: Contact & Reference + Programs & Strategic Alignment */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+                    <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                      Reference Person &amp; Secretariat Contact
+                    </h4>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                      <div className="font-bold text-slate-900 text-sm">{refPerson}</div>
+                      <div className="text-slate-600">{refRole}</div>
+                      <div className="pt-1.5 space-y-1 text-slate-700">
+                        <div className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-[#004a59]" /> {contactEmail}</div>
+                        <div className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-[#004a59]" /> {contactPhone}</div>
+                        {assocMatch?.mandateEnd && (
+                          <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#004a59]" /> Mandate ends: <b>{assocMatch.mandateEnd}</b></div>
+                        )}
                       </div>
                     </div>
-                    <Link
-                      href="/membership?tab=RECORD"
-                      className="px-3.5 py-2 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-800 shrink-0 self-start sm:self-center"
-                    >
-                      Manage Invoice &amp; Contacts &rarr;
-                    </Link>
+                    <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 space-y-1">
+                      <div className="font-bold text-amber-950">Strategic Plan &amp; News</div>
+                      <p className="text-amber-900 leading-relaxed">
+                        {assocMatch?.news ||
+                          `${memberObj?.name ?? selectedMember} is aligned with EPN Strategic Plan 2026–2030 (Pillar 2: Member Ownership & Pharmaceutical Systems Strengthening).`}
+                      </p>
+                    </div>
                   </div>
-                );
-              })()}
 
-              {/* Strategic Plan Alignment & Gaps */}
-              <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-4 space-y-1.5 text-xs">
-                <span className="font-bold text-amber-950">Strategic Plan Alignment &amp; Priorities</span>
-                <p className="text-amber-900 leading-relaxed">
-                  {selectedMember === 'CHAK'
-                    ? 'CHAK Strategic Plan 2024–2028 is aligned with EPN Core Pharmaceutical Systems strengthening. Dedicated Drug Revolving Fund (DRF) initiative scaled across 120 mission hospitals. Flagged gap: sub-county cold chain distribution in arid Northern Kenya.'
-                    : `${memberObj?.name ?? selectedMember} participates in the EPN pharmaceutical systems strengthening agenda across its affiliated facilities. Member-level strategic plan details, DRF initiatives and flagged gaps for this chapter are tracked under Strategic Plan 2026–2030.`}
-                </p>
-              </div>
-
-              {/* Member facilities */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Affiliated Health Facilities (FOSAs)
-                  </h4>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFosaMemberFilter(selectedMember);
-                      setActiveTab('FACILITIES');
-                    }}
-                    className="text-xs font-semibold text-[#004a59] hover:underline cursor-pointer"
-                  >
-                    Inspect All Levels (1–6) &rarr;
-                  </button>
-                </div>
-                {memberFacilities.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {memberFacilities.map(f => (
-                      <div key={f.name} className="p-4 rounded-xl border border-slate-200 hover:border-[#004a59] transition-all space-y-3">
-                        <div className="flex justify-between items-start gap-2">
-                          <span className="font-bold text-xs text-slate-900 leading-snug">{f.name}</span>
-                          <span className="text-[10px] bg-cyan-50 text-[#004a59] border border-cyan-200 px-2 py-0.5 rounded-full font-bold shrink-0">
-                            L{f.levelNum} · {f.level.replace('_', ' ')}
-                          </span>
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex justify-between text-[11px] text-slate-600">
-                            <span>Tracer Availability</span>
-                            <b className="text-emerald-700">{f.tracerAvail}</b>
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                        EPN Programs in {countryName(countryCode)}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab('PROJECTS')}
+                        className="text-[#004a59] font-semibold hover:underline cursor-pointer"
+                      >
+                        All Projects &rarr;
+                      </button>
+                    </div>
+                    {countryProjects.length > 0 ? (
+                      <div className="space-y-2">
+                        {countryProjects.map(p => (
+                          <div key={p.code} className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-mono font-bold text-[#004a59]">{p.code}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                p.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                {p.status}
+                              </span>
+                            </div>
+                            <div className="font-semibold text-slate-900">{p.name}</div>
+                            <div className="text-[11px] text-slate-500">
+                              {p.facilitiesCount} facilities · {p.healthWorkersTrained} workers trained
+                            </div>
                           </div>
-                          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-600 rounded-full" style={{ width: f.tracerAvail }} />
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500 border-t border-slate-100">
-                          <span>Capacity: <b>{f.beds}</b> beds</span>
-                          <button
-                            onClick={() => {
-                              setFosaSubView('REGISTRY');
-                              openFosa(f.name);
-                            }}
-                            className="font-semibold text-[#004a59] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
-                          >
-                            <span>Open Brief</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-500">
+                        Participates in network-wide EPN Learning Portal (LMS), TWG, and pooled procurement initiatives.
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    Facility master list for <b>{memberObj?.name ?? selectedMember}</b> is onboarded via the Membership CSV/PDF importer. Seeded facility briefs are currently live for CHAK, CHAN, CBCHS, and CECA 20.
-                  </p>
-                )}
+                </div>
+
+                {/* Affiliated Health Facilities */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      Affiliated Health Facilities (FOSAs)
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (assocMatch) setSelectedAssocCode(selectedMember);
+                        setFosaMemberFilter(selectedMember);
+                        setFosaSubView('ASSOCIATIONS');
+                        setActiveTab('FACILITIES');
+                      }}
+                      className="text-xs font-semibold text-[#004a59] hover:underline cursor-pointer"
+                    >
+                      Inspect Levels 1–6 &rarr;
+                    </button>
+                  </div>
+                  {memberFacilities.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {memberFacilities.map(f => (
+                        <div key={f.name} className="p-4 rounded-xl border border-slate-200 hover:border-[#004a59] transition-all space-y-3">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-bold text-xs text-slate-900 leading-snug">{f.name}</span>
+                            <span className="text-[10px] bg-cyan-50 text-[#004a59] border border-cyan-200 px-2 py-0.5 rounded-full font-bold shrink-0">
+                              L{f.levelNum} · {f.level.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[11px] text-slate-600">
+                              <span>Tracer Availability</span>
+                              <b className="text-emerald-700">{f.tracerAvail}</b>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-emerald-600 rounded-full" style={{ width: f.tracerAvail }} />
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500 border-t border-slate-100">
+                            <span>Capacity: <b>{f.beds}</b> beds</span>
+                            <button
+                              onClick={() => {
+                                setFosaSubView('REGISTRY');
+                                openFosa(f.name);
+                              }}
+                              className="font-semibold text-[#004a59] hover:underline inline-flex items-center gap-0.5 cursor-pointer"
+                            >
+                              <span>Open Brief</span>
+                              <ChevronRight className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      Facility master list for <b>{memberObj?.name ?? selectedMember}</b> can be uploaded anytime via the CSV/PDF importer in <b>Membership &rarr; Records, Invoices &amp; Imports</b>.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Tab 2: FOSA Classification & Facility Brief (Section 8.7) */}
         {activeTab === 'FACILITIES' && (
