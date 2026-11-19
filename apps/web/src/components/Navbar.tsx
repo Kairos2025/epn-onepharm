@@ -186,7 +186,7 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
                   EPN One Network
                 </span>
                 <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">
-                  EPN &amp; Donor Network Portal
+                  Supply Chain Portal &amp; Health Control
                 </span>
               </div>
             </Link>
@@ -315,8 +315,8 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
               href="/membership"
               className="inline-flex items-center justify-center h-9 px-4 rounded-full bg-cyan-700 hover:bg-cyan-800 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer"
             >
-              <span className="hidden sm:inline">EPN &amp; Donor Hub</span>
-              <span className="sm:hidden">EPN Hub</span>
+              <span className="hidden sm:inline">Supply Chain &amp; Control</span>
+              <span className="sm:hidden">Portal</span>
             </Link>
           </div>
         </div>
