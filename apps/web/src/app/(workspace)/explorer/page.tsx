@@ -17,7 +17,13 @@ import {
   Filter,
   Layers,
   MapPin,
-  Package
+  Package,
+  AlertTriangle,
+  Clock,
+  Mail,
+  Phone,
+  Newspaper,
+  Save
 } from 'lucide-react';
 import { IMPLEMENTING_MEMBERS_SEED, FUNDERS_SEED, MEMBER_CATEGORIES, NETWORK_STATISTICS } from '@epn/domain';
 import { SEED_PROJECTS, SEED_COUNTRIES } from '@epn/db';
@@ -39,6 +45,126 @@ function ExplorerInner() {
   const [fosaClass, setFosaClass] = useState<string>('ALL');
   const [fosaMemberFilter, setFosaMemberFilter] = useState<string>('ALL');
   const [fosaGovernanceFilter, setFosaGovernanceFilter] = useState<'ALL' | 'COMPLIANT' | 'ATTENTION'>('ALL');
+  const [assocRecords, setAssocRecords] = useState([
+    {
+      code: 'CHAK',
+      name: 'Christian Health Association of Kenya (CHAK)',
+      country: 'Kenya',
+      totalFacilities: 584,
+      levels: { 1: 42, 2: 248, 3: 168, 4: 108, 5: 16, 6: 2 },
+      activePrograms: ['ACCESS III', 'MINILAB_NET', 'SAFER'],
+      completedPrograms: ['ACCESS II', 'IMPACT', 'MNCH_FBO'],
+      meetsEpnRequirements: true,
+      requirementNotes: 'Faith-based national CHA · Legal NGO charter · Active 2026/2027 DPA & fee standing',
+      referencePerson: 'Dr. Samuel Mwenda',
+      referenceRole: 'General Secretary',
+      contactEmail: 'secretariat@chak.or.ke',
+      contactPhone: '+254 20 444 1920',
+      mandateEnd: '2028-06-30',
+      news: 'CHAK scaled Drug Revolving Funds (DRF) across 120 mission hospitals; cold-chain upgrade ongoing in Northern Kenya.'
+    },
+    {
+      code: 'CHAN',
+      name: 'Christian Health Association of Nigeria (CHAN)',
+      country: 'Nigeria',
+      totalFacilities: 4000,
+      levels: { 1: 820, 2: 1850, 3: 890, 4: 380, 5: 54, 6: 6 },
+      activePrograms: ['ACCESS III', 'SAFER'],
+      completedPrograms: ['ACCESS II', 'MNCH_FBO'],
+      meetsEpnRequirements: true,
+      requirementNotes: 'Registered faith-based network · 4,000+ affiliated facilities · Active CHAN Medi-Pharm DSO link',
+      referencePerson: 'Dr. Obadiah M. Dogara',
+      referenceRole: 'Secretary General',
+      contactEmail: 'info@channigeria.org',
+      contactPhone: '+234 803 000 4100',
+      mandateEnd: '2026-10-31',
+      news: 'Mandate renewal notice: CHAN focal leadership term ended Oct 2026 — please confirm incoming reference person.'
+    },
+    {
+      code: 'CBCHS',
+      name: 'Cameroon Baptist Convention Health Services (CBCHS)',
+      country: 'Cameroon',
+      totalFacilities: 110,
+      levels: { 1: 12, 2: 46, 3: 32, 4: 14, 5: 5, 6: 1 },
+      activePrograms: ['MINILAB_NET', 'ACCESS III'],
+      completedPrograms: ['IMPACT', 'ACCESS II'],
+      meetsEpnRequirements: true,
+      requirementNotes: 'CHI Ordinary member · Minilab quality-control reference hub at Mbingo Baptist Hospital',
+      referencePerson: 'Prof. Tih Pius Muffih',
+      referenceRole: 'Director of Health Services',
+      contactEmail: 'cbchs@cbchealthservices.org',
+      contactPhone: '+237 677 000 812',
+      mandateEnd: '2026-12-31',
+      news: 'Mbingo Minilab screened 420+ essential medicine batches in 2026; focal mandate renewal due Dec 2026.'
+    },
+    {
+      code: 'CECA 20',
+      name: 'Communauté Evangélique au Centre de l’Afrique (CECA 20)',
+      country: 'DR Congo',
+      totalFacilities: 93,
+      levels: { 1: 18, 2: 38, 3: 28, 4: 7, 5: 2, 6: 0 },
+      activePrograms: ['ACCESS III'],
+      completedPrograms: ['MNCH_FBO'],
+      meetsEpnRequirements: true,
+      requirementNotes: 'Admitted at AGM 2026 as Ordinary CHA · Finance contact & pharmacy staff count verification pending',
+      referencePerson: 'Dr. Jean-Luc Mugisha',
+      referenceRole: 'Health Coordinator',
+      contactEmail: 'coordination@ceca20-sante.org',
+      contactPhone: '+243 81 000 2020',
+      mandateEnd: '2027-11-30',
+      news: 'Welcomed at AGM 2026 (93 facilities in Ituri/Bunia); 2027 onboarding & contact confirmation in progress.'
+    }
+  ]);
+  const [selectedAssocCode, setSelectedAssocCode] = useState('CHAK');
+  const [editAssocEmail, setEditAssocEmail] = useState('');
+  const [editAssocPhone, setEditAssocPhone] = useState('');
+  const [editAssocRef, setEditAssocRef] = useState('');
+  const [editAssocRole, setEditAssocRole] = useState('');
+  const [editAssocMandateEnd, setEditAssocMandateEnd] = useState('');
+  const [editAssocNews, setEditAssocNews] = useState('');
+  const [fosaUpdateToast, setFosaUpdateToast] = useState<string | null>(null);
+
+  const activeAssoc = assocRecords.find(a => a.code === selectedAssocCode) || assocRecords[0];
+
+  useEffect(() => {
+    if (!activeAssoc) return;
+    setEditAssocEmail(activeAssoc.contactEmail);
+    setEditAssocPhone(activeAssoc.contactPhone);
+    setEditAssocRef(activeAssoc.referencePerson);
+    setEditAssocRole(activeAssoc.referenceRole);
+    setEditAssocMandateEnd(activeAssoc.mandateEnd);
+    setEditAssocNews(activeAssoc.news);
+  }, [activeAssoc]);
+
+  const getMandateStatus = (mandateEnd: string) => {
+    const today = new Date('2026-11-19T00:00:00Z').getTime();
+    const end = new Date(`${mandateEnd}T00:00:00Z`).getTime();
+    const daysLeft = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+    if (daysLeft <= 0) return { label: 'MANDATE ENDED — REPLACE / RENEW', tone: 'rose', daysLeft };
+    if (daysLeft <= 90) return { label: `MANDATE ENDING IN ${daysLeft}d`, tone: 'amber', daysLeft };
+    return { label: 'ACTIVE MANDATE', tone: 'emerald', daysLeft };
+  };
+
+  const handleSaveAssocUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAssocRecords(prev =>
+      prev.map(a =>
+        a.code === activeAssoc.code
+          ? {
+              ...a,
+              contactEmail: editAssocEmail,
+              contactPhone: editAssocPhone,
+              referencePerson: editAssocRef,
+              referenceRole: editAssocRole,
+              mandateEnd: editAssocMandateEnd,
+              news: editAssocNews
+            }
+          : a
+      )
+    );
+    setFosaUpdateToast(`Updated ${activeAssoc.code} facility contact, reference person (${editAssocRef}), and mandate timeline.`);
+    setTimeout(() => setFosaUpdateToast(null), 4000);
+  };
 
   useEffect(() => {
     const tabParam = searchParams.get('tab') as TabKind | null;
@@ -63,8 +189,13 @@ function ExplorerInner() {
       member: 'CHAK',
       country: 'KE',
       level: 'HOSPITAL',
+      levelNum: 4,
       beds: 120,
       catchment: 85000,
+      activePrograms: ['ACCESS III', 'MINILAB_NET'],
+      completedPrograms: ['ACCESS II', 'IMPACT'],
+      contactEmail: 'pharmacy@kilomehospital.or.ke',
+      contactPhone: '+254 722 100 401',
       services: ['Outpatient', 'Inpatient', 'Maternity', 'Pediatrics', 'Pharmacy', 'Lab', 'AMR Surveillance'],
       dtc: true,
       ipc: true,
@@ -80,8 +211,13 @@ function ExplorerInner() {
       member: 'CHAK',
       country: 'KE',
       level: 'REFERRAL_HOSPITAL',
+      levelNum: 5,
       beds: 360,
       catchment: 220000,
+      activePrograms: ['ACCESS III', 'MINILAB_NET', 'SAFER'],
+      completedPrograms: ['ACCESS II', 'IMPACT', 'MNCH_FBO'],
+      contactEmail: 'info@kijabehospital.org',
+      contactPhone: '+254 709 728 200',
       services: ['Comprehensive Surgical', 'EmONC', 'ICU', 'Specialist Pharmacy', 'Minilab'],
       dtc: true,
       ipc: true,
@@ -97,8 +233,13 @@ function ExplorerInner() {
       member: 'CHAN',
       country: 'NG',
       level: 'HOSPITAL',
+      levelNum: 4,
       beds: 210,
       catchment: 180000,
+      activePrograms: ['ACCESS III', 'SAFER'],
+      completedPrograms: ['ACCESS II', 'MNCH_FBO'],
+      contactEmail: 'pharmacy@stgerardkaduna.org',
+      contactPhone: '+234 803 555 2100',
       services: ['General Medicine', 'Maternity', 'Pediatrics', 'DRF Pharmacy'],
       dtc: true,
       ipc: true,
@@ -114,8 +255,13 @@ function ExplorerInner() {
       member: 'CBCHS',
       country: 'CM',
       level: 'REFERRAL_HOSPITAL',
+      levelNum: 6,
       beds: 310,
       catchment: 250000,
+      activePrograms: ['MINILAB_NET', 'ACCESS III'],
+      completedPrograms: ['IMPACT', 'ACCESS II'],
+      contactEmail: 'mbingo@cbchealthservices.org',
+      contactPhone: '+237 677 110 310',
       services: ['Teaching Hospital', 'Minilab Surveillance', 'Oncology', 'Surgical'],
       dtc: true,
       ipc: true,
@@ -131,8 +277,13 @@ function ExplorerInner() {
       member: 'CECA 20',
       country: 'CD',
       level: 'HEALTH_CENTRE',
+      levelNum: 3,
       beds: 48,
       catchment: 42000,
+      activePrograms: ['ACCESS III'],
+      completedPrograms: ['MNCH_FBO'],
+      contactEmail: 'bunia.cs@ceca20-sante.org',
+      contactPhone: '+243 81 440 0093',
       services: ['Outpatient', 'Maternity', 'Immunization', 'Essential Pharmacy'],
       dtc: true,
       ipc: true,
@@ -148,8 +299,13 @@ function ExplorerInner() {
       member: 'CHAK',
       country: 'KE',
       level: 'DISPENSARY',
+      levelNum: 2,
       beds: 8,
       catchment: 15000,
+      activePrograms: ['SAFER'],
+      completedPrograms: ['MNCH_FBO'],
+      contactEmail: 'dispensary@tenwek.org',
+      contactPhone: '+254 711 220 008',
       services: ['Primary Care', 'MCH', 'Dispensary'],
       dtc: false,
       ipc: true,
@@ -557,6 +713,247 @@ function ExplorerInner() {
         {/* Tab 2: FOSA Classification & Facility Brief (Section 8.7) */}
         {activeTab === 'FACILITIES' && (
           <div className="space-y-6">
+            {fosaUpdateToast && (
+              <div
+                role="status"
+                aria-live="polite"
+                className="bg-emerald-700 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-sm flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{fosaUpdateToast}</span>
+              </div>
+            )}
+
+            {/* Health Association FOSA Categorization & Mandate Watch */}
+            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-bold text-[#004a59] uppercase tracking-wider">
+                    FOSAs Categorised by Health Association
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+                    Health Associations: Facility Counts (Levels 1–6), Programs, EPN Eligibility &amp; Mandate Alerts
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Select a health association to inspect its facility levels (1–6), active/completed programs, EPN membership requirement status, reference members, news, and mandate end-time alerts.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {assocRecords.map(a => {
+                    const mStatus = getMandateStatus(a.mandateEnd);
+                    return (
+                      <button
+                        key={a.code}
+                        onClick={() => {
+                          setSelectedAssocCode(a.code);
+                          setFosaMemberFilter(a.code);
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
+                          selectedAssocCode === a.code
+                            ? 'bg-[#004a59] text-white border-[#004a59]'
+                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <span>{a.code}</span>
+                        {mStatus.tone !== 'emerald' && (
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              mStatus.tone === 'rose' ? 'bg-rose-500' : 'bg-amber-400'
+                            }`}
+                            title={mStatus.label}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Mandate End-Time Alert Banner */}
+              {(() => {
+                const mStatus = getMandateStatus(activeAssoc.mandateEnd);
+                if (mStatus.tone === 'emerald') return null;
+                return (
+                  <div
+                    role="alert"
+                    className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+                      mStatus.tone === 'rose'
+                        ? 'bg-rose-50 border-rose-200 text-rose-950'
+                        : 'bg-amber-50 border-amber-200 text-amber-950'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${mStatus.tone === 'rose' ? 'text-rose-600' : 'text-amber-600'}`} />
+                      <div>
+                        <div className="font-bold">
+                          {mStatus.label} — {activeAssoc.name}
+                        </div>
+                        <div className="mt-0.5">
+                          Reference person <b>{activeAssoc.referencePerson}</b> ({activeAssoc.referenceRole}) mandate end date is{' '}
+                          <span className="font-mono font-bold">{activeAssoc.mandateEnd}</span>. Please update the incoming reference person and contact details below.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Association Overview + Level 1-6 Breakdown + Programs + EPN Requirements */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs">
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="text-[10px] font-bold uppercase text-slate-500">Health Association</div>
+                      <div className="text-base font-extrabold text-slate-900 mt-0.5">{activeAssoc.code}</div>
+                      <div className="text-[11px] text-slate-600">{activeAssoc.country}</div>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="text-[10px] font-bold uppercase text-slate-500">Total Health Facilities</div>
+                      <div className="text-xl font-extrabold text-[#004a59] mt-0.5 tabular-nums">
+                        {activeAssoc.totalFacilities.toLocaleString()}
+                      </div>
+                      <div className="text-[11px] text-slate-600">Affiliated FOSAs</div>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 col-span-2">
+                      <div className="text-[10px] font-bold uppercase text-emerald-800">EPN Membership Requirement</div>
+                      <div className="text-sm font-extrabold text-emerald-900 mt-0.5">
+                        {activeAssoc.meetsEpnRequirements ? 'Meets EPN Requirements ✓' : 'Review Needed'}
+                      </div>
+                      <div className="text-[11px] text-emerald-800 mt-0.5">{activeAssoc.requirementNotes}</div>
+                    </div>
+                  </div>
+
+                  {/* Level 1 to 6 Breakdown */}
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2.5">
+                    <div className="font-bold text-slate-900">Number of Health Facilities by Level (Level 1 to Level 6)</div>
+                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                      {(
+                        [
+                          { lvl: 1, name: 'L1 · Community' },
+                          { lvl: 2, name: 'L2 · Dispensary' },
+                          { lvl: 3, name: 'L3 · Health Ctr' },
+                          { lvl: 4, name: 'L4 · Primary Hosp' },
+                          { lvl: 5, name: 'L5 · Regional Ref' },
+                          { lvl: 6, name: 'L6 · National Ref' }
+                        ] as const
+                      ).map(item => (
+                        <div key={item.lvl} className="p-2.5 rounded-lg bg-white border border-slate-200 text-center">
+                          <div className="text-[10px] font-bold text-slate-500">{item.name}</div>
+                          <div className="text-base font-extrabold text-slate-900 mt-0.5 tabular-nums">
+                            {activeAssoc.levels[item.lvl]}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Active & Completed Programs + News */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                      <div className="font-bold text-slate-900">Active Programs</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {activeAssoc.activePrograms.map(p => (
+                          <span key={p} className="px-2.5 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-900 font-semibold text-[11px]">
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="font-bold text-slate-900 pt-2">Programs Done (Completed)</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {activeAssoc.completedPrograms.map(p => (
+                          <span key={p} className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold text-[11px]">
+                            {p} ✓
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
+                      <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                        <Newspaper className="w-3.5 h-3.5 text-[#004a59]" /> Member News &amp; Updates
+                      </div>
+                      <p className="text-slate-700 leading-relaxed">{activeAssoc.news}</p>
+                      <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600 space-y-0.5">
+                        <div className="flex items-center gap-1.5"><Mail className="w-3 h-3" /> {activeAssoc.contactEmail}</div>
+                        <div className="flex items-center gap-1.5"><Phone className="w-3 h-3" /> {activeAssoc.contactPhone}</div>
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-3 h-3" /> Reference: <b>{activeAssoc.referencePerson}</b> (Mandate ends {activeAssoc.mandateEnd})
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Inline Update Contact, Reference Member & Mandate End Date */}
+                <form onSubmit={handleSaveAssocUpdate} className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
+                  <div className="font-bold text-slate-900">Update {activeAssoc.code} Contacts, Reference &amp; Mandate</div>
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1">Contact Email</label>
+                    <input
+                      type="email"
+                      value={editAssocEmail}
+                      onChange={e => setEditAssocEmail(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1">Contact Phone</label>
+                    <input
+                      type="text"
+                      value={editAssocPhone}
+                      onChange={e => setEditAssocPhone(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">Reference Person</label>
+                      <input
+                        type="text"
+                        value={editAssocRef}
+                        onChange={e => setEditAssocRef(e.target.value)}
+                        className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-semibold text-slate-700 block mb-1">Role</label>
+                      <input
+                        type="text"
+                        value={editAssocRole}
+                        onChange={e => setEditAssocRole(e.target.value)}
+                        className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1">Mandate End Date (Alert Trigger)</label>
+                    <input
+                      type="date"
+                      value={editAssocMandateEnd}
+                      onChange={e => setEditAssocMandateEnd(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-semibold text-slate-700 block mb-1">News / Update Note</label>
+                    <textarea
+                      rows={2}
+                      value={editAssocNews}
+                      onChange={e => setEditAssocNews(e.target.value)}
+                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full py-2 rounded-full bg-[#004a59] hover:bg-[#003440] text-white font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save Contacts &amp; Mandate</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+
             <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div>
