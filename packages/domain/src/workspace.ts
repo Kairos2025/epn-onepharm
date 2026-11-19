@@ -42,15 +42,14 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     nameFr: 'Adhésion',
     icon: 'users',
     href: '/membership',
-    description: 'Member identities, voting rights, 2027 fee cycle, and group composition across the network.',
+    description: '151 member associations, voting rights, 2027 fee cycle, contacts, and governance.',
     subs: [
-      { code: 'MEMBERSHIP_HEALTH', name: 'Membership Health & 2027 Fees', nameFr: 'Santé des membres & cotisations 2027', description: '151 members, voting rights, fee collection, and 2027 invoice cycle.', href: '/membership' },
-      { code: 'MEMBER_DIRECTORY', name: 'Member Directory', nameFr: 'Annuaire des membres', description: 'All 151 member organizations with type, country and status.', href: '/explorer?tab=DIRECTORY' },
-      { code: 'MEMBER_PROFILE', name: 'Member Profiles', nameFr: 'Profils des membres', description: 'Identity, membership category and strategic plan per member.', href: '/explorer?tab=MEMBERS' },
-      { code: 'MEMBER_FACILITIES', name: 'Facilities & Networks', nameFr: 'Établissements et réseaux', description: 'Health facilities linked back to each member organization.', href: '/explorer?tab=FACILITIES' },
-      { code: 'CHAPTERS', name: 'Chapters & Regions', nameFr: 'Chapitres et régions', description: 'Regional chapters and country groupings.', href: '/maps' },
-      { code: 'MEMBERSHIP_FEES', name: 'Institutional DPAs', nameFr: 'Accords DPA et licences', description: 'Institutional data-sharing agreements and member licensing.', href: '/licensing' },
-      { code: 'DATA_SHARING', name: 'Data Sharing Agreements', nameFr: 'Accords de partage des données', description: 'Sovereign data-sharing controls per member (P2).', href: '/maintenance' }
+      { code: 'MEMBERSHIP_OVERVIEW', name: 'Overview & 2027 Fees', nameFr: 'Vue d’ensemble & cotisations 2027', description: '151 members, voting rights, fee collection, and 2027 pipeline.', href: '/membership?tab=FEES' },
+      { code: 'MEMBERSHIP_REACH', name: 'Reach & Data Quality', nameFr: 'Couverture & qualité des données', description: 'Composition by category, facility size, countries, and clean-up queue.', href: '/membership?tab=REACH' },
+      { code: 'MEMBER_RECORDS', name: 'Records, Invoices & Imports', nameFr: 'Dossiers, factures & imports', description: 'Contacts, reference people, reminders, invoices, and CSV/PDF upload.', href: '/membership?tab=RECORD' },
+      { code: 'MEMBERSHIP_PLAN', name: '2027 Plan, ToR & JD', nameFr: 'Plan 2027, TdR & Fiche de poste', description: 'Role matrix, Intern ToR, Officer JD, and 2027 Fee Calendar.', href: '/membership?tab=FUNCTION' },
+      { code: 'MEMBER_DIRECTORY', name: 'Member Directory (151)', nameFr: 'Annuaire des membres (151)', description: 'Searchable list of member organizations by category and country.', href: '/explorer?tab=DIRECTORY' },
+      { code: 'MEMBER_PROFILE', name: 'Member Profiles', nameFr: 'Profils des membres', description: 'Detailed profile, strategic plan alignment, and affiliated FOSAs.', href: '/explorer?tab=MEMBERS' }
     ]
   },
   {
@@ -59,13 +58,11 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     nameFr: 'Projets',
     icon: 'briefcase',
     href: '/programs',
-    description: 'Projects organized by program area and health priority, with funder and period links.',
+    description: 'The 5 official EPN program areas, active projects, and field impact stories.',
     subs: [
-      { code: 'PROGRAM_AREAS', name: 'Program Areas', nameFr: 'Domaines de programmes', description: 'The 5 official EPN program areas and their projects.', href: '/programs' },
-      { code: 'PROJECT_REGISTER', name: 'Project Register', nameFr: 'Registre des projets', description: 'Browse the full project list with status, budget and period.', href: '/explorer?tab=PROJECTS' },
-      { code: 'BY_PRIORITY', name: 'By Health Priority', nameFr: 'Par priorité de santé', description: 'MNCH/RH, IPC & AMR, NCDs, NTDs project views.', href: '/programs' },
-      { code: 'BY_FUNDER', name: 'By Funder', nameFr: 'Par bailleur', description: 'Funders (Buyers) with all funded projects, amounts and periods.', href: '/explorer?tab=FUNDERS' },
-      { code: 'PROJECT_RESULTS', name: 'Project Results', nameFr: 'Résultats des projets', description: 'People trained, facilities reached and outcomes per project.', href: '/reports' }
+      { code: 'PROGRAM_AREAS', name: '5 Program Areas', nameFr: '5 Domaines de programmes', description: 'Official EPN program areas and health priorities.', href: '/programs' },
+      { code: 'PROJECT_REGISTER', name: 'Project Register', nameFr: 'Registre des projets', description: 'Full project list with status, countries, and reach.', href: '/explorer?tab=PROJECTS' },
+      { code: 'PROJECT_STORIES', name: 'Impact Stories', nameFr: 'Histoires d’impact', description: 'Verified before/after evidence from church health networks.', href: '/stories' }
     ]
   },
   {
@@ -74,13 +71,12 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     nameFr: 'Établissements de santé',
     icon: 'building',
     href: '/explorer?tab=FACILITIES',
-    description: 'Facility data linked to members and geography across 29 African nations.',
+    description: 'FOSAs categorised by Health Association (Levels 1–6), coverage, and facility reporting.',
     subs: [
-      { code: 'FACILITY_REGISTRY', name: 'Facility Registry', nameFr: 'Registre des établissements', description: 'Master list of network health facilities.', href: '/explorer?tab=FACILITIES' },
-      { code: 'FACILITY_PROFILE', name: 'Facility Profiles', nameFr: 'Profils des établissements', description: 'Level, beds, catchment, services and pharmacy capacity.', href: '/explorer?tab=FACILITIES' },
-      { code: 'GEO_COVERAGE', name: 'Geographic Coverage', nameFr: 'Couverture géographique', description: 'Country and subnational mapping of the network.', href: '/maps' },
-      { code: 'REPORTING', name: 'Reporting & Completeness', nameFr: 'Rapports et complétude', description: 'Data quality, completeness and timeliness per facility.', href: '/quality' },
-      { code: 'FACILITY_MEMBER_LINKS', name: 'Facility–Member Links', nameFr: 'Liens établissement–membre', description: 'Ownership chains: Network → Country → Member → Facility.', href: '/explorer?tab=COVERAGE' }
+      { code: 'FACILITY_BY_ASSOC', name: 'FOSAs by Health Association', nameFr: 'FOSA par association de santé', description: 'Facility counts (Levels 1–6), programs, EPN eligibility, and mandate alerts.', href: '/explorer?tab=FACILITIES' },
+      { code: 'FACILITY_COVERAGE', name: 'Union Network Coverage', nameFr: 'Couverture réseau (union)', description: 'Country-level coverage without double-counting across members.', href: '/explorer?tab=COVERAGE' },
+      { code: 'FACILITY_DATA_ENTRY', name: 'Monthly Data Entry', nameFr: 'Saisie mensuelle des données', description: 'DHIS2-style facility monthly indicator capture and validation.', href: '/data-entry' },
+      { code: 'FACILITY_QUALITY', name: 'Data Quality & Audits', nameFr: 'Qualité des données & audits', description: 'Completeness, timeliness, and facility audit matrix.', href: '/quality' }
     ]
   },
   {
@@ -89,15 +85,11 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     nameFr: 'Médicaments et approvisionnement',
     icon: 'pill',
     href: '/medstock',
-    description: 'Procurement, consumption, availability and innovative products (renamed from Pharmaceuticals).',
+    description: 'Medstock FEFO inventory, tracer availability, and Minilab medicine quality.',
     subs: [
-      { code: 'TRACER_AVAIL', name: 'Tracer Availability', nameFr: 'Disponibilité des médicaments traces', description: 'Essential medicines availability rates across facilities.', href: '/visualizer' },
-      { code: 'STOCK_INVENTORY', name: 'Stock Inventory', nameFr: 'Inventaire du stock', description: 'Medstock facility-level inventory and balances.', href: '/medstock' },
-      { code: 'STOCKOUT_ALERTS', name: 'Stockout Alerts', nameFr: 'Alertes de rupture', description: 'Sentinel stockout alert engine per tracer item.', href: '/medstock' },
-      { code: 'EXPIRY', name: 'Expiry Monitoring', nameFr: 'Surveillance des péremptions', description: 'Batch expiry watch and disposal tracking.', href: '/medstock' },
-      { code: 'PROCUREMENT', name: 'Procurement & Consumption', nameFr: 'Achats et consommation', description: 'Pooled procurement (EACPP) and consumption aggregates.', href: '/medstock' },
-      { code: 'MED_QUALITY', name: 'Medicine Quality & Minilab', nameFr: 'Qualité et Minilab', description: 'Minilab screening network for substandard medicines.', href: '/quality' },
-      { code: 'INNOVATION', name: 'Innovative Products', nameFr: 'Produits innovants', description: 'New product introductions and pilot tracking.', href: '/medstock' }
+      { code: 'STOCK_INVENTORY', name: 'Medstock & FEFO Ledger', nameFr: 'Inventaire Medstock & FEFO', description: 'Stock on hand, stock-outs, near-expiry batches, and transactions.', href: '/medstock' },
+      { code: 'TRACER_AVAIL', name: 'Tracer Availability Trends', nameFr: 'Disponibilité des médicaments traces', description: 'Essential medicines availability charts across countries.', href: '/visualizer' },
+      { code: 'MED_QUALITY', name: 'Quality, AMR & Minilab', nameFr: 'Qualité, RAM & Minilab', description: 'Minilab screening and WHO AWaRe antimicrobial stewardship.', href: '/quality' }
     ]
   },
   {
@@ -106,13 +98,10 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     nameFr: 'Données sur le personnel',
     icon: 'graduation',
     href: '/workforce',
-    description: 'Trainings held, people trained and workforce metrics (renamed from Human Resources).',
+    description: 'Trainings held, health workers trained, champions, and EPN Learning Portal.',
     subs: [
-      { code: 'WORKFORCE_OVERVIEW', name: 'Workforce Overview', nameFr: 'Vue d’ensemble', description: 'Aggregated workforce and training metrics across programs.', href: '/workforce' },
-      { code: 'TRAININGS', name: 'Trainings Held', nameFr: 'Formations dispensées', description: 'Training sessions by program, priority and country.', href: '/workforce' },
-      { code: 'PEOPLE_TRAINED', name: 'People Trained', nameFr: 'Personnes formées', description: 'Health workers trained with gender disaggregation.', href: '/workforce' },
-      { code: 'CHAMPIONS', name: 'Champions', nameFr: 'Champions', description: 'Pharmaceutical system champions developed per project.', href: '/workforce' },
-      { code: 'LEARNING_PORTAL', name: 'Learning Portal', nameFr: 'Portail de formation', description: 'EPN LMS external learning platform.', href: 'https://training.epnetwork.org/', external: true }
+      { code: 'WORKFORCE_TRAININGS', name: 'Trainings & Champions', nameFr: 'Formations & champions', description: 'Training sessions by project and people trained by country.', href: '/workforce' },
+      { code: 'LEARNING_PORTAL', name: 'Learning Portal (LMS)', nameFr: 'Portail de formation (LMS)', description: 'External EPN LMS training platform.', href: 'https://training.epnetwork.org/', external: true }
     ]
   },
   {
@@ -120,15 +109,12 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     name: 'Financial Data',
     nameFr: 'Données financières',
     icon: 'wallet',
-    href: '/explorer',
-    description: 'Funding received, member business activity and ongoing jobs.',
+    href: '/licensing',
+    description: 'Donor partnerships, grant funders, membership fee collection, and donor reports.',
     subs: [
-      { code: 'FUNDING_RECEIVED', name: 'Funding Received', nameFr: 'Financements reçus', description: 'All funding by funder, amount, currency and period.', href: '/explorer' },
-      { code: 'FUNDING_PROJECT', name: 'Funding by Project', nameFr: 'Financement par projet', description: 'Budgets and disbursements per project.', href: '/explorer' },
-      { code: 'BUSINESS_ACTIVITY', name: 'Member Business Activity', nameFr: 'Activité des entreprises membres', description: 'DSO revenues, DRF status and trading activity.', href: '/explorer' },
-      { code: 'JOBS', name: 'Jobs & Consultancies', nameFr: 'Emplois et consultations', description: 'Ongoing jobs and consultancies in the network.', href: '/reports' },
-      { code: 'BILLING', name: 'Institutional Licensing', nameFr: 'Licences institutionnelles', description: 'Institutional DPA agreements and DFI co-financing settlement.', href: '/licensing' },
-      { code: 'FIN_REPORTS', name: 'Financial Reports', nameFr: 'Rapports financiers', description: 'Donor reports and financial exports.', href: '/reports' }
+      { code: 'DONOR_PARTNERSHIPS', name: 'Donors, Grants & DPAs', nameFr: 'Bailleurs, dons & DPA', description: 'Donor channels (M-Pesa, NCBA, Action Medeor) and institutional DPAs.', href: '/licensing' },
+      { code: 'FUNDERS_REGISTER', name: 'Funders & Buyers', nameFr: 'Bailleurs de fonds', description: 'Global funding partners and co-financed projects.', href: '/explorer?tab=FUNDERS' },
+      { code: 'FIN_REPORTS', name: 'Donor & Financial Reports', nameFr: 'Rapports bailleurs & financiers', description: 'Scorecards, donor project packs, and AGM data exports.', href: '/reports' }
     ]
   },
   {
@@ -137,15 +123,12 @@ export const WORKSPACE_CATEGORIES: readonly WorkspaceCategory[] = [
     nameFr: 'Analyses',
     icon: 'chart',
     href: '/dashboard',
-    description: 'Dashboards, visualizer, maps, reports and stories.',
+    description: 'Surveillance control center, thematic GIS map, visualizer, and strategic metadata.',
     subs: [
-      { code: 'DASHBOARD', name: 'Network Dashboard', nameFr: 'Tableau de bord réseau', description: 'Aggregated network KPIs and reporting trends.', href: '/dashboard' },
-      { code: 'DATA_ENTRY', name: 'Data Entry', nameFr: 'Saisie des données', description: 'DHIS2-style matrix data capture with validation.', href: '/data-entry' },
-      { code: 'VISUALIZER', name: 'Visualizer', nameFr: 'Visualisation', description: 'Pivot tables, charts and indicator time series.', href: '/visualizer' },
-      { code: 'MAPS', name: 'Thematic Maps', nameFr: 'Cartes thématiques', description: 'Choropleth and facility pinpoint mapping.', href: '/maps' },
-      { code: 'REPORTS', name: 'Reports & Exports', nameFr: 'Rapports et exports', description: 'PDF/Excel export pipeline for Secretariat and donors.', href: '/reports' },
-      { code: 'STORIES', name: 'Stories & Impact', nameFr: 'Histoires et impact', description: 'Field testimonies and capacity building outcomes.', href: '/stories' },
-      { code: 'MAINTENANCE', name: 'Metadata & Maintenance', nameFr: 'Maintenance des métadonnées', description: 'Strategy pillars, programs and metadata configuration.', href: '/maintenance' }
+      { code: 'DASHBOARD', name: 'Control Center', nameFr: 'Centre de contrôle', description: 'Sentinel alerts, country scorecard, trends, and governance audit.', href: '/dashboard' },
+      { code: 'MAPS', name: 'Thematic GIS Map', nameFr: 'Carte SIG thématique', description: 'African regional presence, FBO coverage, and stock status map.', href: '/maps' },
+      { code: 'VISUALIZER', name: 'Analytical Visualizer', nameFr: 'Visualisation analytique', description: 'Pivot tables, charts, and indicator time series.', href: '/visualizer' },
+      { code: 'MAINTENANCE', name: 'Strategic Plan & Metadata', nameFr: 'Plan stratégique & métadonnées', description: '2026–2030 strategic pillars and configurable platform metadata.', href: '/maintenance' }
     ]
   }
 ] as const;

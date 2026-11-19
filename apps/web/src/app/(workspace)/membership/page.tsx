@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Users,
   CheckCircle,
@@ -41,8 +42,21 @@ const EPN_EMAIL_SIGNATURE = [
   '"Just and compassionate quality pharmaceutical services for ALL"'
 ].join('\n');
 
-export default function MembershipPage() {
-  const [activeTab, setActiveTab] = useState<MainTab>('FEES');
+const MAIN_TABS: readonly MainTab[] = ['FEES', 'REACH', 'RECORD', 'FUNCTION'];
+
+function MembershipPageInner() {
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get('tab') as MainTab | null;
+  const [activeTab, setActiveTab] = useState<MainTab>(
+    requestedTab && MAIN_TABS.includes(requestedTab) ? requestedTab : 'FEES'
+  );
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab') as MainTab | null;
+    if (tabParam && MAIN_TABS.includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
   const [region, setRegion] = useState<MembershipRegionFilter>('ALL');
   const [data, setData] = useState<MembershipDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1704,5 +1718,19 @@ export default function MembershipPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function MembershipPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex-1 flex items-center justify-center min-h-[50vh] text-sm text-slate-400">
+          Loading membership workspace...
+        </div>
+      }
+    >
+      <MembershipPageInner />
+    </Suspense>
   );
 }
