@@ -20,11 +20,48 @@ export const VERIFIED_MEMBER_PROFILES: Record<string, VerifiedMemberWebProfile> 
       'Christian Health Association of Kenya (CHAK) is a national faith-based health network of Protestant churches health facilities and programmes across Kenya, working with MEDS and EPN on Drug Revolving Funds (DRF), essential medicine availability, and supply chain strengthening.'
   },
   MEDS: {
-    website: 'https://meds.or.ke/',
-    publicEmail: 'sahara@meds.or.ke',
-    tagline: 'Mission for Essential Drugs and Supplies (Kenya)',
+    logo: '/members/meds.png',
+    website: 'https://meds.co.ke/',
+    publicEmail: 'info@meds.or.ke',
+    tagline: '40 Years of Transforming Healthcare Driven By Quality (1986–2026)',
     overview:
-      'MEDS is a Christian, not-for-profit Drug Supply Organization (DSO) based in Nairobi providing reliable, quality-assured medicines, medical supplies, WHO-prequalified quality control laboratory testing, and capacity building across Kenya and the East/Central Africa region.',
+      'MEDS is a Christian, not-for-profit Drug Supply Organization (DSO) based in Nairobi providing reliable, quality-assured medicines, medical supplies, WHO-prequalified quality control laboratory testing, and capacity building across Kenya and the East/Central Africa region since 1986.',
+    scrapedFromOfficialSite: true
+  },
+  'CHAN Medi-Pharm': {
+    logo: '/members/chan-medi-pharm.svg',
+    website: 'https://www.chanmedi-pharm.org/',
+    publicEmail: 'info@chanmedi-pharm.org',
+    tagline: 'Reaching the Unreached with Quality Essential Medicines (Nigeria)',
+    overview:
+      'CHAN Medi-Pharm Ltd/Gte is a faith-based, non-profit Drug Supply Organization providing essential medicines, quality assurance, and supply chain management across Nigeria since 1979.',
+    scrapedFromOfficialSite: true
+  },
+  PCC: {
+    logo: '/members/pcc.jpg',
+    website: 'https://pcconline.org/',
+    publicEmail: 'info@pcconline.org',
+    tagline: 'Presbyterian Church in Cameroon Health Services',
+    overview:
+      'Presbyterian Church in Cameroon (PCC) Health Services operates faith-based hospitals, health centers, and the Presbyterian Pharmaceutical Complex delivering quality healthcare and essential medicines across Cameroon.',
+    scrapedFromOfficialSite: true
+  },
+  CHASL: {
+    logo: '/members/chasl.png',
+    website: 'https://chasl.sl/',
+    publicEmail: 'chasl1975@gmail.com',
+    tagline: 'A Sierra Leone Where Everyone Can Access Good Quality Health Care Services',
+    overview:
+      'Christian Health Association of Sierra Leone (CHASL) coordinates church-owned hospitals and clinics across Sierra Leone to strengthen essential medicine access, maternal health, and primary healthcare delivery.',
+    scrapedFromOfficialSite: true
+  },
+  CBCA: {
+    logo: '/members/cbca.png',
+    website: 'https://www.cbca-kanisa.org/',
+    publicEmail: 'communication@cbca-kanisa.org',
+    tagline: 'Communauté Baptiste au Centre de l’Afrique (DR Congo)',
+    overview:
+      'Communauté Baptiste au Centre de l’Afrique (CBCA) operates faith-based hospitals and health centers in Eastern DR Congo (including CBCA Ndosho Hospital in Goma), partnering with EPN on pharmaceutical systems and antimicrobial stewardship.',
     scrapedFromOfficialSite: true
   },
   CSSC: {

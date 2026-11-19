@@ -33,13 +33,17 @@ function getOfficialAnnualFeeUsd(category: MemberRecordDetail['category']): numb
 
 /** Verified public domains & emails scraped directly from official EPN member websites */
 const VERIFIED_MEMBER_EMAILS: Record<string, { primary: string; finance?: string }> = {
-  MEDS: { primary: 'sahara@meds.or.ke', finance: 'finance@meds.or.ke' },
+  MEDS: { primary: 'info@meds.or.ke', finance: 'orders@meds.or.ke' },
+  'CHAN Medi-Pharm': { primary: 'info@chanmedi-pharm.org' },
   CSSC: { primary: 'contact@cssc.or.tz' },
   UCMB: { primary: 'admin@ucmb.co.ug' },
   UPMB: { primary: 'info@upmb.co.ug' },
   JMS: { primary: 'sales@jms.co.ug' },
   BUFMAR: { primary: 'info@bufmar.rw' },
   CBCHS: { primary: 'info@cbchealthservices.org' },
+  PCC: { primary: 'info@pcconline.org' },
+  CHASL: { primary: 'chasl1975@gmail.com' },
+  CBCA: { primary: 'communication@cbca-kanisa.org' },
   CHAM: { primary: 'info@cham.org.mw' },
   CHAG: { primary: 'info@chag.org.gh' },
   CHAZ: { primary: 'info@chaz.org.zm' },
