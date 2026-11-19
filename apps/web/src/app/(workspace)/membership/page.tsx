@@ -1252,13 +1252,24 @@ function MembershipPageInner() {
                             <span>{sendingReminder ? 'Logging...' : 'Send & Log Update Reminder'}</span>
                           </button>
                           {reminderToEmail && (
-                            <a
-                              href={`mailto:${encodeURIComponent(reminderToEmail)}?subject=${encodeURIComponent(reminderSubject)}&body=${encodeURIComponent(reminderBody)}`}
-                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold"
-                            >
-                              <Mail className="w-3.5 h-3.5" />
-                              <span>Open in Email Client</span>
-                            </a>
+                            <>
+                              <a
+                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(reminderToEmail)}&su=${encodeURIComponent(reminderSubject)}&body=${encodeURIComponent(reminderBody)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white font-semibold"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                                <span>Open in Gmail</span>
+                              </a>
+                              <a
+                                href={`mailto:${encodeURIComponent(reminderToEmail)}?subject=${encodeURIComponent(reminderSubject)}&body=${encodeURIComponent(reminderBody)}`}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                                <span>Mail App</span>
+                              </a>
+                            </>
                           )}
                         </div>
                       </div>
@@ -1447,13 +1458,24 @@ function MembershipPageInner() {
                           <span>Send Invoice &amp; Mark Issued</span>
                         </button>
                         {invoiceRecipientEmail && (
-                          <a
-                            href={`mailto:${encodeURIComponent(invoiceRecipientEmail)}?subject=${encodeURIComponent(`EPN One Network 2027 Membership Invoice — ${invoiceNo || activeRecord.code}`)}&body=${encodeURIComponent(`Dear ${activeRecord.name} Finance Team,\n\nPlease find attached your 2027 EPN One Network membership fee invoice (${invoiceNo || `INV-2027-${activeRecord.code}`}) for $${activeRecord.invoice2027.amountUsd} USD, dated ${invoiceDate}.\n\nKindly acknowledge receipt and confirm your finance contact & reference people.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold"
-                          >
-                            <Mail className="w-3.5 h-3.5" />
-                            <span>Open Email Draft</span>
-                          </a>
+                          <>
+                            <a
+                              href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(invoiceRecipientEmail)}&su=${encodeURIComponent(`EPN One Network 2027 Membership Invoice — ${invoiceNo || activeRecord.code}`)}&body=${encodeURIComponent(`Dear ${activeRecord.name} Finance Team,\n\nPlease find attached your 2027 EPN One Network membership fee invoice (${invoiceNo || `INV-2027-${activeRecord.code}`}) for $${activeRecord.invoice2027.amountUsd} USD, dated ${invoiceDate}.\n\nKindly acknowledge receipt and confirm your finance contact & reference people.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white font-semibold"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              <span>Send via Gmail</span>
+                            </a>
+                            <a
+                              href={`mailto:${encodeURIComponent(invoiceRecipientEmail)}?subject=${encodeURIComponent(`EPN One Network 2027 Membership Invoice — ${invoiceNo || activeRecord.code}`)}&body=${encodeURIComponent(`Dear ${activeRecord.name} Finance Team,\n\nPlease find attached your 2027 EPN One Network membership fee invoice (${invoiceNo || `INV-2027-${activeRecord.code}`}) for $${activeRecord.invoice2027.amountUsd} USD, dated ${invoiceDate}.\n\nKindly acknowledge receipt and confirm your finance contact & reference people.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold"
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                              <span>Mail App</span>
+                            </a>
+                          </>
                         )}
                         <button
                           type="button"
@@ -1715,13 +1737,24 @@ function MembershipPageInner() {
                             <b>{lastActivationResult.when}</b> activated — <b>{lastActivationResult.remindersDispatched}</b> reminder message(s) &amp; email(s) logged.
                           </div>
                           {lastActivationResult.recipients.length > 0 && (
-                            <a
-                              href={`mailto:${encodeURIComponent(lastActivationResult.recipients.map(r => r.email).join(','))}?subject=${encodeURIComponent(`EPN One Network — ${lastActivationResult.when} Action & Data Update Reminder`)}&body=${encodeURIComponent(`Dear EPN Member Association,\n\nThis is an automated reminder for the ${lastActivationResult.when} milestone in the EPN 2027 Membership Calendar. Please review and update your association's contact email, finance contact, and designated reference people in EPN One Network.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shrink-0"
-                            >
-                              <Mail className="w-3.5 h-3.5" />
-                              <span>Email All Recipients ({lastActivationResult.recipients.length})</span>
-                            </a>
+                            <div className="flex flex-wrap items-center gap-2 shrink-0">
+                              <a
+                                href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(lastActivationResult.recipients.map(r => r.email).join(','))}&su=${encodeURIComponent(`EPN One Network — ${lastActivationResult.when} Action & Data Update Reminder`)}&body=${encodeURIComponent(`Dear EPN Member Association,\n\nThis is an automated reminder for the ${lastActivationResult.when} milestone in the EPN 2027 Membership Calendar. Please review and update your association's contact email, finance contact, and designated reference people in EPN One Network.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white font-semibold"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                                <span>Send via Gmail ({lastActivationResult.recipients.length})</span>
+                              </a>
+                              <a
+                                href={`mailto:${encodeURIComponent(lastActivationResult.recipients.map(r => r.email).join(','))}?subject=${encodeURIComponent(`EPN One Network — ${lastActivationResult.when} Action & Data Update Reminder`)}&body=${encodeURIComponent(`Dear EPN Member Association,\n\nThis is an automated reminder for the ${lastActivationResult.when} milestone in the EPN 2027 Membership Calendar. Please review and update your association's contact email, finance contact, and designated reference people in EPN One Network.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold"
+                              >
+                                <Mail className="w-3.5 h-3.5" />
+                                <span>Mail App</span>
+                              </a>
+                            </div>
                           )}
                         </div>
                       )}

@@ -1027,239 +1027,305 @@ function ExplorerInner() {
               )}
             </div>
 
-            {/* Health Association FOSA Categorization & Mandate Watch */}
-            {fosaSubView === 'ASSOCIATIONS' && (
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs space-y-5">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div>
-                  <div className="text-xs font-bold text-[#004a59] uppercase tracking-wider">
-                    FOSAs Categorised by Health Association
+            {/* Health Association FOSA Categorization & Mandate Watch (Redesigned) */}
+            {fosaSubView === 'ASSOCIATIONS' && (() => {
+              const mStatus = getMandateStatus(activeAssoc.mandateEnd);
+              const gmailSubject = `EPN One Network — Mandate & Facility Contact Update (${activeAssoc.code})`;
+              const gmailBody = [
+                `Dear ${activeAssoc.referencePerson} (${activeAssoc.referenceRole}) & ${activeAssoc.name} Team,`,
+                '',
+                `As part of EPN One Network's member data governance, please confirm or update your health association's facility count (Levels 1–6), reference person mandate dates, and official contact email/phone.`,
+                '',
+                `Current Mandate End Date on File: ${activeAssoc.mandateEnd}`,
+                `Current Affiliated Facilities: ${activeAssoc.totalFacilities.toLocaleString()} FOSAs`,
+                '',
+                'Warm regards,',
+                '--',
+                'Ecumenical Pharmaceutical Network (EPN)',
+                'Secretariat · Membership & Partnerships Desk',
+                'P.O. Box 749–00606, Nairobi, Kenya | Tel: +254 724 301755 | info@epnetwork.org',
+                'Web: https://www.epnetwork.org'
+              ].join('\n');
+              const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(activeAssoc.contactEmail)}&su=${encodeURIComponent(gmailSubject)}&body=${encodeURIComponent(gmailBody)}`;
+              const maxLevelCount = Math.max(1, ...Object.values(activeAssoc.levels));
+
+              return (
+                <div className="space-y-5">
+                  {/* Visual Association Selector Strip */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {assocRecords.map(a => {
+                      const st = getMandateStatus(a.mandateEnd);
+                      const isSel = selectedAssocCode === a.code;
+                      return (
+                        <button
+                          key={a.code}
+                          type="button"
+                          onClick={() => {
+                            setSelectedAssocCode(a.code);
+                            setFosaMemberFilter(a.code);
+                          }}
+                          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
+                            isSel
+                              ? 'border-[#004a59] bg-[#004a59] text-white shadow-md'
+                              : 'border-slate-200 bg-white hover:border-[#004a59] hover:shadow-xs text-slate-900'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-extrabold text-sm">{a.code}</span>
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                st.tone === 'rose'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : st.tone === 'amber'
+                                  ? 'bg-amber-100 text-amber-900'
+                                  : isSel
+                                  ? 'bg-white/15 text-cyan-100'
+                                  : 'bg-emerald-50 text-emerald-700'
+                              }`}
+                            >
+                              {st.tone === 'rose' ? 'Mandate Ended' : st.tone === 'amber' ? `${st.daysLeft}d left` : 'Active'}
+                            </span>
+                          </div>
+                          <div className={`text-[11px] mt-1 ${isSel ? 'text-cyan-100' : 'text-slate-500'}`}>
+                            {a.country} · <b className={isSel ? 'text-white' : 'text-slate-800'}>{a.totalFacilities.toLocaleString()}</b> FOSAs
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900 mt-0.5">
-                    Health Associations: Facility Counts (Levels 1–6), Programs, EPN Eligibility &amp; Mandate Alerts
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Select a health association to inspect its facility levels (1–6), active/completed programs, EPN membership requirement status, reference members, news, and mandate end-time alerts.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {assocRecords.map(a => {
-                    const mStatus = getMandateStatus(a.mandateEnd);
-                    return (
-                      <button
-                        key={a.code}
-                        onClick={() => {
-                          setSelectedAssocCode(a.code);
-                          setFosaMemberFilter(a.code);
-                        }}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
-                          selectedAssocCode === a.code
-                            ? 'bg-[#004a59] text-white border-[#004a59]'
-                            : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                        }`}
+
+                  {/* Executive Health Association Hero Banner */}
+                  <div className="rounded-2xl bg-gradient-to-r from-[#004a59] to-[#005a87] text-white p-6 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                        <span className="px-2.5 py-0.5 rounded-full bg-white/15 font-bold uppercase">
+                          {activeAssoc.country} · {activeAssoc.totalFacilities.toLocaleString()} Affiliated FOSAs
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-300/40 text-emerald-100 font-bold">
+                          {activeAssoc.meetsEpnRequirements ? 'Meets EPN Requirements ✓' : 'Review Needed'}
+                        </span>
+                      </div>
+                      <h2 className="text-xl sm:text-2xl font-extrabold leading-tight">{activeAssoc.name}</h2>
+                      <p className="text-xs text-cyan-100/90">{activeAssoc.requirementNotes}</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <a
+                        href={gmailUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white text-xs font-bold transition-colors"
                       >
-                        <span>{a.code}</span>
-                        {mStatus.tone !== 'emerald' && (
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              mStatus.tone === 'rose' ? 'bg-rose-500' : 'bg-amber-400'
-                            }`}
-                            title={mStatus.label}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Mandate End-Time Alert Banner */}
-              {(() => {
-                const mStatus = getMandateStatus(activeAssoc.mandateEnd);
-                if (mStatus.tone === 'emerald') return null;
-                return (
-                  <div
-                    role="alert"
-                    className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
-                      mStatus.tone === 'rose'
-                        ? 'bg-rose-50 border-rose-200 text-rose-950'
-                        : 'bg-amber-50 border-amber-200 text-amber-950'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${mStatus.tone === 'rose' ? 'text-rose-600' : 'text-amber-600'}`} />
-                      <div>
-                        <div className="font-bold">
-                          {mStatus.label} — {activeAssoc.name}
-                        </div>
-                        <div className="mt-0.5">
-                          Reference person <b>{activeAssoc.referencePerson}</b> ({activeAssoc.referenceRole}) mandate end date is{' '}
-                          <span className="font-mono font-bold">{activeAssoc.mandateEnd}</span>. Please update the incoming reference person and contact details below.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Association Overview + Level 1-6 Breakdown + Programs + EPN Requirements */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 text-xs">
-                <div className="lg:col-span-2 space-y-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-[10px] font-bold uppercase text-slate-500">Health Association</div>
-                      <div className="text-base font-extrabold text-slate-900 mt-0.5">{activeAssoc.code}</div>
-                      <div className="text-[11px] text-slate-600">{activeAssoc.country}</div>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-[10px] font-bold uppercase text-slate-500">Total Health Facilities</div>
-                      <div className="text-xl font-extrabold text-[#004a59] mt-0.5 tabular-nums">
-                        {activeAssoc.totalFacilities.toLocaleString()}
-                      </div>
-                      <div className="text-[11px] text-slate-600">Affiliated FOSAs</div>
-                    </div>
-                    <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 col-span-2">
-                      <div className="text-[10px] font-bold uppercase text-emerald-800">EPN Membership Requirement</div>
-                      <div className="text-sm font-extrabold text-emerald-900 mt-0.5">
-                        {activeAssoc.meetsEpnRequirements ? 'Meets EPN Requirements ✓' : 'Review Needed'}
-                      </div>
-                      <div className="text-[11px] text-emerald-800 mt-0.5">{activeAssoc.requirementNotes}</div>
+                        <Mail className="w-3.5 h-3.5" />
+                        <span>Send Gmail Update</span>
+                      </a>
+                      <a
+                        href={`mailto:${encodeURIComponent(activeAssoc.contactEmail)}?subject=${encodeURIComponent(gmailSubject)}&body=${encodeURIComponent(gmailBody)}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white text-xs font-semibold transition-colors"
+                      >
+                        <span>Mail App</span>
+                      </a>
                     </div>
                   </div>
 
-                  {/* Level 1 to 6 Breakdown */}
-                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2.5">
-                    <div className="font-bold text-slate-900">Number of Health Facilities by Level (Level 1 to Level 6)</div>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                      {(
-                        [
-                          { lvl: 1, name: 'L1 · Community' },
-                          { lvl: 2, name: 'L2 · Dispensary' },
-                          { lvl: 3, name: 'L3 · Health Ctr' },
-                          { lvl: 4, name: 'L4 · Primary Hosp' },
-                          { lvl: 5, name: 'L5 · Regional Ref' },
-                          { lvl: 6, name: 'L6 · National Ref' }
-                        ] as const
-                      ).map(item => (
-                        <div key={item.lvl} className="p-2.5 rounded-lg bg-white border border-slate-200 text-center">
-                          <div className="text-[10px] font-bold text-slate-500">{item.name}</div>
-                          <div className="text-base font-extrabold text-slate-900 mt-0.5 tabular-nums">
-                            {activeAssoc.levels[item.lvl]}
+                  {/* Mandate End-Time Alert Banner */}
+                  {mStatus.tone !== 'emerald' && (
+                    <div
+                      role="alert"
+                      className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+                        mStatus.tone === 'rose'
+                          ? 'bg-rose-50 border-rose-200 text-rose-950'
+                          : 'bg-amber-50 border-amber-200 text-amber-950'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${mStatus.tone === 'rose' ? 'text-rose-600' : 'text-amber-600'}`} />
+                        <div>
+                          <div className="font-bold">
+                            {mStatus.label} — {activeAssoc.name}
+                          </div>
+                          <div className="mt-0.5">
+                            Reference person <b>{activeAssoc.referencePerson}</b> ({activeAssoc.referenceRole}) mandate end date is{' '}
+                            <span className="font-mono font-bold">{activeAssoc.mandateEnd}</span>. Send a Gmail update reminder or update the incoming leader now.
                           </div>
                         </div>
-                      ))}
+                      </div>
+                      <a
+                        href={gmailUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3.5 py-1.5 rounded-full bg-rose-700 hover:bg-rose-800 text-white font-bold shrink-0 self-start sm:self-center"
+                      >
+                        Remind via Gmail &rarr;
+                      </a>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Active & Completed Programs + News */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                      <div className="font-bold text-slate-900">Active Programs</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {activeAssoc.activePrograms.map(p => (
-                          <span key={p} className="px-2.5 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-900 font-semibold text-[11px]">
-                            {p}
+                  {/* Visual Level 1 to 6 Distribution + Programs & Contacts */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-xs">
+                    <div className={`${showEditAssoc ? 'lg:col-span-8' : 'lg:col-span-12'} space-y-5`}>
+                      {/* Level 1 to 6 Visual Bar Chart */}
+                      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm font-bold text-slate-900">
+                            Health Facilities by Level (Level 1 to Level 6)
+                          </h3>
+                          <span className="text-xs font-mono font-bold text-[#004a59]">
+                            Total: {activeAssoc.totalFacilities.toLocaleString()} FOSAs
                           </span>
-                        ))}
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {(
+                            [
+                              { lvl: 1, name: 'Level 1 · Community' },
+                              { lvl: 2, name: 'Level 2 · Dispensary' },
+                              { lvl: 3, name: 'Level 3 · Health Centre' },
+                              { lvl: 4, name: 'Level 4 · Primary Hospital' },
+                              { lvl: 5, name: 'Level 5 · Regional Referral' },
+                              { lvl: 6, name: 'Level 6 · National Referral' }
+                            ] as const
+                          ).map(item => {
+                            const count = activeAssoc.levels[item.lvl];
+                            const share = Math.round((count / activeAssoc.totalFacilities) * 100);
+                            const barWidth = Math.round((count / maxLevelCount) * 100);
+                            return (
+                              <div key={item.lvl} className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-slate-700">{item.name}</span>
+                                  <span className="font-mono font-extrabold text-[#004a59] text-sm tabular-nums">
+                                    {count.toLocaleString()}
+                                  </span>
+                                </div>
+                                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-[#004a59] rounded-full"
+                                    style={{ width: `${Math.max(barWidth, count > 0 ? 6 : 0)}%` }}
+                                  />
+                                </div>
+                                <div className="text-[10px] text-slate-500">{share}% of {activeAssoc.code} network</div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="font-bold text-slate-900 pt-2">Programs Done (Completed)</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {activeAssoc.completedPrograms.map(p => (
-                          <span key={p} className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-900 font-semibold text-[11px]">
-                            {p} ✓
-                          </span>
-                        ))}
-                      </div>
-                    </div>
 
-                    <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-2">
-                      <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                        <Newspaper className="w-3.5 h-3.5 text-[#004a59]" /> Member News &amp; Updates
-                      </div>
-                      <p className="text-slate-700 leading-relaxed">{activeAssoc.news}</p>
-                      <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600 space-y-0.5">
-                        <div className="flex items-center gap-1.5"><Mail className="w-3 h-3" /> {activeAssoc.contactEmail}</div>
-                        <div className="flex items-center gap-1.5"><Phone className="w-3 h-3" /> {activeAssoc.contactPhone}</div>
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="w-3 h-3" /> Reference: <b>{activeAssoc.referencePerson}</b> (Mandate ends {activeAssoc.mandateEnd})
+                      {/* 2-Column: Programs & Member News/Contacts */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                          <h3 className="text-sm font-bold text-slate-900">Active &amp; Completed Programs</h3>
+                          <div className="space-y-1.5">
+                            <div className="text-[10px] font-bold uppercase text-slate-400">Active Programs</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {activeAssoc.activePrograms.map(p => (
+                                <span key={p} className="px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-[#004a59] font-bold text-[11px]">
+                                  {p}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                            <div className="text-[10px] font-bold uppercase text-slate-400">Programs Done (Completed)</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {activeAssoc.completedPrograms.map(p => (
+                                <span key={p} className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold text-[11px]">
+                                  {p} ✓
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                              <Newspaper className="w-4 h-4 text-[#004a59]" /> News, Reference &amp; Contact
+                            </h3>
+                            <span className="text-[10px] font-mono text-slate-500">Mandate: {activeAssoc.mandateEnd}</span>
+                          </div>
+                          <p className="text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
+                            {activeAssoc.news}
+                          </p>
+                          <div className="space-y-1 text-slate-700 pt-1">
+                            <div className="flex items-center gap-2"><Mail className="w-3.5 h-3.5 text-[#004a59]" /> <b>{activeAssoc.contactEmail}</b></div>
+                            <div className="flex items-center gap-2"><Phone className="w-3.5 h-3.5 text-[#004a59]" /> {activeAssoc.contactPhone}</div>
+                            <div className="flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-[#004a59]" /> Reference: <b>{activeAssoc.referencePerson}</b> ({activeAssoc.referenceRole})</div>
+                          </div>
                         </div>
                       </div>
                     </div>
+
+                    {/* Inline Update Contact, Reference Member & Mandate End Date (Collapsible) */}
+                    {showEditAssoc && (
+                      <form onSubmit={handleSaveAssocUpdate} className="lg:col-span-4 p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-3">
+                        <div className="font-bold text-sm text-slate-900">Update {activeAssoc.code} Contacts &amp; Mandate</div>
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Contact Email (Gmail / Org)</label>
+                          <input
+                            type="email"
+                            value={editAssocEmail}
+                            onChange={e => setEditAssocEmail(e.target.value)}
+                            className="w-full p-2 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Contact Phone</label>
+                          <input
+                            type="text"
+                            value={editAssocPhone}
+                            onChange={e => setEditAssocPhone(e.target.value)}
+                            className="w-full p-2 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="font-semibold text-slate-700 block mb-1">Reference Person</label>
+                            <input
+                              type="text"
+                              value={editAssocRef}
+                              onChange={e => setEditAssocRef(e.target.value)}
+                              className="w-full p-2 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="font-semibold text-slate-700 block mb-1">Role</label>
+                            <input
+                              type="text"
+                              value={editAssocRole}
+                              onChange={e => setEditAssocRole(e.target.value)}
+                              className="w-full p-2 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">Mandate End Date (Alert Trigger)</label>
+                          <input
+                            type="date"
+                            value={editAssocMandateEnd}
+                            onChange={e => setEditAssocMandateEnd(e.target.value)}
+                            className="w-full p-2 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="font-semibold text-slate-700 block mb-1">News / Update Note</label>
+                          <textarea
+                            rows={2}
+                            value={editAssocNews}
+                            onChange={e => setEditAssocNews(e.target.value)}
+                            className="w-full p-2 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          className="w-full py-2.5 rounded-full bg-[#004a59] hover:bg-[#003440] text-white font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          <span>Save Contacts &amp; Mandate</span>
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
-
-                {/* Inline Update Contact, Reference Member & Mandate End Date (Collapsible) */}
-                {showEditAssoc && (
-                <form onSubmit={handleSaveAssocUpdate} className="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3">
-                  <div className="font-bold text-slate-900">Update {activeAssoc.code} Contacts, Reference &amp; Mandate</div>
-                  <div>
-                    <label className="font-semibold text-slate-700 block mb-1">Contact Email</label>
-                    <input
-                      type="email"
-                      value={editAssocEmail}
-                      onChange={e => setEditAssocEmail(e.target.value)}
-                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold text-slate-700 block mb-1">Contact Phone</label>
-                    <input
-                      type="text"
-                      value={editAssocPhone}
-                      onChange={e => setEditAssocPhone(e.target.value)}
-                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="font-semibold text-slate-700 block mb-1">Reference Person</label>
-                      <input
-                        type="text"
-                        value={editAssocRef}
-                        onChange={e => setEditAssocRef(e.target.value)}
-                        className="w-full p-2 rounded-lg border border-slate-300 bg-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="font-semibold text-slate-700 block mb-1">Role</label>
-                      <input
-                        type="text"
-                        value={editAssocRole}
-                        onChange={e => setEditAssocRole(e.target.value)}
-                        className="w-full p-2 rounded-lg border border-slate-300 bg-white"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="font-semibold text-slate-700 block mb-1">Mandate End Date (Alert Trigger)</label>
-                    <input
-                      type="date"
-                      value={editAssocMandateEnd}
-                      onChange={e => setEditAssocMandateEnd(e.target.value)}
-                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-semibold text-slate-700 block mb-1">News / Update Note</label>
-                    <textarea
-                      rows={2}
-                      value={editAssocNews}
-                      onChange={e => setEditAssocNews(e.target.value)}
-                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-2 rounded-full bg-[#004a59] hover:bg-[#003440] text-white font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>Save Contacts &amp; Mandate</span>
-                  </button>
-                </form>
-                )}
-              </div>
-            </div>
-            )}
+              );
+            })()}
 
             {fosaSubView === 'REGISTRY' && (
             <>
