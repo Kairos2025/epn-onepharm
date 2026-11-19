@@ -1,6 +1,25 @@
+import { IMPLEMENTING_MEMBERS_SEED } from '@epn/domain';
 import type { MembershipDashboardData, MemberRecordDetail, MembershipRegionFilter } from '@epn/domain';
 
-export const SEED_MEMBER_RECORDS: MemberRecordDetail[] = [
+const COUNTRY_META: Record<string, { name: string; region: MemberRecordDetail['region']; lang: MemberRecordDetail['language'] }> = {
+  KE: { name: 'Kenya', region: 'EAST', lang: 'EN' },
+  NG: { name: 'Nigeria', region: 'WEST', lang: 'EN' },
+  TZ: { name: 'Tanzania', region: 'EAST', lang: 'EN' },
+  RW: { name: 'Rwanda', region: 'EAST', lang: 'BILINGUAL' },
+  TD: { name: 'Chad', region: 'CENTRAL', lang: 'FR' },
+  CM: { name: 'Cameroon', region: 'CENTRAL', lang: 'BILINGUAL' },
+  LS: { name: 'Lesotho', region: 'SOUTHERN', lang: 'EN' },
+  LR: { name: 'Liberia', region: 'WEST', lang: 'EN' },
+  SL: { name: 'Sierra Leone', region: 'WEST', lang: 'EN' },
+  GN: { name: 'Guinea', region: 'WEST', lang: 'FR' },
+  BI: { name: 'Burundi', region: 'EAST', lang: 'FR' },
+  CD: { name: 'DR Congo', region: 'CENTRAL', lang: 'FR' },
+  UG: { name: 'Uganda', region: 'EAST', lang: 'EN' },
+  NE: { name: 'Niger', region: 'WEST', lang: 'FR' },
+  US: { name: 'USA', region: 'EAST', lang: 'EN' }
+};
+
+const CORE_RECORDS: MemberRecordDetail[] = [
   {
     id: 'mem_ceca20',
     code: 'C20',
@@ -109,6 +128,46 @@ export const SEED_MEMBER_RECORDS: MemberRecordDetail[] = [
     ]
   }
 ];
+
+const EXTRA_RECORDS: MemberRecordDetail[] = IMPLEMENTING_MEMBERS_SEED.filter(
+  m => !['CECA 20', 'CMMB', 'CHAK'].includes(m.abbreviation)
+).map((m, idx) => {
+  const meta = COUNTRY_META[m.country] || { name: m.country, region: 'EAST' as const, lang: 'EN' as const };
+  const slug = m.abbreviation.toLowerCase().replace(/[^a-z0-9]/g, '') + (m.country.toLowerCase());
+  const domain = `${m.abbreviation.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`;
+  return {
+    id: `mem_${slug}`,
+    code: m.abbreviation,
+    name: m.name,
+    category: m.type as MemberRecordDetail['category'],
+    votingStatus: 'ORDINARY',
+    country: meta.name,
+    language: meta.lang,
+    region: meta.region,
+    facilitiesCount: 35 + ((idx * 17) % 180),
+    approvedDate: 'AGM 2026 Verified',
+    completenessPct: 76 + ((idx * 5) % 18),
+    missingFields: ['Finance contact verification', '2027 AGM delegate confirmation'],
+    invoice2027: {
+      status: 'PENDING',
+      amountUsd: m.type === 'DSO' ? 500 : 350
+    },
+    contacts: {
+      primaryEmail: `secretariat@${domain}`,
+      financeEmail: `finance@${domain}`,
+      phone: '',
+      referencePeople: [
+        { name: `${m.abbreviation} Focal Point`, role: 'Health & Pharmacy Coordinator', email: `secretariat@${domain}` }
+      ],
+      lastVerifiedDate: '2026-10-09'
+    },
+    changeHistory: [
+      { date: '09 Oct 2026', note: 'Included in AGM 2026 verified member roster' }
+    ]
+  };
+});
+
+export const SEED_MEMBER_RECORDS: MemberRecordDetail[] = [...CORE_RECORDS, ...EXTRA_RECORDS];
 
 const REGION_SCALE: Record<MembershipRegionFilter, number> = {
   ALL: 1,

@@ -245,14 +245,14 @@ describe('EPN One Network End-to-End API Workflows', () => {
         sourceFile: 'associations.csv',
         rows: [
           {
-            code: 'MEDS',
-            name: 'Mission for Essential Drugs and Supplies (MEDS)',
-            category: 'DSO',
+            code: 'CHAZ',
+            name: 'Churches Health Association of Zambia (CHAZ)',
+            category: 'CHA',
             votingStatus: 'ORDINARY',
-            country: 'Kenya',
-            primaryEmail: 'info@meds.or.ke',
-            financeEmail: 'finance@meds.or.ke',
-            referencePerson: 'Dr. Wycliffe Nandama'
+            country: 'Zambia',
+            primaryEmail: 'info@chaz.org.zm',
+            financeEmail: 'finance@chaz.org.zm',
+            referencePerson: 'Karen Sichinga'
           }
         ]
       })

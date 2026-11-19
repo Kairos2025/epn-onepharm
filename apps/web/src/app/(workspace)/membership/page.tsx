@@ -30,6 +30,17 @@ import { epnClient } from '@/lib/api';
 type MainTab = 'FEES' | 'REACH' | 'RECORD' | 'FUNCTION';
 type RecordSubTab = 'PROFILE' | 'FACILITIES' | 'CONTACTS' | 'SUBSCRIPTION' | 'ENGAGEMENT';
 
+const EPN_EMAIL_SIGNATURE = [
+  '--',
+  'Ecumenical Pharmaceutical Network (EPN)',
+  'Secretariat · Membership & Partnerships Desk',
+  'Maisonette 1, Kirichwa Flats, Kirichwa Road, Kilimani',
+  'P.O. Box 749–00606, Nairobi, Kenya',
+  'Tel: +254 724 301755 | Email: info@epnetwork.org',
+  'Web: https://www.epnetwork.org | Portal: https://epn-onepharm.vercel.app',
+  '"Just and compassionate quality pharmaceutical services for ALL"'
+].join('\n');
+
 export default function MembershipPage() {
   const [activeTab, setActiveTab] = useState<MainTab>('FEES');
   const [region, setRegion] = useState<MembershipRegionFilter>('ALL');
@@ -115,7 +126,7 @@ export default function MembershipPage() {
       : '';
     const refNames = (activeRecord.contacts?.referencePeople || []).map(p => `${p.name} (${p.role})`).join(', ');
     setReminderBody(
-      `Dear ${refNames || activeRecord.name} team,\n\nAs part of the EPN One Network 2027 membership cycle, please review and confirm your health association's contact email, finance billing contact, and designated reference people.${missingList}\n\nThank you for keeping EPN One Network records up to date.\n\nWarm regards,\nEPN Secretariat`
+      `Dear ${refNames || activeRecord.name} team,\n\nAs part of the EPN One Network 2027 membership cycle, please review and confirm your health association's contact email, finance billing contact, and designated reference people.${missingList}\n\nThank you for keeping EPN One Network records up to date.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`
     );
   }, [activeRecord]);
 
@@ -1355,7 +1366,7 @@ export default function MembershipPage() {
                         </button>
                         {invoiceRecipientEmail && (
                           <a
-                            href={`mailto:${encodeURIComponent(invoiceRecipientEmail)}?subject=${encodeURIComponent(`EPN One Network 2027 Membership Invoice — ${invoiceNo || activeRecord.code}`)}&body=${encodeURIComponent(`Dear ${activeRecord.name} Finance Team,\n\nPlease find attached your 2027 EPN One Network membership fee invoice (${invoiceNo || `INV-2027-${activeRecord.code}`}) for $${activeRecord.invoice2027.amountUsd} USD, dated ${invoiceDate}.\n\nKindly acknowledge receipt and confirm your finance contact & reference people.\n\nWarm regards,\nEPN Secretariat`)}`}
+                            href={`mailto:${encodeURIComponent(invoiceRecipientEmail)}?subject=${encodeURIComponent(`EPN One Network 2027 Membership Invoice — ${invoiceNo || activeRecord.code}`)}&body=${encodeURIComponent(`Dear ${activeRecord.name} Finance Team,\n\nPlease find attached your 2027 EPN One Network membership fee invoice (${invoiceNo || `INV-2027-${activeRecord.code}`}) for $${activeRecord.invoice2027.amountUsd} USD, dated ${invoiceDate}.\n\nKindly acknowledge receipt and confirm your finance contact & reference people.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
                             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 font-semibold"
                           >
                             <Mail className="w-3.5 h-3.5" />
@@ -1623,7 +1634,7 @@ export default function MembershipPage() {
                           </div>
                           {lastActivationResult.recipients.length > 0 && (
                             <a
-                              href={`mailto:${encodeURIComponent(lastActivationResult.recipients.map(r => r.email).join(','))}?subject=${encodeURIComponent(`EPN One Network — ${lastActivationResult.when} Action & Data Update Reminder`)}&body=${encodeURIComponent(`Dear EPN Member Association,\n\nThis is an automated reminder for the ${lastActivationResult.when} milestone in the EPN 2027 Membership Calendar. Please review and update your association's contact email, finance contact, and designated reference people in EPN One Network.\n\nWarm regards,\nEPN Secretariat`)}`}
+                              href={`mailto:${encodeURIComponent(lastActivationResult.recipients.map(r => r.email).join(','))}?subject=${encodeURIComponent(`EPN One Network — ${lastActivationResult.when} Action & Data Update Reminder`)}&body=${encodeURIComponent(`Dear EPN Member Association,\n\nThis is an automated reminder for the ${lastActivationResult.when} milestone in the EPN 2027 Membership Calendar. Please review and update your association's contact email, finance contact, and designated reference people in EPN One Network.\n\nWarm regards,\n\n${EPN_EMAIL_SIGNATURE}`)}`}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shrink-0"
                             >
                               <Mail className="w-3.5 h-3.5" />
