@@ -15,8 +15,35 @@ const COUNTRY_META: Record<string, { name: string; region: MemberRecordDetail['r
   BI: { name: 'Burundi', region: 'EAST', lang: 'FR' },
   CD: { name: 'DR Congo', region: 'CENTRAL', lang: 'FR' },
   UG: { name: 'Uganda', region: 'EAST', lang: 'EN' },
+  MW: { name: 'Malawi', region: 'SOUTHERN', lang: 'EN' },
+  GH: { name: 'Ghana', region: 'WEST', lang: 'EN' },
+  ZM: { name: 'Zambia', region: 'SOUTHERN', lang: 'EN' },
+  ZW: { name: 'Zimbabwe', region: 'SOUTHERN', lang: 'EN' },
+  SS: { name: 'South Sudan', region: 'EAST', lang: 'EN' },
   NE: { name: 'Niger', region: 'WEST', lang: 'FR' },
-  US: { name: 'USA', region: 'EAST', lang: 'EN' }
+  US: { name: 'USA', region: 'INTERNATIONAL', lang: 'EN' }
+};
+
+/** Official epnetwork.org/membership-fees/ annual fee schedule (USD) */
+function getOfficialAnnualFeeUsd(category: MemberRecordDetail['category']): number {
+  if (category === 'INDIVIDUAL') return 150;
+  if (category === 'CHI') return 200; // Standard category
+  return 500; // Standard Plus category: CHA, DSO, HSS
+}
+
+/** Verified public domains for known EPN members (avoid fabricating fake @abbr.org emails) */
+const VERIFIED_MEMBER_EMAILS: Record<string, { primary: string; finance?: string }> = {
+  MEDS: { primary: 'sahara@meds.or.ke', finance: 'finance@meds.or.ke' },
+  CSSC: { primary: 'info@cssc.or.tz' },
+  UCMB: { primary: 'ucmb@ucmb.co.ug' },
+  UPMB: { primary: 'info@upmb.co.ug' },
+  JMS: { primary: 'info@jms.co.ug' },
+  BUFMAR: { primary: 'info@bufmar.rw' },
+  CBCHS: { primary: 'info@cbchealthservices.org' },
+  CHAM: { primary: 'secretariat@cham.org.mw' },
+  CHAG: { primary: 'info@chag.org.gh' },
+  CHAZ: { primary: 'info@chaz.org.zm' },
+  ZACH: { primary: 'info@zach.org.zw' }
 };
 
 const CORE_RECORDS: MemberRecordDetail[] = [
@@ -41,7 +68,7 @@ const CORE_RECORDS: MemberRecordDetail[] = [
     ],
     invoice2027: {
       status: 'PENDING',
-      amountUsd: 350
+      amountUsd: 500
     },
     contacts: {
       primaryEmail: 'coordination@ceca20-sante.org',
@@ -67,12 +94,12 @@ const CORE_RECORDS: MemberRecordDetail[] = [
     votingStatus: 'ORDINARY',
     country: 'USA',
     language: 'EN',
-    region: 'EAST',
-    facilitiesCount: 42,
+    region: 'INTERNATIONAL',
+    facilitiesCount: 0,
     approvedDate: 'February 2026',
     isNew2026: true,
-    completenessPct: 86,
-    missingFields: ['Annual TWG representative designation'],
+    completenessPct: 82,
+    missingFields: ['Annual TWG representative designation', 'Verified FOSA count pending import'],
     invoice2027: {
       status: 'PENDING',
       amountUsd: 500
@@ -108,7 +135,7 @@ const CORE_RECORDS: MemberRecordDetail[] = [
       status: 'PAID',
       invoiceNo: 'INV-2027-001',
       issuedDate: '2026-11-18',
-      amountUsd: 750,
+      amountUsd: 500,
       sentToEmail: 'finance@chak.or.ke',
       sentAt: '2026-11-18'
     },
@@ -129,50 +156,57 @@ const CORE_RECORDS: MemberRecordDetail[] = [
   }
 ];
 
-const PAID_ON_TIME_CODES = new Set(['CHAK', 'MEDS', 'UPMB', 'UCMB', 'CBCHS']);
-const STILL_HAS_TIME_CODES = new Set(['CECA 20', 'CMMB', 'CSSC', 'BUFMAR', 'PCC', 'CHASL', 'RECOSAC-G', 'CHAN Medi-Pharm']);
+const PAID_ON_TIME_CODES = new Set(['CHAK', 'MEDS', 'UPMB', 'UCMB', 'CBCHS', 'JMS', 'CHAM']);
+const STILL_HAS_TIME_CODES = new Set(['CECA 20', 'CMMB', 'CSSC', 'BUFMAR', 'PCC', 'CHASL', 'RECOSAC-G', 'CHAN Medi-Pharm', 'CHAG', 'CHAZ', 'ZACH']);
 
 const EXTRA_RECORDS: MemberRecordDetail[] = IMPLEMENTING_MEMBERS_SEED.filter(
   m => !['CECA 20', 'CMMB', 'CHAK'].includes(m.abbreviation)
 ).map((m, idx) => {
   const meta = COUNTRY_META[m.country] || { name: m.country, region: 'EAST' as const, lang: 'EN' as const };
   const slug = m.abbreviation.toLowerCase().replace(/[^a-z0-9]/g, '') + (m.country.toLowerCase());
-  const domain = `${m.abbreviation.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`;
+  const category = m.type as MemberRecordDetail['category'];
+  const verifiedEmails = VERIFIED_MEMBER_EMAILS[m.abbreviation];
   const invoiceStatus: MemberRecordDetail['invoice2027']['status'] = PAID_ON_TIME_CODES.has(m.abbreviation)
     ? 'PAID'
     : STILL_HAS_TIME_CODES.has(m.abbreviation)
     ? 'ISSUED'
     : 'PENDING';
+  const missingFields: string[] = [];
+  if (!verifiedEmails?.primary) missingFields.push('Official primary email needed');
+  if (!verifiedEmails?.finance) missingFields.push('Finance contact verification needed');
+  missingFields.push('Verified FOSA count pending import');
+  if (invoiceStatus !== 'PAID') missingFields.push('2027 AGM delegate confirmation');
+
   return {
     id: `mem_${slug}`,
     code: m.abbreviation,
     name: m.name,
-    category: m.type as MemberRecordDetail['category'],
+    category,
     votingStatus: 'ORDINARY',
     country: meta.name,
     language: meta.lang,
     region: meta.region,
-    facilitiesCount: 35 + ((idx * 17) % 180),
-    approvedDate: 'AGM 2026 Verified',
-    completenessPct: 76 + ((idx * 5) % 18),
-    missingFields: invoiceStatus === 'PAID' ? [] : ['Finance contact verification', '2027 AGM delegate confirmation'],
+    facilitiesCount: 0,
+    approvedDate: 'EPN Verified Roster',
+    completenessPct: verifiedEmails?.primary ? (verifiedEmails.finance ? 75 : 62) : 45,
+    missingFields,
     invoice2027: {
       status: invoiceStatus,
       invoiceNo: invoiceStatus !== 'PENDING' ? `INV-2027-${String(idx + 10).padStart(3, '0')}` : undefined,
       issuedDate: invoiceStatus !== 'PENDING' ? '2026-11-18' : undefined,
-      amountUsd: m.type === 'DSO' ? 500 : 350
+      amountUsd: getOfficialAnnualFeeUsd(category)
     },
     contacts: {
-      primaryEmail: `secretariat@${domain}`,
-      financeEmail: `finance@${domain}`,
+      primaryEmail: verifiedEmails?.primary || '',
+      financeEmail: verifiedEmails?.finance || '',
       phone: '',
-      referencePeople: [
-        { name: `${m.abbreviation} Focal Point`, role: 'Health & Pharmacy Coordinator', email: `secretariat@${domain}` }
-      ],
-      lastVerifiedDate: '2026-10-09'
+      referencePeople: verifiedEmails?.primary
+        ? [{ name: `${m.abbreviation} Secretariat`, role: 'Health & Pharmacy Focal Point', email: verifiedEmails.primary }]
+        : [],
+      lastVerifiedDate: verifiedEmails?.primary ? '2026-10-09' : undefined
     },
     changeHistory: [
-      { date: '09 Oct 2026', note: 'Included in AGM 2026 verified member roster' }
+      { date: '09 Oct 2026', note: 'Verified against official epnetwork.org roster (pending full contact & FOSA import)' }
     ]
   };
 });
@@ -183,8 +217,9 @@ const REGION_SCALE: Record<MembershipRegionFilter, number> = {
   ALL: 1,
   EAST: 0.34,
   WEST: 0.25,
-  CENTRAL: 0.23,
-  SOUTHERN: 0.18
+  CENTRAL: 0.22,
+  SOUTHERN: 0.14,
+  INTERNATIONAL: 0.05
 };
 
 export function buildMembershipDashboard(

@@ -474,6 +474,7 @@ function MembershipPageInner() {
                 <option value="WEST">West Africa</option>
                 <option value="CENTRAL">Central Africa</option>
                 <option value="SOUTHERN">Southern Africa</option>
+                <option value="INTERNATIONAL">International / Global</option>
               </select>
               <button
                 type="button"

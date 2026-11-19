@@ -263,7 +263,8 @@ export default function DashboardPage() {
       'Warm regards,',
       'Ecumenical Pharmaceutical Network (EPN)',
       'Supply Chain Portal & Health Control Secretariat',
-      'P.O. Box 749-00606 Sarit Centre, Nairobi, Kenya | https://epnetwork.org'
+      'Maisonette 1, Kirichwa Flats, Kirichwa Road, Kilimani | P.O. Box 749-00606, Nairobi, Kenya',
+      'Tel: +254 724 301755 | Email: info@epnetwork.org | https://epnetwork.org'
     ].join('\n');
     return `https://mail.google.com/mail/?view=cm&fs=1&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };

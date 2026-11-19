@@ -275,7 +275,7 @@ export interface JurisdictionPartitionSummary {
   regulatoryFramework: string;
 }
 
-export type MembershipRegionFilter = 'ALL' | 'EAST' | 'WEST' | 'CENTRAL' | 'SOUTHERN';
+export type MembershipRegionFilter = 'ALL' | 'EAST' | 'WEST' | 'CENTRAL' | 'SOUTHERN' | 'INTERNATIONAL';
 
 export interface MemberRecordDetail {
   id: string;
@@ -286,7 +286,7 @@ export interface MemberRecordDetail {
   country: string;
   city?: string;
   language: 'EN' | 'FR' | 'BILINGUAL' | 'ES';
-  region: 'EAST' | 'WEST' | 'CENTRAL' | 'SOUTHERN';
+  region: 'EAST' | 'WEST' | 'CENTRAL' | 'SOUTHERN' | 'INTERNATIONAL';
   facilitiesCount: number;
   approvedDate: string;
   isNew2026?: boolean;
