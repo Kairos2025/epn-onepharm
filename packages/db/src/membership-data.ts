@@ -105,7 +105,7 @@ const CORE_RECORDS: MemberRecordDetail[] = [
     completenessPct: 96,
     missingFields: ['2027 AGM delegate confirmation'],
     invoice2027: {
-      status: 'ISSUED',
+      status: 'PAID',
       invoiceNo: 'INV-2027-001',
       issuedDate: '2026-11-18',
       amountUsd: 750,
@@ -129,12 +129,20 @@ const CORE_RECORDS: MemberRecordDetail[] = [
   }
 ];
 
+const PAID_ON_TIME_CODES = new Set(['CHAK', 'MEDS', 'UPMB', 'UCMB', 'CBCHS']);
+const STILL_HAS_TIME_CODES = new Set(['CECA 20', 'CMMB', 'CSSC', 'BUFMAR', 'PCC', 'CHASL', 'RECOSAC-G', 'CHAN Medi-Pharm']);
+
 const EXTRA_RECORDS: MemberRecordDetail[] = IMPLEMENTING_MEMBERS_SEED.filter(
   m => !['CECA 20', 'CMMB', 'CHAK'].includes(m.abbreviation)
 ).map((m, idx) => {
   const meta = COUNTRY_META[m.country] || { name: m.country, region: 'EAST' as const, lang: 'EN' as const };
   const slug = m.abbreviation.toLowerCase().replace(/[^a-z0-9]/g, '') + (m.country.toLowerCase());
   const domain = `${m.abbreviation.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`;
+  const invoiceStatus: MemberRecordDetail['invoice2027']['status'] = PAID_ON_TIME_CODES.has(m.abbreviation)
+    ? 'PAID'
+    : STILL_HAS_TIME_CODES.has(m.abbreviation)
+    ? 'ISSUED'
+    : 'PENDING';
   return {
     id: `mem_${slug}`,
     code: m.abbreviation,
@@ -147,9 +155,11 @@ const EXTRA_RECORDS: MemberRecordDetail[] = IMPLEMENTING_MEMBERS_SEED.filter(
     facilitiesCount: 35 + ((idx * 17) % 180),
     approvedDate: 'AGM 2026 Verified',
     completenessPct: 76 + ((idx * 5) % 18),
-    missingFields: ['Finance contact verification', '2027 AGM delegate confirmation'],
+    missingFields: invoiceStatus === 'PAID' ? [] : ['Finance contact verification', '2027 AGM delegate confirmation'],
     invoice2027: {
-      status: 'PENDING',
+      status: invoiceStatus,
+      invoiceNo: invoiceStatus !== 'PENDING' ? `INV-2027-${String(idx + 10).padStart(3, '0')}` : undefined,
+      issuedDate: invoiceStatus !== 'PENDING' ? '2026-11-18' : undefined,
       amountUsd: m.type === 'DSO' ? 500 : 350
     },
     contacts: {

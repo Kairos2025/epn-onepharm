@@ -44,6 +44,28 @@ const EPN_EMAIL_SIGNATURE = [
 
 const MAIN_TABS: readonly MainTab[] = ['FEES', 'REACH', 'RECORD', 'FUNCTION'];
 
+function getPaymentBadge(status: MemberRecordDetail['invoice2027']['status']) {
+  if (status === 'PAID') {
+    return {
+      label: 'Paid on time',
+      pill: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+      dot: 'bg-emerald-600'
+    };
+  }
+  if (status === 'ISSUED' || status === 'SUBMITTED' || status === 'ACKNOWLEDGED') {
+    return {
+      label: 'Still has time to pay',
+      pill: 'bg-amber-100 text-amber-900 border border-amber-200',
+      dot: 'bg-amber-500'
+    };
+  }
+  return {
+    label: 'Unpaid / Overdue',
+    pill: 'bg-rose-100 text-rose-800 border border-rose-200',
+    dot: 'bg-rose-600'
+  };
+}
+
 function MembershipPageInner() {
   const searchParams = useSearchParams();
   const requestedTab = searchParams.get('tab') as MainTab | null;
@@ -578,12 +600,22 @@ function MembershipPageInner() {
                       <div className="pt-2 border-t border-slate-100">
                         <div className="text-[11px] font-semibold text-slate-600 mb-2">Unpaid invoices by age</div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                          {data.invoiceAging.map(a => (
-                            <div key={a.label} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-                              <div className="font-extrabold text-slate-900 text-lg tabular-nums">{a.count}</div>
-                              <div className="text-[10px] text-slate-600">{a.label}</div>
-                            </div>
-                          ))}
+                          {data.invoiceAging.map(a => {
+                            const toneClass =
+                              a.label.startsWith('90+')
+                                ? 'bg-rose-50 border-rose-200 text-rose-900'
+                                : a.label.startsWith('61')
+                                ? 'bg-orange-50 border-orange-200 text-orange-900'
+                                : a.label.startsWith('31')
+                                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                                : 'bg-emerald-50 border-emerald-200 text-emerald-900';
+                            return (
+                              <div key={a.label} className={`p-2.5 rounded-xl border ${toneClass}`}>
+                                <div className="font-extrabold text-lg tabular-nums">{a.count}</div>
+                                <div className="text-[10px] font-semibold">{a.label}</div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -707,6 +739,59 @@ function MembershipPageInner() {
                       >
                         Manage Invoices, Contacts &amp; Imports &rarr;
                       </button>
+                    </div>
+                  </div>
+
+                  {/* Color-Coded Member Payment Status Board */}
+                  <div className="m3-glass-card p-5 sm:p-6 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900">Member Payment Status (Color-Coded)</h3>
+                        <p className="text-xs text-slate-500">Instant visual status for all tracked member associations</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <span className="w-2 h-2 rounded-full bg-emerald-600" /> Paid on time
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-200">
+                          <span className="w-2 h-2 rounded-full bg-amber-500" /> Still has time to pay
+                        </span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-200">
+                          <span className="w-2 h-2 rounded-full bg-rose-600" /> Unpaid / Overdue
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                      {data.records.map(rec => {
+                        const badge = getPaymentBadge(rec.invoice2027.status);
+                        return (
+                          <button
+                            key={rec.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedRecordId(rec.id);
+                              setActiveTab('RECORD');
+                            }}
+                            className="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-[#004a59] text-left transition-colors flex flex-col justify-between gap-2 cursor-pointer"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <div className="font-bold text-slate-900 truncate">{rec.code} · {rec.country}</div>
+                                <div className="text-[11px] text-slate-500 truncate">{rec.name}</div>
+                              </div>
+                              <span className="font-mono font-bold text-slate-700 shrink-0">${rec.invoice2027.amountUsd}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold ${badge.pill}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
+                                {badge.label}
+                              </span>
+                              <span className="text-[10px] font-semibold text-[#004a59]">Open Record &rarr;</span>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

@@ -575,12 +575,20 @@ function ExplorerInner() {
                       <th className="py-2.5 px-3">Member Organization</th>
                       <th className="py-2.5 px-3">Country</th>
                       <th className="py-2.5 px-3">Category</th>
-                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3">Payment Status</th>
                       <th className="py-2.5 px-3 text-right">Profile</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredDirectoryMembers.map(m => (
+                    {filteredDirectoryMembers.map(m => {
+                      const paidSet = new Set(['CHAK', 'MEDS', 'UPMB', 'UCMB', 'CBCHS']);
+                      const timeSet = new Set(['CECA 20', 'CMMB', 'CSSC', 'BUFMAR', 'PCC', 'CHASL', 'RECOSAC-G', 'CHAN Medi-Pharm']);
+                      const payBadge = paidSet.has(m.abbreviation)
+                        ? { label: 'Paid on time', cls: 'bg-emerald-100 text-emerald-800 border-emerald-200', dot: 'bg-emerald-600' }
+                        : timeSet.has(m.abbreviation)
+                        ? { label: 'Still has time', cls: 'bg-amber-100 text-amber-900 border-amber-200', dot: 'bg-amber-500' }
+                        : { label: 'Unpaid / Overdue', cls: 'bg-rose-100 text-rose-800 border-rose-200', dot: 'bg-rose-600' };
+                      return (
                       <tr key={m.abbreviation + m.country} className="hover:bg-slate-50/80">
                         <td className="py-2.5 px-3 font-bold text-slate-900">{m.abbreviation}</td>
                         <td className="py-2.5 px-3 text-slate-700">{m.name}</td>
@@ -593,8 +601,9 @@ function ExplorerInner() {
                           </span>
                         </td>
                         <td className="py-2.5 px-3">
-                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 font-semibold text-[10px]">
-                            Active
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${payBadge.cls}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${payBadge.dot}`} />
+                            {payBadge.label}
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-right">
@@ -607,7 +616,8 @@ function ExplorerInner() {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                     {filteredDirectoryMembers.length === 0 && (
                       <tr>
                         <td colSpan={6} className="py-6 text-center text-slate-400">
