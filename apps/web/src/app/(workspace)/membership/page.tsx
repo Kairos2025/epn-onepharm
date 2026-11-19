@@ -27,6 +27,7 @@ import type {
   MemberRecordDetail
 } from '@epn/domain';
 import { epnClient } from '@/lib/api';
+import { VERIFIED_MEMBER_PROFILES } from '@/lib/member-profiles-verified';
 
 type MainTab = 'FEES' | 'REACH' | 'RECORD' | 'FUNCTION';
 type RecordSubTab = 'PROFILE' | 'FACILITIES' | 'CONTACTS' | 'SUBSCRIPTION' | 'ENGAGEMENT';
@@ -1025,16 +1026,47 @@ function MembershipPageInner() {
                   <div className="m3-glass-card p-5 sm:p-6 space-y-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-2xl bg-cyan-800 text-white font-bold flex items-center justify-center text-sm shrink-0">
-                          {activeRecord.code}
-                        </div>
-                        <div>
-                          <h2 className="text-lg font-bold text-slate-900">{activeRecord.name}</h2>
-                          <p className="text-xs text-slate-600">
-                            {activeRecord.category} · {activeRecord.votingStatus} · {activeRecord.country}
-                            {activeRecord.city ? ` (${activeRecord.city})` : ''} · {activeRecord.language} · Approved {activeRecord.approvedDate}
-                          </p>
-                        </div>
+                        {(() => {
+                          const webProf =
+                            VERIFIED_MEMBER_PROFILES[activeRecord.code] ||
+                            (activeRecord.code === 'C20' ? VERIFIED_MEMBER_PROFILES['CECA 20'] : undefined);
+                          return (
+                            <>
+                              {webProf?.logo ? (
+                                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                                  <img
+                                    src={webProf.logo}
+                                    alt={`${activeRecord.code} logo`}
+                                    className="w-full h-full object-contain"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-12 h-12 rounded-2xl bg-cyan-800 text-white font-bold flex items-center justify-center text-sm shrink-0">
+                                  {activeRecord.code}
+                                </div>
+                              )}
+                              <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h2 className="text-lg font-bold text-slate-900">{activeRecord.name}</h2>
+                                  {webProf?.website && (
+                                    <a
+                                      href={webProf.website}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] font-semibold text-[#004a59] bg-cyan-50 border border-cyan-200 px-2.5 py-0.5 rounded-full hover:bg-cyan-100 transition-colors"
+                                    >
+                                      Official Website ↗
+                                    </a>
+                                  )}
+                                </div>
+                                <p className="text-xs text-slate-600">
+                                  {activeRecord.category} · {activeRecord.votingStatus} · {activeRecord.country}
+                                  {activeRecord.city ? ` (${activeRecord.city})` : ''} · {activeRecord.language} · Approved {activeRecord.approvedDate}
+                                </p>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
 
                       <div className="flex items-center gap-2 text-xs">

@@ -55,6 +55,23 @@ const VERIFIED_MEMBER_EMAILS: Record<string, { primary: string; finance?: string
   'CHAL-LS': { primary: 'ed@chal.org.ls' }
 };
 
+/** Publicly reported facility / partner reach counts from official CHA/DSO websites & ACHAP */
+const VERIFIED_FACILITY_COUNTS: Record<string, number> = {
+  MEDS: 2300,
+  JMS: 3000,
+  CSSC: 900,
+  CHAN: 400,
+  CHAG: 344,
+  UPMB: 302,
+  UCMB: 287,
+  CHAM: 190,
+  BUFMAR: 180,
+  CHAZ: 156,
+  ZACH: 135,
+  CBCHS: 85,
+  'CHAL-LS': 79
+};
+
 const CORE_RECORDS: MemberRecordDetail[] = [
   {
     id: 'mem_ceca20',
@@ -175,6 +192,7 @@ const EXTRA_RECORDS: MemberRecordDetail[] = IMPLEMENTING_MEMBERS_SEED.filter(
   const slug = m.abbreviation.toLowerCase().replace(/[^a-z0-9]/g, '') + (m.country.toLowerCase());
   const category = m.type as MemberRecordDetail['category'];
   const verifiedEmails = VERIFIED_MEMBER_EMAILS[m.abbreviation];
+  const verifiedFacilities = VERIFIED_FACILITY_COUNTS[m.abbreviation] ?? 0;
   const invoiceStatus: MemberRecordDetail['invoice2027']['status'] = PAID_ON_TIME_CODES.has(m.abbreviation)
     ? 'PAID'
     : STILL_HAS_TIME_CODES.has(m.abbreviation)
@@ -183,7 +201,7 @@ const EXTRA_RECORDS: MemberRecordDetail[] = IMPLEMENTING_MEMBERS_SEED.filter(
   const missingFields: string[] = [];
   if (!verifiedEmails?.primary) missingFields.push('Official primary email needed');
   if (!verifiedEmails?.finance) missingFields.push('Finance contact verification needed');
-  missingFields.push('Verified FOSA count pending import');
+  if (verifiedFacilities === 0) missingFields.push('Verified FOSA count pending import');
   if (invoiceStatus !== 'PAID') missingFields.push('2027 AGM delegate confirmation');
 
   return {
@@ -195,9 +213,9 @@ const EXTRA_RECORDS: MemberRecordDetail[] = IMPLEMENTING_MEMBERS_SEED.filter(
     country: meta.name,
     language: meta.lang,
     region: meta.region,
-    facilitiesCount: 0,
+    facilitiesCount: verifiedFacilities,
     approvedDate: 'EPN Verified Roster',
-    completenessPct: verifiedEmails?.primary ? (verifiedEmails.finance ? 75 : 62) : 45,
+    completenessPct: Math.min(95, (verifiedEmails?.primary ? 65 : 42) + (verifiedFacilities > 0 ? 18 : 0) + (verifiedEmails?.finance ? 10 : 0)),
     missingFields,
     invoice2027: {
       status: invoiceStatus,

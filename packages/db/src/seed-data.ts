@@ -26,8 +26,21 @@ export const SEED_COUNTRIES = [
   { code: 'NE', name: 'Niger', lat: 17.6078, lng: 8.0817, epnPresence: true },
   { code: 'MW', name: 'Malawi', lat: -13.2543, lng: 34.3015, epnPresence: true },
   { code: 'ZM', name: 'Zambia', lat: -13.1339, lng: 27.8493, epnPresence: true },
+  { code: 'ZW', name: 'Zimbabwe', lat: -19.0154, lng: 29.1549, epnPresence: true },
+  { code: 'GH', name: 'Ghana', lat: 7.9465, lng: -1.0232, epnPresence: true },
   { code: 'MG', name: 'Madagascar', lat: -18.7669, lng: 46.8691, epnPresence: true },
-  { code: 'SS', name: 'South Sudan', lat: 6.8770, lng: 31.3070, epnPresence: true }
+  { code: 'SS', name: 'South Sudan', lat: 6.8770, lng: 31.3070, epnPresence: true },
+  { code: 'ET', name: 'Ethiopia', lat: 9.1450, lng: 40.4897, epnPresence: true },
+  { code: 'TG', name: 'Togo', lat: 8.6195, lng: 0.8248, epnPresence: true },
+  { code: 'CF', name: 'Central African Republic', lat: 6.6111, lng: 20.9394, epnPresence: true },
+  { code: 'ZA', name: 'South Africa', lat: -30.5595, lng: 22.9375, epnPresence: true },
+  { code: 'US', name: 'United States', lat: 37.0902, lng: -95.7129, epnPresence: true },
+  { code: 'DE', name: 'Germany', lat: 51.1657, lng: 10.4515, epnPresence: true },
+  { code: 'AT', name: 'Austria', lat: 47.5162, lng: 14.5501, epnPresence: true },
+  { code: 'AU', name: 'Australia', lat: -25.2744, lng: 133.7751, epnPresence: true },
+  { code: 'IN', name: 'India', lat: 20.5937, lng: 78.9629, epnPresence: true },
+  { code: 'PG', name: 'Papua New Guinea', lat: -6.3150, lng: 143.9555, epnPresence: true },
+  { code: 'MD', name: 'Moldova', lat: 47.4116, lng: 28.3699, epnPresence: true }
 ];
 
 export const SEED_PROJECTS = [
