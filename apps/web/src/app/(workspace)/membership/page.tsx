@@ -405,91 +405,74 @@ export default function MembershipPage() {
           </div>
         )}
 
-        {/* Top Header + Tabs + Region Filter */}
-        <div className="m3-glass-card p-5 sm:p-6 space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-full text-xs w-fit">
-              {(
-                [
-                  { id: 'FEES', label: '1 · Overview & Fees' },
-                  { id: 'REACH', label: '2 · Composition, Reach & Data Quality' },
-                  { id: 'RECORD', label: '3 · Member Records, Invoices & Imports' },
-                  { id: 'FUNCTION', label: '4 · 2027 Plan, ToR & JD' }
-                ] as const
-              ).map(tab => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`px-3.5 py-1.5 rounded-full font-semibold transition-colors cursor-pointer ${
-                    activeTab === tab.id ? 'bg-cyan-800 text-white shadow-xs' : 'text-slate-700 hover:bg-white'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+        {/* Clean Executive Header + Underline Tabs + Compact Region Select */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs px-5 sm:px-6 pt-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
+                {activeTab === 'FEES'
+                  ? 'Membership Overview & Fees'
+                  : activeTab === 'REACH'
+                  ? 'Composition, Reach & Data Quality'
+                  : activeTab === 'RECORD'
+                  ? 'Member Records, Invoices & Imports'
+                  : '2027 Membership Plan, ToR & JD'}
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                151 members · Membership year Jan–Dec · AGM 2026 baseline (Oct 2026) · 2027 fee cycle starts Jan 2027
+              </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Region</span>
-              {(
-                [
-                  { id: 'ALL', label: 'All regions' },
-                  { id: 'EAST', label: 'East' },
-                  { id: 'WEST', label: 'West' },
-                  { id: 'CENTRAL', label: 'Central' },
-                  { id: 'SOUTHERN', label: 'Southern' }
-                ] as const
-              ).map(r => (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => setRegion(r.id)}
-                  className={`px-3 py-1 rounded-full font-semibold transition-colors cursor-pointer ${
-                    region === r.id
-                      ? 'bg-cyan-800 text-white'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-2 text-xs shrink-0">
+              <label htmlFor="region-select" className="text-slate-500 font-semibold">
+                Region:
+              </label>
+              <select
+                id="region-select"
+                value={region}
+                onChange={e => setRegion(e.target.value as MembershipRegionFilter)}
+                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-50 font-semibold text-slate-800 cursor-pointer"
+              >
+                <option value="ALL">All regions</option>
+                <option value="EAST">East Africa</option>
+                <option value="WEST">West Africa</option>
+                <option value="CENTRAL">Central Africa</option>
+                <option value="SOUTHERN">Southern Africa</option>
+              </select>
               <button
                 type="button"
                 onClick={loadData}
                 aria-label="Refresh membership data"
-                className="p-1.5 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 cursor-pointer"
+                className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
 
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-              {activeTab === 'FEES'
-                ? 'Overview & Fee Collection'
-                : activeTab === 'REACH'
-                ? 'Composition, Reach & Data Quality'
-                : activeTab === 'RECORD'
-                ? 'Member Records, Invoices & CSV/PDF Imports'
-                : '2027 Membership Plan, Intern ToR & Officer JD'}
-            </h1>
-            <p className="text-xs text-slate-600 mt-0.5">
-              EPN membership, voting rights, fee payment, and data quality. Membership year 1 January to 31 December.
-            </p>
-            <div className="flex flex-wrap items-center gap-2 mt-2.5 text-[11px]">
-              <span className="px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-900 border border-cyan-200 font-medium">
-                AGM 2026 membership status paper · 9 Oct 2026
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-900 border border-sky-200 font-medium">
-                Payment &amp; contact tracker · 18 Oct 2025
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
-                2027 fee cycle starts Jan 2027
-              </span>
-            </div>
-          </div>
+          <nav aria-label="Membership sections" className="flex items-center gap-6 overflow-x-auto border-t border-slate-100 text-xs">
+            {(
+              [
+                { id: 'FEES', label: 'Overview & Fees' },
+                { id: 'REACH', label: 'Reach & Data Quality' },
+                { id: 'RECORD', label: 'Records, Invoices & Imports' },
+                { id: 'FUNCTION', label: '2027 Plan & Roles' }
+              ] as const
+            ).map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-3 border-b-2 font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  activeTab === tab.id
+                    ? 'border-[#004a59] text-[#004a59]'
+                    : 'border-transparent text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
         </div>
 
         {loading && !data ? (
