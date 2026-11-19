@@ -14,7 +14,7 @@ export default function WorkspaceLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-clip">
       <Navbar />
       <MobileWorkspaceNav />
       <div className="flex-1 flex flex-col lg:flex-row">
