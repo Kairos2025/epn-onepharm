@@ -23,10 +23,12 @@ import {
   Mail,
   Phone,
   Newspaper,
-  Save
+  Save,
+  ExternalLink
 } from 'lucide-react';
 import { IMPLEMENTING_MEMBERS_SEED, FUNDERS_SEED, MEMBER_CATEGORIES, NETWORK_STATISTICS } from '@epn/domain';
 import { SEED_PROJECTS, SEED_COUNTRIES } from '@epn/db';
+import { VERIFIED_MEMBER_PROFILES } from '@/lib/member-profiles-verified';
 
 type TabKind = 'DIRECTORY' | 'MEMBERS' | 'FACILITIES' | 'PROJECTS' | 'FUNDERS' | 'COVERAGE';
 const TAB_KINDS: readonly TabKind[] = ['DIRECTORY', 'MEMBERS', 'FACILITIES', 'PROJECTS', 'FUNDERS', 'COVERAGE'];
@@ -569,6 +571,7 @@ function ExplorerInner() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredDirectoryMembers.map(m => {
                   const payBadge = getDirectoryPayStatus(m.abbreviation);
+                  const webProfile = VERIFIED_MEMBER_PROFILES[m.abbreviation];
                   return (
                     <div
                       key={m.abbreviation + m.country}
@@ -577,9 +580,19 @@ function ExplorerInner() {
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-10 h-10 rounded-xl bg-[#004a59] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                              {m.abbreviation.slice(0, 4)}
-                            </div>
+                            {webProfile?.logo ? (
+                              <div className="w-11 h-11 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
+                                <img
+                                  src={webProfile.logo}
+                                  alt={`${m.abbreviation} official logo`}
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-11 h-11 rounded-xl bg-[#004a59] text-white font-bold text-xs flex items-center justify-center shrink-0">
+                                {m.abbreviation.slice(0, 4)}
+                              </div>
+                            )}
                             <div className="min-w-0">
                               <div className="font-bold text-sm text-slate-900 truncate">{m.abbreviation}</div>
                               <div className="text-[11px] text-slate-500 truncate">
@@ -591,7 +604,12 @@ function ExplorerInner() {
                             {m.type}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-700 leading-snug line-clamp-2">{m.name}</p>
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold text-slate-800 leading-snug line-clamp-2">{m.name}</p>
+                          {webProfile?.tagline && (
+                            <p className="text-[11px] text-slate-500 line-clamp-2 leading-snug">{webProfile.tagline}</p>
+                          )}
+                        </div>
                       </div>
 
                       <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -599,14 +617,28 @@ function ExplorerInner() {
                           <span className={`w-1.5 h-1.5 rounded-full ${payBadge.dot}`} />
                           {payBadge.label}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => openMemberProfile(m.abbreviation)}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#004a59] hover:underline cursor-pointer"
-                        >
-                          <span>View Profile</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
+                        <div className="flex items-center gap-2.5">
+                          {webProfile?.website && (
+                            <a
+                              href={webProfile.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-slate-500 hover:text-[#004a59]"
+                              title={`Visit ${m.abbreviation} official website`}
+                            >
+                              <span>Web</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => openMemberProfile(m.abbreviation)}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-[#004a59] hover:underline cursor-pointer"
+                          >
+                            <span>Profile</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -722,27 +754,39 @@ function ExplorerInner() {
                     return !q || m.abbreviation.toLowerCase().includes(q) || m.name.toLowerCase().includes(q) || m.country.toLowerCase().includes(q);
                   }).map(m => {
                     const rowPay = getDirectoryPayStatus(m.abbreviation);
+                    const rowWeb = VERIFIED_MEMBER_PROFILES[m.abbreviation];
                     const isSelected = selectedMember === m.abbreviation;
                     return (
                       <button
                         key={m.abbreviation + m.country}
                         type="button"
                         onClick={() => selectMember(m.abbreviation)}
-                        className={`w-full px-4 py-3 text-left transition-colors flex items-center justify-between gap-3 cursor-pointer ${
+                        className={`w-full px-3.5 py-2.5 text-left transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
                           isSelected
                             ? 'bg-[#004a59]/8 border-l-4 border-l-[#004a59]'
                             : 'hover:bg-slate-50 border-l-4 border-l-transparent'
                         }`}
                       >
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full shrink-0 ${rowPay.dot}`} title={rowPay.label} />
-                            <span className={`text-xs font-bold truncate ${isSelected ? 'text-[#004a59]' : 'text-slate-900'}`}>
-                              {m.abbreviation}
-                            </span>
-                            <span className="text-[10px] font-semibold text-slate-400">{m.type}</span>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {rowWeb?.logo ? (
+                            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                              <img src={rowWeb.logo} alt={m.abbreviation} className="w-full h-full object-contain" />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-slate-100 text-[#004a59] font-bold text-[10px] flex items-center justify-center shrink-0">
+                              {m.abbreviation.slice(0, 4)}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`w-2 h-2 rounded-full shrink-0 ${rowPay.dot}`} title={rowPay.label} />
+                              <span className={`text-xs font-bold truncate ${isSelected ? 'text-[#004a59]' : 'text-slate-900'}`}>
+                                {m.abbreviation}
+                              </span>
+                              <span className="text-[10px] font-semibold text-slate-400">{m.type}</span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 truncate mt-0.5">{m.name}</div>
                           </div>
-                          <div className="text-[11px] text-slate-500 truncate mt-0.5 pl-4">{m.name}</div>
                         </div>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 shrink-0">
                           {m.country}
@@ -755,36 +799,73 @@ function ExplorerInner() {
 
               {/* Right Executive Member Dossier */}
               <div className="lg:col-span-8 space-y-5">
-                {/* Executive Hero Banner */}
-                <div className="rounded-2xl bg-gradient-to-r from-[#004a59] to-[#005a87] text-white p-6 shadow-sm space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div className="space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2 text-[11px]">
-                        <span className="px-2.5 py-0.5 rounded-full bg-white/15 font-bold uppercase tracking-wider">
-                          {memberObj?.type ?? 'CHA'} · {countryName(countryCode)}
-                        </span>
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${pay.cls}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${pay.dot}`} />
-                          {pay.label}
-                        </span>
+                {(() => {
+                  const activeWeb = VERIFIED_MEMBER_PROFILES[selectedMember];
+                  return (
+                    <div className="rounded-2xl bg-gradient-to-r from-[#004a59] to-[#005a87] text-white p-6 shadow-sm space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                        <div className="flex items-start gap-4 min-w-0">
+                          {activeWeb?.logo ? (
+                            <div className="w-16 h-16 rounded-2xl bg-white p-2 flex items-center justify-center shrink-0 shadow-md overflow-hidden">
+                              <img
+                                src={activeWeb.logo}
+                                alt={`${selectedMember} official logo`}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-16 h-16 rounded-2xl bg-white/15 border border-white/25 text-white font-extrabold text-sm flex items-center justify-center shrink-0">
+                              {selectedMember.slice(0, 5)}
+                            </div>
+                          )}
+                          <div className="space-y-1.5 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                              <span className="px-2.5 py-0.5 rounded-full bg-white/15 font-bold uppercase tracking-wider">
+                                {memberObj?.type ?? 'CHA'} · {countryName(countryCode)}
+                              </span>
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border font-bold text-[10px] ${pay.cls}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${pay.dot}`} />
+                                {pay.label}
+                              </span>
+                              {activeWeb?.scrapedFromOfficialSite && (
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-300/40 text-emerald-100 text-[10px] font-bold">
+                                  Official Web Verified
+                                </span>
+                              )}
+                            </div>
+                            <h2 className="text-xl sm:text-2xl font-extrabold leading-tight">
+                              {memberObj?.name ?? selectedMember}
+                            </h2>
+                            <p className="text-xs text-cyan-100/90">
+                              {activeWeb?.tagline
+                                ? `${activeWeb.tagline} · Code: ${selectedMember}`
+                                : `Chapter Code: ${selectedMember} · Ordinary Voting Member · Strategic Plan 2026–2030`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 shrink-0">
+                          {activeWeb?.website && (
+                            <a
+                              href={activeWeb.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-white text-xs font-bold transition-colors"
+                            >
+                              <span>Official Website</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                          <Link
+                            href="/membership?tab=RECORD"
+                            className="px-3.5 py-2 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white text-xs font-bold transition-colors"
+                          >
+                            Invoice &amp; Reminder &rarr;
+                          </Link>
+                        </div>
                       </div>
-                      <h2 className="text-xl sm:text-2xl font-extrabold leading-tight">
-                        {memberObj?.name ?? selectedMember}
-                      </h2>
-                      <p className="text-xs text-cyan-100/90">
-                        Chapter Code: <b className="text-white">{selectedMember}</b> · Ordinary Voting Member · Strategic Plan 2026–2030
-                      </p>
                     </div>
-                    <div className="flex flex-wrap gap-2 shrink-0">
-                      <Link
-                        href="/membership?tab=RECORD"
-                        className="px-3.5 py-2 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white text-xs font-bold transition-colors"
-                      >
-                        Invoice &amp; Reminder &rarr;
-                      </Link>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Mandate End Alert if triggered */}
                 {mandateInfo && mandateInfo.tone !== 'emerald' && (
@@ -858,17 +939,34 @@ function ExplorerInner() {
                       <div className="font-bold text-slate-900 text-sm">{refPerson}</div>
                       <div className="text-slate-600">{refRole}</div>
                       <div className="pt-1.5 space-y-1 text-slate-700">
-                        <div className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-[#004a59]" /> {contactEmail}</div>
+                        <div className="flex items-center gap-1.5">
+                          <Mail className="w-3.5 h-3.5 text-[#004a59]" />{' '}
+                          {VERIFIED_MEMBER_PROFILES[selectedMember]?.publicEmail || contactEmail}
+                        </div>
                         <div className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-[#004a59]" /> {contactPhone}</div>
+                        {VERIFIED_MEMBER_PROFILES[selectedMember]?.website && (
+                          <div className="flex items-center gap-1.5">
+                            <Globe2 className="w-3.5 h-3.5 text-[#004a59]" />
+                            <a
+                              href={VERIFIED_MEMBER_PROFILES[selectedMember].website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[#004a59] font-semibold hover:underline truncate"
+                            >
+                              {VERIFIED_MEMBER_PROFILES[selectedMember].website}
+                            </a>
+                          </div>
+                        )}
                         {assocMatch?.mandateEnd && (
                           <div className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#004a59]" /> Mandate ends: <b>{assocMatch.mandateEnd}</b></div>
                         )}
                       </div>
                     </div>
                     <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 space-y-1">
-                      <div className="font-bold text-amber-950">Strategic Plan &amp; News</div>
+                      <div className="font-bold text-amber-950">Organization Profile &amp; Strategic Alignment</div>
                       <p className="text-amber-900 leading-relaxed">
-                        {assocMatch?.news ||
+                        {VERIFIED_MEMBER_PROFILES[selectedMember]?.overview ||
+                          assocMatch?.news ||
                           `${memberObj?.name ?? selectedMember} is aligned with EPN Strategic Plan 2026–2030 (Pillar 2: Member Ownership & Pharmaceutical Systems Strengthening).`}
                       </p>
                     </div>

@@ -31,19 +31,20 @@ function getOfficialAnnualFeeUsd(category: MemberRecordDetail['category']): numb
   return 500; // Standard Plus category: CHA, DSO, HSS
 }
 
-/** Verified public domains for known EPN members (avoid fabricating fake @abbr.org emails) */
+/** Verified public domains & emails scraped directly from official EPN member websites */
 const VERIFIED_MEMBER_EMAILS: Record<string, { primary: string; finance?: string }> = {
   MEDS: { primary: 'sahara@meds.or.ke', finance: 'finance@meds.or.ke' },
-  CSSC: { primary: 'info@cssc.or.tz' },
-  UCMB: { primary: 'ucmb@ucmb.co.ug' },
+  CSSC: { primary: 'contact@cssc.or.tz' },
+  UCMB: { primary: 'admin@ucmb.co.ug' },
   UPMB: { primary: 'info@upmb.co.ug' },
-  JMS: { primary: 'info@jms.co.ug' },
+  JMS: { primary: 'sales@jms.co.ug' },
   BUFMAR: { primary: 'info@bufmar.rw' },
   CBCHS: { primary: 'info@cbchealthservices.org' },
-  CHAM: { primary: 'secretariat@cham.org.mw' },
+  CHAM: { primary: 'info@cham.org.mw' },
   CHAG: { primary: 'info@chag.org.gh' },
   CHAZ: { primary: 'info@chaz.org.zm' },
-  ZACH: { primary: 'info@zach.org.zw' }
+  ZACH: { primary: 'info@zach.org.zw' },
+  'CHAL-LS': { primary: 'ed@chal.org.ls' }
 };
 
 const CORE_RECORDS: MemberRecordDetail[] = [
