@@ -1113,6 +1113,36 @@ export default function PublicPortalPage() {
       {/* Access Tiers & Subscriptions (Section 12.3) */}
       <section id="access" className="scroll-mt-28 py-14 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {/* Vision & Mission + Donate Banner (epnetwork.org) */}
+          <div className="rounded-2xl bg-[#004a59] text-white p-6 sm:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-center shadow-sm">
+            <div className="lg:col-span-2 space-y-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-[#31cdcf]">
+                Our Vision &amp; Mission · epnetwork.org
+              </div>
+              <h3 className="text-xl sm:text-2xl font-extrabold leading-snug">
+                Just and compassionate quality pharmaceutical services for ALL.
+              </h3>
+              <p className="text-xs sm:text-sm text-cyan-100/90 leading-relaxed">
+                EPN promotes access to quality health care services by strengthening pharmaceutical systems in Low and Middle-Income Countries alongside faith-based and church health systems.
+              </p>
+            </div>
+            <div className="bg-white/10 border border-white/20 rounded-xl p-4 space-y-3 text-xs">
+              <div className="font-bold text-white uppercase tracking-wider text-[11px]">
+                Direct Donation Channels
+              </div>
+              <div className="space-y-1 text-cyan-50">
+                <div><b>M-Pesa Paybill (Kenya):</b> 438778 (Account: Your Name)</div>
+                <div><b>Bank / Grants:</b> NCBA Bank Kenya (USD) &amp; Action Medeor</div>
+              </div>
+              <Link
+                href="/licensing"
+                className="inline-flex items-center justify-center w-full py-2.5 px-4 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white font-bold text-xs transition-colors"
+              >
+                Partner or Donate Now &rarr;
+              </Link>
+            </div>
+          </div>
+
           <div className="text-center max-w-2xl mx-auto">
             <div className="text-xs font-bold text-sky-600 uppercase tracking-wider">Access Tiers & Governance</div>
             <h2 className="text-2xl font-bold text-slate-900 mt-1">Multi-Tier Data Access & Subscriptions</h2>
@@ -1146,53 +1176,54 @@ export default function PublicPortalPage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-12 text-xs">
+      <footer className="bg-[#003440] text-slate-300 py-12 text-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-white/15">
             <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded bg-sky-500 text-white font-bold flex items-center justify-center text-sm">
-                  EPN
-                </div>
-                <span className="text-white font-bold text-base">One Network</span>
+              <div className="flex items-center gap-2.5">
+                <img src="/epn-logo.png" alt="Ecumenical Pharmaceutical Network" className="h-9 w-auto object-contain bg-white rounded-lg p-1" />
+                <span className="text-white font-bold text-base">EPN One Network</span>
               </div>
-              <p className="text-slate-400 leading-relaxed text-xs">
-                Ecumenical Pharmaceutical Network (EPN), P.O. Box 73860-00200 Nairobi, Kenya. Modelled on DHIS2 conventions for church health networks.
+              <p className="text-cyan-100/80 leading-relaxed text-xs">
+                Ecumenical Pharmaceutical Network (EPN)<br />
+                Maisonette 1, Kirichwa Flats, Kirichwa Rd, Kilimani<br />
+                P.O. Box 749–00606, Nairobi, Kenya<br />
+                Tel: +254 724 301755 · info@epnetwork.org
               </p>
             </div>
 
             <div className="space-y-2">
-              <h5 className="text-white font-semibold uppercase tracking-wider text-[11px]">Key Applications</h5>
+              <h5 className="text-white font-semibold uppercase tracking-wider text-[11px]">EPN Portal &amp; Resources</h5>
               <ul className="space-y-1.5">
-                <li><Link href="/dashboard" className="hover:text-white">Analytics Dashboard</Link></li>
-                <li><Link href="/explorer" className="hover:text-white">Network Explorer</Link></li>
-                <li><Link href="/data-entry" className="hover:text-white">Data Entry (DHIS2 Form)</Link></li>
-                <li><Link href="/visualizer" className="hover:text-white">Data Visualizer</Link></li>
-                <li><Link href="/medstock" className="hover:text-white">Medstock Inventory</Link></li>
+                <li><Link href="/membership" className="hover:text-white">Membership &amp; 2027 Fees</Link></li>
+                <li><Link href="/explorer?tab=FUNDERS" className="hover:text-white">Donors &amp; Projects</Link></li>
+                <li><a href="https://training.epnetwork.org/" target="_blank" rel="noreferrer" className="hover:text-white">Learning Portal (LMS)</a></li>
+                <li><a href="https://www.epnetwork.org/centre-of-excellence" target="_blank" rel="noreferrer" className="hover:text-white">Centre of Excellence</a></li>
+                <li><a href="https://www.epnetwork.org/suppliers" target="_blank" rel="noreferrer" className="hover:text-white">Supplier Database</a></li>
               </ul>
             </div>
 
             <div className="space-y-2">
-              <h5 className="text-white font-semibold uppercase tracking-wider text-[11px]">Funders & Partners</h5>
-              <ul className="space-y-1.5 text-slate-400">
-                <li>Bread for the World (Brot für die Welt)</li>
-                <li>Bill & Melinda Gates Foundation</li>
-                <li>BMZ via action medeor</li>
-                <li>Difaem (German Institute for Medical Mission)</li>
-                <li>BEGECA eG • Plan:g • Fresenius Kabi</li>
+              <h5 className="text-white font-semibold uppercase tracking-wider text-[11px]">Publications &amp; Partners</h5>
+              <ul className="space-y-1.5 text-cyan-100/80">
+                <li><a href="https://www.epnetwork.org/publication-categories/annual-reports/" target="_blank" rel="noreferrer" className="hover:text-white">Annual Reports</a></li>
+                <li><a href="https://www.epnetwork.org/publication-categories/pharmalink/" target="_blank" rel="noreferrer" className="hover:text-white">E-Pharmalink</a></li>
+                <li><a href="https://www.epnetwork.org/publication-categories/netlinkf/" target="_blank" rel="noreferrer" className="hover:text-white">NetLink</a></li>
+                <li>Bread for the World · Gates Foundation</li>
+                <li>BMZ via action medeor · Difaem · BEGECA</li>
               </ul>
             </div>
 
             <div className="space-y-2">
-              <h5 className="text-white font-semibold uppercase tracking-wider text-[11px]">Governance & Compliance</h5>
-              <p className="leading-relaxed">
-                Compliant with Kenya Data Protection Act 2019 and GDPR. EPN tracks aggregate indicators only. No patient-level or identifiable health records are processed.
+              <h5 className="text-white font-semibold uppercase tracking-wider text-[11px]">Governance &amp; Compliance</h5>
+              <p className="leading-relaxed text-cyan-100/80">
+                Compliant with Kenya Data Protection Act 2019 and GDPR. EPN tracks aggregate network and member association indicators only.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-            <div>© 2026 Ecumenical Pharmaceutical Network (EPN). All rights reserved.</div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-cyan-100/70">
+            <div>© 2026 Ecumenical Pharmaceutical Network (EPN) · epnetwork.org</div>
             <div className="flex gap-4">
               <Link href="/docs" className="hover:text-white">DHIS2 Tutorial Standards</Link>
               <Link href="/privacy" className="hover:text-white">Data Sharing Framework</Link>

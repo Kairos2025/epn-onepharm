@@ -145,8 +145,9 @@ export default function LicensingPage() {
         )}
 
         {licensingTab === 'SETTLEMENT' && (
-        <div className="m3-glass-card p-6 space-y-5 max-w-xl">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Institutional Settlement</h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          <div className="m3-glass-card p-6 space-y-5">
+            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Institutional Settlement</h3>
 
           <div className="grid grid-cols-2 gap-3 text-xs">
             <button
@@ -209,12 +210,38 @@ export default function LicensingPage() {
               : `Authorize ${priceMap[selectedTier]?.[selectedBilling] || '$0'}`}
           </button>
 
-          {paymentSuccess && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{paymentMessage || `Confirmed. Your ${selectedTier} institutional license is active.`}</span>
+            {paymentSuccess && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{paymentMessage || `Confirmed. Your ${selectedTier} institutional license is active.`}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="m3-glass-card p-6 space-y-4 text-xs">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#004a59]">
+              Official EPN Donation &amp; Grant Channels (epnetwork.org)
             </div>
-          )}
+            <h3 className="text-base font-bold text-slate-900">
+              Support EPN Programmes Directly
+            </h3>
+            <div className="space-y-3">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <div className="font-bold text-slate-900">M-Pesa (Kenya)</div>
+                <div className="text-slate-600">Lipa na M-Pesa &rarr; Pay Bill <b>438778</b> · Account Number: <b>Your Name</b></div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                <div className="font-bold text-slate-900">Bank Transfer &amp; European Partners</div>
+                <div className="text-slate-600">USD Account via <b>NCBA Bank Kenya</b> or European partnership accounts via <b>Action Medeor</b>.</div>
+              </div>
+              <div className="p-3.5 rounded-xl bg-cyan-50 border border-cyan-200 space-y-1">
+                <div className="font-bold text-cyan-950">Secretariat Donor Desk</div>
+                <div className="text-cyan-900">
+                  Email: <b>info@epnetwork.org</b> · Tel: <b>+254 724 301755</b> · P.O. Box 749–00606, Nairobi
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         )}
       </main>

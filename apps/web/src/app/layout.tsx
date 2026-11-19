@@ -21,8 +21,8 @@ export const metadata: Metadata = {
   description:
     'Centralized health information, pharmaceutical surveillance, and systems strengthening platform for church health facilities across Africa.',
   icons: {
-    icon: '/epn-logo.svg',
-    apple: '/epn-logo.svg'
+    icon: '/epn-logo.png',
+    apple: '/epn-logo.png'
   }
 };
 

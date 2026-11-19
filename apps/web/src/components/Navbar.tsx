@@ -132,15 +132,54 @@ export function Navbar({ locale = 'en', onLocaleChange }: NavbarProps) {
 
   return (
     <>
+      <div className="bg-[#004a59] text-white text-[11px] border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-8 flex items-center justify-between gap-3">
+          <span className="truncate text-cyan-100/90 hidden sm:inline">
+            Ecumenical Pharmaceutical Network — Quality health care services for all
+          </span>
+          <div className="flex items-center gap-3 sm:gap-4 ml-auto">
+            <a
+              href="https://training.epnetwork.org/"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#31cdcf] transition-colors whitespace-nowrap"
+            >
+              Learning Portal
+            </a>
+            <a
+              href="https://www.epnetwork.org/centre-of-excellence"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#31cdcf] transition-colors whitespace-nowrap hidden md:inline"
+            >
+              Resources
+            </a>
+            <a
+              href="https://www.epnetwork.org/suppliers"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-[#31cdcf] transition-colors whitespace-nowrap hidden md:inline"
+            >
+              Supplier Database
+            </a>
+            <Link
+              href="/licensing"
+              className="px-2.5 py-0.5 rounded-full bg-[#f27f20] hover:bg-[#d96e14] text-white font-bold text-[10px] uppercase tracking-wider whitespace-nowrap transition-colors"
+            >
+              Donate / Partner
+            </Link>
+          </div>
+        </div>
+      </div>
       <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
           {/* Logo & Brand */}
           <div className="flex items-center gap-4 sm:gap-6 min-w-0">
             <Link href="/" className="flex items-center gap-2.5 cursor-pointer shrink-0">
               <img
-                src="/epn-logo.svg"
-                alt="EPN One Network"
-                className="w-9 h-9 rounded-2xl shadow-sm shrink-0"
+                src="/epn-logo.png"
+                alt="Ecumenical Pharmaceutical Network (EPN)"
+                className="h-10 w-auto object-contain shrink-0"
               />
               <div className="flex flex-col">
                 <span className="font-bold text-slate-900 leading-tight tracking-tight text-lg">

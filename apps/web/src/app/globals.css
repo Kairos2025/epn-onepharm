@@ -6,11 +6,15 @@
   --font-sans: 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Material 3 Tonal Palette */
-  --md-sys-color-primary: #006874;
+  /* EPN Official Brand Palette (epnetwork.org) + Material 3 Tonal */
+  --md-sys-color-primary: #004a59;
   --md-sys-color-on-primary: #ffffff;
   --md-sys-color-primary-container: #97f0ff;
   --md-sys-color-on-primary-container: #001f24;
+  --epn-teal: #004a59;
+  --epn-ocean: #005a87;
+  --epn-orange: #f27f20;
+  --epn-sage: #67a671;
   --md-sys-color-secondary-container: #d3e5f5;
   --md-sys-color-tertiary-container: #c4f1dc;
   --md-sys-color-surface: #f8fafc;

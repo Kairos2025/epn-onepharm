@@ -1441,7 +1441,7 @@ export default function MembershipPage() {
                   <div className="m3-glass-card p-5 sm:p-6 space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <img src="/epn-logo.svg" alt="EPN" className="w-10 h-10 rounded-xl shadow-xs shrink-0" />
+                        <img src="/epn-logo.png" alt="Ecumenical Pharmaceutical Network (EPN)" className="h-10 w-auto object-contain shrink-0" />
                         <div>
                           <div className="text-[11px] font-bold uppercase tracking-wider text-cyan-800">
                             Office of the Executive Director · 11 November 2026 · Draft for team review
